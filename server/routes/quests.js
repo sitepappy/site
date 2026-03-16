@@ -66,7 +66,7 @@ r.post("/:id/complete", authRequired, (req, res) => {
   res.json({ ok: true })
 })
 
-r.post("/", authRequired, adminOnly, (req, res) => {
+r.post("/", authRequired, moderatorOrAdmin, (req, res) => {
   const { name, reward } = req.body || {}
   const data = db.get()
   const q = { id: db.id(), name, reward: Number(reward) || 1, active: true }

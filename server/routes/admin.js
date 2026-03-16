@@ -1,10 +1,12 @@
 import { Router } from "express"
 import { db } from "../lib/db.js"
-import { authRequired, adminOnly } from "../lib/auth.js"
+import { authRequired, adminOnly, moderatorOrAdmin } from "../lib/auth.js"
 import { nowIso } from "../lib/utils.js"
 
 const r = Router()
-r.use(authRequired, adminOnly)
+
+// Модераторы и Админы могут заходить в панель в целом
+r.use(authRequired, moderatorOrAdmin)
 
 r.get("/users", (req, res) => {
   const q = String(req.query.q || "").toLowerCase()
@@ -15,7 +17,8 @@ r.get("/users", (req, res) => {
   res.json(list)
 })
 
-r.post("/users/role", (req, res) => {
+// ТОЛЬКО АДМИН может менять роли
+r.post("/users/role", adminOnly, (req, res) => {
   const { userId, role } = req.body || {}
   const data = db.get()
   const u = data.users.find(x => x.id === userId)
@@ -25,7 +28,8 @@ r.post("/users/role", (req, res) => {
   res.json({ ok: true })
 })
 
-r.post("/users/balance", (req, res) => {
+// ТОЛЬКО АДМИН может менять баланс
+r.post("/users/balance", adminOnly, (req, res) => {
   const { userId, delta } = req.body || {}
   const data = db.get()
   const u = data.users.find(x => x.id === userId)
@@ -37,13 +41,13 @@ r.post("/users/balance", (req, res) => {
   res.json({ ok: true, balance: u.balance })
 })
 
-r.get("/promos", (req, res) => {
+r.get("/promos", adminOnly, (req, res) => {
   const data = db.get()
   const list = data.promoCodes.map(p => ({ code: p.code, ownerUserId: p.ownerUserId, activations: p.totalActivations, disabled: p.disabled }))
   res.json(list)
 })
 
-r.post("/promos/disable", (req, res) => {
+r.post("/promos/disable", adminOnly, (req, res) => {
   const { code, disabled } = req.body || {}
   const data = db.get()
   const p = data.promoCodes.find(x => x.code === code)

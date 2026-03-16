@@ -11,7 +11,7 @@ r.get("/", (req, res) => {
   res.json(list)
 })
 
-r.post("/", authRequired, adminOnly, (req, res) => {
+r.post("/", authRequired, moderatorOrAdmin, (req, res) => {
   const { name, teams, options, deadline } = req.body || {}
   const data = db.get()
   const m = { id: db.id(), name, teams, options: (options || []).map(o => ({ id: db.id(), name: o.name, odds: Number(o.odds) })), deadline, status: "open", createdAt: nowIso() }
@@ -20,7 +20,7 @@ r.post("/", authRequired, adminOnly, (req, res) => {
   res.json(m)
 })
 
-r.post("/:id/close", authRequired, adminOnly, (req, res) => {
+r.post("/:id/close", authRequired, moderatorOrAdmin, (req, res) => {
   const data = db.get()
   const m = data.matches.find(x => x.id === req.params.id)
   if (!m) return res.status(404).json({ error: "Матч не найден" })
@@ -29,7 +29,7 @@ r.post("/:id/close", authRequired, adminOnly, (req, res) => {
   res.json({ ok: true })
 })
 
-r.post("/:id/settle", authRequired, adminOnly, (req, res) => {
+r.post("/:id/settle", authRequired, moderatorOrAdmin, (req, res) => {
   const { optionId } = req.body || {}
   const data = db.get()
   const m = data.matches.find(x => x.id === req.params.id)

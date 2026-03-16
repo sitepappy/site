@@ -37,7 +37,7 @@ r.get("/", authRequired, adminOnly, (req, res) => {
   res.json(list)
 })
 
-r.post("/:id/status", authRequired, adminOnly, (req, res) => {
+r.post("/:id/complete", authRequired, moderatorOrAdmin, (req, res) => {
   const { status } = req.body || {}
   const data = db.get()
   const o = data.orders.find(x => x.id === req.params.id)

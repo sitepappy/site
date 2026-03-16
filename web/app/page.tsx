@@ -14,65 +14,108 @@ async function getData() {
     const polls = (pollsRes as any).ok ? await (pollsRes as any).json() : []
     const matches = (matchesRes as any).ok ? await (matchesRes as any).json() : []
     
-    return { posts, polls, matches }
+    // Объединяем всё в одну ленту и сортируем по времени
+    const feed = [
+      ...posts.map((p: any) => ({ ...p, type: 'post' })),
+      ...polls.map((p: any) => ({ ...p, type: 'poll' })),
+      ...matches.map((m: any) => ({ ...m, type: 'match' }))
+    ].sort((a: any, b: any) => {
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+      return dateB - dateA;
+    });
+    
+    return { feed }
   } catch (e) {
     console.error("Ошибка загрузки данных:", e)
-    return { posts: [], polls: [], matches: [] }
+    return { feed: [] }
   }
 }
 
 export default async function Home() {
-  const data = await getData()
-  const openMatches = (data.matches || []).filter((m: any) => m.status !== "settled")
+  const { feed } = await getData()
+  
   return (
-    <div className="space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6">
+      {/* Секция последних ставок сверху как бегущая строка или компактный блок */}
       <div className="glass p-4 rounded-lg">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold text-acid">Активные ставки</h2>
-          <Link href="/bets" className="text-sm text-white/70 hover:text-white underline">Все матчи</Link>
-        </div>
-        <div className="space-y-3">
-          {openMatches.slice(0,3).map((m:any) => (
-            <div key={m.id} className="flex items-center justify-between gap-3 border border-white/10 rounded-lg px-3 py-2">
-              <div>
-                <div className="font-medium">{m.name}</div>
-                <div className="text-xs text-white/60">Дедлайн: {new Date(m.deadline).toLocaleString()}</div>
-              </div>
-              <div className="flex flex-wrap gap-1 text-xs">
-                {m.options?.slice(0,3).map((o:any) => (
-                  <span key={o.id} className="px-2 py-1 rounded bg-white/5 border border-white/10">
-                    {o.name} x{o.odds}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
-          {openMatches.length === 0 && <div className="text-white/60 text-sm">Пока нет активных матчей. Загляни позже.</div>}
-        </div>
-      </div>
-      <div className="glass p-4 rounded-lg">
-        <h2 className="font-semibold mb-3 text-neon">Последние ставки</h2>
+        <h2 className="text-xs font-bold mb-3 text-neon uppercase tracking-widest">Последние ставки</h2>
         <RecentBets />
       </div>
-      <div className="grid md:grid-cols-2 gap-4">
-        <div className="glass p-4 rounded-lg">
-          <h2 className="font-semibold mb-2 text-neon">Лента</h2>
-          <div className="space-y-3">
-            {data.posts.map((p: any) => (
-              <div key={p.id} className="p-3 rounded bg-white/5">
-                <h3 className="font-semibold">{p.title}</h3>
-                <p className="text-sm text-white/70">{p.content}</p>
+
+      {/* Основная лента */}
+      <div className="space-y-4">
+        {feed.map((item: any) => {
+          if (item.type === 'post') {
+            return (
+              <div key={`post-${item.id}`} className="glass p-5 rounded-lg border border-white/5 hover:border-neon/30 transition-colors">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 rounded-full bg-neon/20 flex items-center justify-center text-neon font-bold">P</div>
+                  <div>
+                    <div className="text-sm font-bold">PAPPY</div>
+                    <div className="text-[10px] text-white/40">{new Date(item.createdAt).toLocaleString()}</div>
+                  </div>
+                </div>
+                <h3 className="text-xl font-bold mb-2">{item.title}</h3>
+                <p className="text-white/80 leading-relaxed whitespace-pre-wrap">{item.content}</p>
+                {item.imageUrl && (
+                  <img src={item.imageUrl} alt="" className="mt-4 rounded-lg w-full object-cover max-h-96 border border-white/10" />
+                )}
               </div>
-            ))}
-            {data.posts.length === 0 && <div className="text-white/60">Пока нет постов</div>}
+            )
+          }
+          
+          if (item.type === 'match') {
+            return (
+              <div key={`match-${item.id}`} className="glass p-5 rounded-lg border border-white/5 bg-neon/5">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-[10px] bg-neon text-black px-2 py-0.5 rounded font-bold uppercase">Активный матч</span>
+                  <span className="text-[10px] text-white/40">{new Date(item.createdAt).toLocaleString()}</span>
+                </div>
+                <h3 className="text-lg font-bold mb-4 text-center">{item.name}</h3>
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  {item.options?.map((o: any) => (
+                    <Link href="/bets" key={o.id} className="p-3 rounded bg-white/5 border border-white/10 hover:border-neon text-center transition-all">
+                      <div className="text-xs text-white/60 mb-1">{o.name}</div>
+                      <div className="text-neon font-mono font-bold">x{o.odds}</div>
+                    </Link>
+                  ))}
+                </div>
+                <div className="text-center">
+                  <Link href="/bets" className="text-xs text-neon hover:underline">Сделать ставку →</Link>
+                </div>
+              </div>
+            )
+          }
+
+          if (item.type === 'poll') {
+            return (
+              <div key={`poll-${item.id}`} className="glass p-5 rounded-lg border border-white/5 bg-acid/5">
+                 <div className="flex items-center justify-between mb-4">
+                  <span className="text-[10px] bg-acid text-black px-2 py-0.5 rounded font-bold uppercase">Опрос</span>
+                  <span className="text-[10px] text-white/40">{new Date(item.createdAt).toLocaleString()}</span>
+                </div>
+                <h3 className="text-lg font-semibold mb-4">{item.question}</h3>
+                <div className="space-y-2">
+                  {item.options?.map((o: any) => (
+                    <div key={o.id} className="w-full p-3 rounded bg-white/5 border border-white/10 text-sm flex justify-between items-center">
+                      <span>{o.text}</span>
+                      <span className="text-acid font-mono">0%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          }
+          return null;
+        })}
+
+        {feed.length === 0 && (
+          <div className="text-center py-20 glass rounded-lg">
+            <div className="text-white/20 text-5xl mb-4">∅</div>
+            <div className="text-white/40">Лента пока пуста. Заходите позже!</div>
           </div>
-        </div>
-        <div className="glass p-4 rounded-lg">
-          <h2 className="font-semibold mb-2 text-acid">Опросы</h2>
-          <div className="space-y-3">
-            {data.polls.length === 0 && <div className="text-white/60">Пока нет опросов</div>}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   )
