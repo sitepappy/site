@@ -1,7 +1,7 @@
 "use client"
 import Link from "next/link"
 import { useEffect, useState } from "react"
-import { api } from "../lib/api"
+import { api } from "../../lib/api"
 import { useRouter, usePathname } from "next/navigation"
 
 export default function Header() {

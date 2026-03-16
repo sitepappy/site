@@ -1,6 +1,6 @@
 import { Router } from "express"
 import { db } from "../lib/db.js"
-import { authRequired, adminOnly } from "../lib/auth.js"
+import { authRequired, adminOnly, moderatorOrAdmin } from "../lib/auth.js"
 import { nowIso } from "../lib/utils.js"
 
 const r = Router()
