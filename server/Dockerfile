@@ -1,13 +1,16 @@
 FROM node:18-alpine
 WORKDIR /app
 
-# Копируем файлы (предполагаем, что контекст — папка /server)
-COPY package.json package-lock.json* ./
-RUN npm ci || npm i
+# Копируем файлы, указывая путь от корня репозитория
+COPY server/package.json server/package-lock.json* ./
+RUN npm install
 
-COPY . .
+# Копируем содержимое папки server
+COPY server/. .
+
 ENV NODE_ENV=production
 ENV PORT=4000
 EXPOSE 4000
 
-CMD ["npm","start"]
+# Запускаем напрямую через node, чтобы избежать проблем с путями в npm
+CMD ["node", "index.js"]
