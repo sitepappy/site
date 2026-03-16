@@ -1,13 +1,13 @@
 FROM node:18-alpine AS deps
 WORKDIR /app
-COPY package.json package-lock.json* ./
+COPY siteweb/web/package.json siteweb/web/package-lock.json* ./
 RUN npm ci || npm i
 
 FROM node:18-alpine AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY siteweb/web/. .
 RUN npm run build
 
 FROM node:18-alpine AS runner
