@@ -2,16 +2,15 @@ import fs from "fs"
 import path from "path"
 import { v4 as uuid } from "uuid"
 
-// Прямой путь к папке, которую мы примонтировали в Railway
-const dataDir = "/app/data" 
+// Используем /app/data если мы в Railway, иначе текущую папку
+const dataDir = process.env.NODE_ENV === "production" ? "/app/data" : "./data"
 const dbFile = path.join(dataDir, "db.json")
 
 export function ensureDataDir() {
   try {
-    // Проверяем, существует ли папка. Если нет - создаем.
     if (!fs.existsSync(dataDir)) {
       fs.mkdirSync(dataDir, { recursive: true });
-      console.log("Папка data создана");
+      console.log("Directory created:", dataDir);
     }
     
     if (!fs.existsSync(dbFile)) {
@@ -49,21 +48,30 @@ export function ensureDataDir() {
         emailVerifications: []
       };
       fs.writeFileSync(dbFile, JSON.stringify(initial, null, 2), "utf-8");
-      console.log("Файл db.json создан");
+      console.log("db.json created");
     }
   } catch (error) {
-    console.error("Ошибка при создании базы данных:", error);
+    console.error("DB Init Error:", error);
   }
 }
 
-// Функции read и write оставляем без изменений, но убедись, что они используют dbFile
 function read() {
-  const raw = fs.readFileSync(dbFile, "utf-8");
-  return JSON.parse(raw);
+  try {
+    if (!fs.existsSync(dbFile)) return { users: [], transactions: [], promoCodes: [], quests: [], userQuests: [], levels: [], matches: [], bets: [], rewards: [], orders: [], posts: [], polls: [], votes: [], about: {}, coop: {}, emailVerifications: [] };
+    const raw = fs.readFileSync(dbFile, "utf-8");
+    return JSON.parse(raw);
+  } catch (e) {
+    console.error("Read DB Error:", e);
+    return {};
+  }
 }
 
 function write(data) {
-  fs.writeFileSync(dbFile, JSON.stringify(data, null, 2), "utf-8");
+  try {
+    fs.writeFileSync(dbFile, JSON.stringify(data, null, 2), "utf-8");
+  } catch (e) {
+    console.error("Write DB Error:", e);
+  }
 }
 
 export const db = {
@@ -71,4 +79,3 @@ export const db = {
   save(data) { write(data); },
   id() { return uuid(); }
 };
-

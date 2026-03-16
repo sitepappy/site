@@ -19,35 +19,39 @@ import adminRoutes from "./routes/admin.js"
 import { ensureDataDir } from "./lib/db.js"
 
 dotenv.config()
+console.log("Starting PAPPY API...")
 
 const app = express()
 
-// 1. CORS ДОЛЖЕН БЫТЬ ПЕРВЫМ
-app.use(cors()); 
-app.options("*", cors());
+// CORS
+app.use(cors())
+app.options("*", cors())
 
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
-}));
+}))
 app.use(express.json({ limit: "1mb" }))
 
 app.set("trust proxy", 1)
 
 const limiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 120
+  max: 300 // Увеличил лимит, чтобы healthcheck не блокировался
 })
-
 app.use(limiter)
 
+// Инициализация БД
+console.log("Initializing database...")
 try {
   ensureDataDir()
+  console.log("Database initialized successfully.")
 } catch (e) {
-  console.error("CRITICAL: Failed to init data dir:", e)
+  console.error("Database initialization failed:", e)
 }
 
+// Routes
 app.get("/", (req, res) => {
-  res.json({ ok: true, name: "PAPPY API", status: "online" })
+  res.json({ ok: true, name: "PAPPY API", status: "online", timestamp: new Date().toISOString() })
 })
 
 app.use("/auth", authRoutes)
@@ -64,7 +68,7 @@ app.use("/polls", pollRoutes)
 app.use("/leaderboard", leaderboardRoutes)
 app.use("/admin", adminRoutes)
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 4000
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`SERVER_STARTED_ON_PORT: ${PORT}`);
-});
+  console.log(`SERVER_READY_ON_PORT: ${PORT}`)
+})
