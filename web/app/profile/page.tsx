@@ -9,6 +9,11 @@ export default function ProfilePage() {
   const [username, setUsername] = useState("")
   const [avatarUrl, setAvatarUrl] = useState("")
   const load = async () => {
+    const token = localStorage.getItem("token")
+    if (!token) {
+      router.push("/login")
+      return
+    }
     try {
       const m = await api("/users/me")
       setMe(m)
@@ -17,8 +22,10 @@ export default function ProfilePage() {
       setAvatarUrl(m.avatarUrl || "")
     } catch (e:any) {
       setError(e.message)
-      if (e.message === "Unauthorized" || e.message === "Пользователь не найден") {
-        window.location.href = "/login"
+      // Если токен плохой - на логин
+      if (e.message.includes("вход") || e.message.includes("найден") || e.message.includes("token")) {
+        localStorage.removeItem("token")
+        router.push("/login")
       }
     }
   }

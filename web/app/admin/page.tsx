@@ -74,11 +74,11 @@ export default function AdminPage() {
         const data = await api("/admin/chat")
         setChatMessages(data)
       } else if (tab === "about") {
-        const data = await api("/admin/about")
+        const data = await api("/public/about")
         setAboutHtml(data.contentHtml || "")
         setAboutLinks(data.links || { telegram: "", discord: "", twitter: "", steam: "", youtube: "" })
       } else if (tab === "coop") {
-        const data = await api("/admin/coop")
+        const data = await api("/public/coop")
         setCoopHtml(data.contentHtml || "")
         setCoopLinks(data.links || { telegram: "", email: "" })
       }
