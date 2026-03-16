@@ -1,7 +1,9 @@
 // lib/api.ts
 
-// Берем URL бекенда из переменной окружения
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || ""
+// Берем URL бекенда из переменной окружения или используем хардкод
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://site-production-b614.up.railway.app"
+
+console.log("DEBUG: Current API_URL is:", API_URL)
 
 export function getToken() {
   if (typeof window === "undefined") return ""
