@@ -22,7 +22,8 @@ dotenv.config()
 
 const app = express()
 
-app.use(cors()); // Самый простой и надежный способ разрешить всё
+// 1. CORS ДОЛЖЕН БЫТЬ ПЕРВЫМ
+app.use(cors()); 
 app.options("*", cors());
 
 app.use(helmet({

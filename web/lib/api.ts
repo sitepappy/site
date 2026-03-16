@@ -1,7 +1,7 @@
 // lib/api.ts
 
-// Берем URL бекенда из переменной окружения фронта или дефолт
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://pappysite-production-f8ad.up.railway.app"
+// Берем URL бекенда из переменной окружения
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || ""
 
 export function getToken() {
   if (typeof window === "undefined") return ""
