@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken"
+import { db } from "./db.js"
 
 const secret = process.env.JWT_SECRET || "dev_secret"
 
