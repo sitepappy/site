@@ -12,6 +12,11 @@ export function authRequired(req, res, next) {
   if (!t) return res.status(401).json({ error: "Требуется вход" })
   try {
     const data = jwt.verify(t, secret)
+    const dbData = db.get()
+    const user = dbData.users.find(u => u.id === data.id)
+    if (!user) return res.status(401).json({ error: "Пользователь не найден" })
+    if (user.isBanned) return res.status(403).json({ error: "Ваш аккаунт заблокирован" })
+    
     req.user = data
     next()
   } catch {

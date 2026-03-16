@@ -29,6 +29,31 @@ r.post("/users/role", adminOnly, (req, res) => {
 })
 
 // ТОЛЬКО АДМИН может менять баланс
+r.post("/users/ban", (req, res) => {
+  const { userId, isBanned } = req.body || {}
+  const data = db.get()
+  const u = data.users.find(x => x.id === userId)
+  if (!u) return res.status(404).json({ error: "Не найдено" })
+  u.isBanned = !!isBanned
+  db.save(data)
+  res.json({ ok: true })
+})
+
+r.get("/users/:id", (req, res) => {
+  const data = db.get()
+  const u = data.users.find(x => x.id === req.params.id)
+  if (!u) return res.status(404).json({ error: "Пользователь не найден" })
+  
+  const logs = data.transactions.filter(t => t.userId === u.id).sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))
+  const bets = data.bets.filter(b => b.userId === u.id).sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))
+  
+  res.json({ 
+    user: { id: u.id, username: u.username, email: u.email, balance: u.balance, role: u.role, isBanned: u.isBanned, createdAt: u.createdAt },
+    logs,
+    bets
+  })
+})
+
 r.post("/users/balance", adminOnly, (req, res) => {
   const { userId, delta } = req.body || {}
   const data = db.get()
@@ -39,6 +64,48 @@ r.post("/users/balance", adminOnly, (req, res) => {
   data.transactions.push({ id: db.id(), userId: u.id, type: "admin_adjust", amount: change, balanceAfter: u.balance, note: "Коррекция администратора", createdAt: nowIso() })
   db.save(data)
   res.json({ ok: true, balance: u.balance })
+})
+
+r.delete("/posts/:id", (req, res) => {
+  const data = db.get()
+  data.posts = data.posts.filter(p => p.id !== req.params.id)
+  db.save(data)
+  res.json({ ok: true })
+})
+
+r.delete("/quests/:id", (req, res) => {
+  const data = db.get()
+  data.quests = data.quests.filter(q => q.id !== req.params.id)
+  db.save(data)
+  res.json({ ok: true })
+})
+
+r.get("/chat", (req, res) => {
+  const data = db.get()
+  res.json(data.adminChat || [])
+})
+
+r.post("/chat", (req, res) => {
+  const { message } = req.body || {}
+  if (!message) return res.status(400).json({ error: "Пустое сообщение" })
+  
+  const data = db.get()
+  if (!data.adminChat) data.adminChat = []
+  
+  const user = data.users.find(u => u.id === req.user.id)
+  const msg = {
+    id: db.id(),
+    username: user.username,
+    role: user.role,
+    message,
+    createdAt: nowIso()
+  }
+  
+  data.adminChat.push(msg)
+  if (data.adminChat.length > 100) data.adminChat.shift()
+  
+  db.save(data)
+  res.json(msg)
 })
 
 r.get("/promos", adminOnly, (req, res) => {

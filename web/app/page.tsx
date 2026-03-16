@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { API_URL } from "../lib/api"
 import RecentBets from "./components/RecentBets"
+import PostCard from "./components/PostCard"
 
 async function getData() {
   try {
@@ -37,32 +38,15 @@ export default async function Home() {
   
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      {/* Секция последних ставок сверху как бегущая строка или компактный блок */}
       <div className="glass p-4 rounded-lg">
         <h2 className="text-xs font-bold mb-3 text-neon uppercase tracking-widest">Последние ставки</h2>
         <RecentBets />
       </div>
 
-      {/* Основная лента */}
       <div className="space-y-4">
         {feed.map((item: any) => {
           if (item.type === 'post') {
-            return (
-              <div key={`post-${item.id}`} className="glass p-5 rounded-lg border border-white/5 hover:border-neon/30 transition-colors">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-8 h-8 rounded-full bg-neon/20 flex items-center justify-center text-neon font-bold">P</div>
-                  <div>
-                    <div className="text-sm font-bold">PAPPY</div>
-                    <div className="text-[10px] text-white/40">{new Date(item.createdAt).toLocaleString()}</div>
-                  </div>
-                </div>
-                <h3 className="text-xl font-bold mb-2">{item.title}</h3>
-                <p className="text-white/80 leading-relaxed whitespace-pre-wrap">{item.content}</p>
-                {item.imageUrl && (
-                  <img src={item.imageUrl} alt="" className="mt-4 rounded-lg w-full object-cover max-h-96 border border-white/10" />
-                )}
-              </div>
-            )
+            return <PostCard key={`post-${item.id}`} post={item} />
           }
           
           if (item.type === 'match') {

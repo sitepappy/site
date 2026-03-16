@@ -20,11 +20,28 @@ r.post("/", authRequired, adminOnly, (req, res) => {
   res.json(p)
 })
 
-r.delete("/:id", authRequired, moderatorOrAdmin, (req, res) => {
+r.post("/:id/comment", authRequired, (req, res) => {
+  const { content } = req.body || {}
+  if (!content) return res.status(400).json({ error: "Напишите комментарий" })
+  
   const data = db.get()
-  data.posts = data.posts.filter(p => p.id !== req.params.id)
+  const p = data.posts.find(x => x.id === req.params.id)
+  if (!p) return res.status(404).json({ error: "Пост не найден" })
+  
+  if (!p.comments) p.comments = []
+  
+  const user = data.users.find(u => u.id === req.user.id)
+  const comment = {
+    id: db.id(),
+    userId: user.id,
+    username: user.username,
+    content,
+    createdAt: nowIso()
+  }
+  
+  p.comments.push(comment)
   db.save(data)
-  res.json({ ok: true })
+  res.json(comment)
 })
 
 export default r
