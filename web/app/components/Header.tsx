@@ -7,6 +7,7 @@ import { useRouter, usePathname } from "next/navigation"
 export default function Header() {
   const [user, setUser] = useState<any>(null)
   const [mounted, setMounted] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
 
@@ -31,6 +32,11 @@ export default function Header() {
     loadUser()
   }, [pathname])
 
+  // Закрываем меню при переходе по ссылке
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [pathname])
+
   const logout = () => {
     localStorage.removeItem("token")
     setUser(null)
@@ -39,50 +45,148 @@ export default function Header() {
 
   const isAdminOrModerator = user && (user.role === "admin" || user.role === "moderator")
 
+  const navLinks = [
+    { name: "Главная", href: "/" },
+    { name: "Ставки", href: "/bets" },
+    { name: "Квесты", href: "/quests" },
+    { name: "Награды", href: "/rewards" },
+    { name: "Лидерборд", href: "/leaderboard" },
+    { name: "Я реферал", href: "/referral" },
+    { name: "О нас", href: "/about" },
+    { name: "Сотрудничество", href: "/coop" },
+    { name: "Репорт", href: "/report" },
+  ]
+
   return (
     <header className="border-b border-white/10 sticky top-0 z-50 bg-base/80 backdrop-blur-md">
-      <div className="max-w-6xl mx-auto px-4 py-4 flex items-center gap-6">
-        <Link href="/" className="text-3xl font-extrabold glow">
-          <span className="bg-gradient-to-r from-neon to-acid bg-clip-text text-transparent">PAPPY</span>
+      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+        {/* Логотип */}
+        <Link href="/" className="flex items-center group relative">
+          <span className="text-2xl md:text-3xl font-black tracking-tighter italic text-white group-hover:text-neon transition-colors duration-300">
+            PAPPY
+          </span>
+          <div className="absolute -inset-1 bg-neon/20 blur-sm group-hover:bg-neon/40 rounded-lg transition-all duration-300 -z-10"></div>
         </Link>
         
-        <nav className="hidden md:flex gap-4 text-xs lg:text-sm font-medium">
-          <Link className={`hover:text-neon transition-colors ${pathname === "/" ? "text-neon font-bold" : "text-white/70"}`} href="/">Главная</Link>
-          <Link className={`hover:text-neon transition-colors ${pathname === "/bets" ? "text-neon font-bold" : "text-white/70"}`} href="/bets">Ставки</Link>
-          <Link className={`hover:text-neon transition-colors ${pathname === "/quests" ? "text-neon font-bold" : "text-white/70"}`} href="/quests">Квесты</Link>
-          <Link className={`hover:text-neon transition-colors ${pathname === "/rewards" ? "text-neon font-bold" : "text-white/70"}`} href="/rewards">Награды</Link>
-          <Link className={`hover:text-neon transition-colors ${pathname === "/leaderboard" ? "text-neon font-bold" : "text-white/70"}`} href="/leaderboard">Лидерборд</Link>
-          <Link className={`hover:text-neon transition-colors ${pathname === "/about" ? "text-neon font-bold" : "text-white/70"}`} href="/about">О нас</Link>
-          <Link className={`hover:text-neon transition-colors ${pathname === "/coop" ? "text-neon font-bold" : "text-white/70"}`} href="/coop">Сотрудничество</Link>
+        {/* Десктопная навигация */}
+        <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
+          {navLinks.map((link) => (
+            <Link 
+              key={link.href}
+              href={link.href}
+              className={`px-3 py-1.5 rounded-md text-[11px] xl:text-[13px] font-bold uppercase transition-all duration-200 ${
+                pathname === link.href 
+                  ? "bg-neon text-black" 
+                  : "text-white/60 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              {link.name}
+            </Link>
+          ))}
           
           {mounted && user && (
-            <Link className={`hover:text-neon transition-colors ${pathname === "/profile" ? "text-neon font-bold" : "text-white/70"}`} href="/profile">Профиль</Link>
+            <Link 
+              href="/profile"
+              className={`px-3 py-1.5 rounded-md text-[11px] xl:text-[13px] font-bold uppercase transition-all duration-200 ${
+                pathname === "/profile" ? "bg-neon text-black" : "text-white/60 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              Профиль
+            </Link>
           )}
 
           {mounted && isAdminOrModerator && (
-            <Link className={`hover:text-acid transition-colors font-bold ${pathname.startsWith("/admin") ? "text-acid" : "text-acid/70"}`} href="/admin">Админ</Link>
+            <Link 
+              href="/admin"
+              className={`px-3 py-1.5 rounded-md text-[11px] xl:text-[13px] font-bold uppercase transition-all duration-200 ${
+                pathname.startsWith("/admin") ? "bg-acid text-black" : "text-acid/70 hover:text-acid hover:bg-acid/10 border border-acid/20"
+              }`}
+            >
+              Админ
+            </Link>
           )}
         </nav>
 
-        <div className="ml-auto flex items-center gap-3 min-w-[150px] justify-end">
-          {!mounted ? (
-            <div className="w-20 h-8 bg-white/5 animate-pulse rounded" />
-          ) : user ? (
-            <div className="flex items-center gap-3 animate-in fade-in slide-in-from-right-2">
+        {/* Правая часть (Баланс / Вход) */}
+        <div className="flex items-center gap-2 md:gap-4">
+          {mounted && user ? (
+            <div className="flex items-center gap-2 md:gap-3">
               <div className="hidden sm:block text-right">
-                <div className="text-xs font-bold text-white leading-none">{user.username}</div>
-                <div className="text-[10px] text-acid font-mono">{user.balance} 🪙</div>
+                <div className="text-[10px] font-black text-white uppercase leading-none">{user.username}</div>
+                <div className="text-[10px] text-acid font-mono font-bold">{user.balance} 🪙</div>
               </div>
-              <button onClick={logout} className="text-[10px] uppercase font-bold text-white/40 hover:text-red-400 transition-colors">Выход</button>
+              <button onClick={logout} className="p-2 text-white/40 hover:text-red-400 transition-colors" title="Выход">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd" />
+                </svg>
+              </button>
             </div>
-          ) : (
-            <div className="flex items-center gap-4 animate-in fade-in slide-in-from-right-2">
-              <Link href="/login" className="text-xs font-bold uppercase hover:text-neon transition-colors">Войти</Link>
-              <Link href="/register" className="btn btn-primary px-4 py-2 text-xs">Регистрация</Link>
+          ) : mounted && (
+            <div className="flex items-center gap-2">
+              <Link href="/login" className="text-[10px] md:text-xs font-black uppercase text-white/60 hover:text-neon px-2">Войти</Link>
+              <Link href="/register" className="btn btn-primary px-3 py-1.5 md:px-5 md:py-2 text-[10px] md:text-xs font-black italic">Регистрация</Link>
             </div>
           )}
+
+          {/* Мобильная кнопка меню */}
+          <button 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="lg:hidden p-2 text-white/60 hover:text-neon"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              {mobileMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
         </div>
       </div>
+
+      {/* Мобильное меню */}
+      {mounted && mobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 top-[61px] z-[100] bg-base/95 backdrop-blur-xl animate-in fade-in slide-in-from-top-4">
+          <nav className="flex flex-col p-4 gap-2">
+            {navLinks.map((link) => (
+              <Link 
+                key={link.href}
+                href={link.href}
+                className={`p-4 rounded-lg text-sm font-black uppercase tracking-widest ${
+                  pathname === link.href ? "bg-neon text-black" : "text-white/60 bg-white/5"
+                }`}
+              >
+                {link.name}
+              </Link>
+            ))}
+            {user && (
+              <Link 
+                href="/profile"
+                className={`p-4 rounded-lg text-sm font-black uppercase tracking-widest ${
+                  pathname === "/profile" ? "bg-neon text-black" : "text-white/60 bg-white/5"
+                }`}
+              >
+                Профиль ({user.balance} 🪙)
+              </Link>
+            )}
+            {isAdminOrModerator && (
+              <Link 
+                href="/admin"
+                className={`p-4 rounded-lg text-sm font-black uppercase tracking-widest border border-acid/30 ${
+                  pathname.startsWith("/admin") ? "bg-acid text-black" : "text-acid bg-acid/10"
+                }`}
+              >
+                Админ Панель
+              </Link>
+            )}
+            {user && (
+              <button onClick={logout} className="p-4 rounded-lg text-sm font-black uppercase tracking-widest text-red-400 bg-red-400/10 text-left">
+                Выйти из аккаунта
+              </button>
+            )}
+          </nav>
+        </div>
+      )}
     </header>
   )
 }

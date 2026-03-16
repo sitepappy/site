@@ -20,10 +20,27 @@ r.get("/users", (req, res) => {
 // ТОЛЬКО АДМИН может менять роли
 r.post("/users/role", adminOnly, (req, res) => {
   const { userId, role } = req.body || {}
+  if (!["admin", "moderator", "user"].includes(role)) return res.status(400).json({ error: "Неверная роль" })
+  
   const data = db.get()
   const u = data.users.find(x => x.id === userId)
   if (!u) return res.status(404).json({ error: "Не найдено" })
+  
   u.role = role
+  db.save(data)
+  res.json({ ok: true, role })
+})
+
+r.get("/reports", (req, res) => {
+  const data = db.get()
+  res.json(data.reports || [])
+})
+
+r.post("/reports/:id/resolve", (req, res) => {
+  const data = db.get()
+  const r = (data.reports || []).find(x => x.id === req.params.id)
+  if (!r) return res.status(404).json({ error: "Не найдено" })
+  r.status = "resolved"
   db.save(data)
   res.json({ ok: true })
 })

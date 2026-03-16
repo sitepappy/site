@@ -85,4 +85,30 @@ r.get("/:id/transactions", authRequired, (req, res) => {
   res.json(list)
 })
 
-export default r
+r.post("/reports", authRequired, (req, res) => {
+  const { title, content } = req.body || {}
+  if (!title || !content) return res.status(400).json({ error: "Заполните все поля" })
+  
+  const data = db.get()
+  if (!data.reports) data.reports = []
+  
+  const report = {
+    id: db.id(),
+    userId: req.user.id,
+    username: (data.users.find(u => u.id === req.user.id))?.username || "Unknown",
+    title,
+    content,
+    status: "pending",
+    createdAt: new Date().toISOString()
+  }
+  
+  data.reports.push(report)
+  db.save(data)
+  res.json({ ok: true, report })
+})
+
+r.get("/reports", authRequired, (req, res) => {
+  const data = db.get()
+  const list = (data.reports || []).filter(r => r.userId === req.user.id)
+  res.json(list)
+})

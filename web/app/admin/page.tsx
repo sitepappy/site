@@ -32,6 +32,7 @@ export default function AdminPage() {
   const [questsList, setQuestsList] = useState<any[]>([])
   const [chatMessages, setChatMessages] = useState<any[]>([])
   const [chatInput, setChatInput] = useState("")
+  const [reportsList, setReportsList] = useState<any[]>([])
 
   // Просмотр профиля юзера
   const [selectedUser, setSelectedUser] = useState<any>(null)
@@ -46,7 +47,7 @@ export default function AdminPage() {
         }
         setUser(data)
         loadData(activeTab)
-      } catch (e) {
+      } catch (e: any) {
         router.push("/login")
       } finally {
         setLoading(false)
@@ -81,6 +82,9 @@ export default function AdminPage() {
         const data = await api("/public/coop")
         setCoopHtml(data.contentHtml || "")
         setCoopLinks(data.links || { telegram: "", email: "" })
+      } else if (tab === "reports") {
+        const data = await api("/admin/reports")
+        setReportsList(data)
       }
     } catch (e) { console.error(e) }
   }
@@ -176,6 +180,13 @@ export default function AdminPage() {
     } catch (e: any) { alert(e.message) }
   }
 
+  const handleResolveReport = async (id: string) => {
+    try {
+      await api(`/admin/reports/${id}/resolve`, { method: "POST" })
+      loadData("reports")
+    } catch (e: any) { alert(e.message) }
+  }
+
   const handleUpdateRole = async (userId: string, role: string) => {
     try {
       await api("/admin/users/role", { method: "POST", body: JSON.stringify({ userId, role }) })
@@ -196,6 +207,17 @@ export default function AdminPage() {
 
   const isOnlyModerator = user?.role === "moderator"
 
+  const sidebarLinks = [
+    { id: "posts", name: "Лента (Посты)" },
+    { id: "matches", name: "Матчи (Ставки)" },
+    { id: "users", name: "Пользователи" },
+    { id: "quests", name: "Квесты" },
+    { id: "reports", name: "Репорты / Тикеты" },
+    { id: "chat", name: "Админ-чат 💬" },
+    { id: "about", name: "О нас" },
+    { id: "coop", name: "Сотрудничество" },
+  ]
+
   return (
     <div className="glass rounded-lg border border-white/5 overflow-hidden max-w-6xl mx-auto">
       <div className="bg-white/5 border-b border-white/10 p-4 flex items-center justify-between">
@@ -209,26 +231,28 @@ export default function AdminPage() {
       </div>
 
       <div className="flex flex-col md:flex-row min-h-[700px]">
-        {/* Sidebar */}
-        <div className="w-full md:w-64 bg-black/20 border-r border-white/5 p-2 space-y-1">
-          <button onClick={() => setActiveTab("posts")} className={`w-full text-left p-3 rounded text-sm transition-all ${activeTab === "posts" ? "bg-neon text-black font-bold" : "hover:bg-white/5 text-white/60"}`}>Лента (Посты)</button>
-          <button onClick={() => setActiveTab("matches")} className={`w-full text-left p-3 rounded text-sm transition-all ${activeTab === "matches" ? "bg-neon text-black font-bold" : "hover:bg-white/5 text-white/60"}`}>Матчи (Ставки)</button>
-          <button onClick={() => setActiveTab("users")} className={`w-full text-left p-3 rounded text-sm transition-all ${activeTab === "users" ? "bg-neon text-black font-bold" : "hover:bg-white/5 text-white/60"}`}>Пользователи</button>
-          <button onClick={() => setActiveTab("quests")} className={`w-full text-left p-3 rounded text-sm transition-all ${activeTab === "quests" ? "bg-neon text-black font-bold" : "hover:bg-white/5 text-white/60"}`}>Квесты</button>
-          <button onClick={() => setActiveTab("chat")} className={`w-full text-left p-3 rounded text-sm transition-all ${activeTab === "chat" ? "bg-neon text-black font-bold" : "hover:bg-white/5 text-white/60"}`}>Админ-чат 💬</button>
-          <button onClick={() => setActiveTab("about")} className={`w-full text-left p-3 rounded text-sm transition-all ${activeTab === "about" ? "bg-neon text-black font-bold" : "hover:bg-white/5 text-white/60"}`}>О нас</button>
-          <button onClick={() => setActiveTab("coop")} className={`w-full text-left p-3 rounded text-sm transition-all ${activeTab === "coop" ? "bg-neon text-black font-bold" : "hover:bg-white/5 text-white/60"}`}>Сотрудничество</button>
+        {/* Sidebar - Mobile Responsive */}
+        <div className="w-full md:w-64 bg-black/20 border-r border-white/5 p-2 flex md:flex-col overflow-x-auto md:overflow-x-visible gap-1 md:gap-1">
+          {sidebarLinks.map((link) => (
+            <button 
+              key={link.id}
+              onClick={() => setActiveTab(link.id)} 
+              className={`whitespace-nowrap md:whitespace-normal text-left p-3 rounded text-xs md:text-sm transition-all flex-shrink-0 md:flex-shrink ${activeTab === link.id ? "bg-neon text-black font-bold shadow-neon" : "hover:bg-white/5 text-white/60"}`}
+            >
+              {link.name}
+            </button>
+          ))}
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 p-6 overflow-y-auto max-h-[800px]">
+        <div className="flex-1 p-4 md:p-6 overflow-y-auto max-h-[1000px] md:max-h-[800px]">
           {activeTab === "posts" && (
             <div className="space-y-8">
               <form onSubmit={handleCreatePost} className="space-y-4 max-w-xl glass p-4 rounded-lg">
                 <h2 className="text-lg font-bold text-neon uppercase">Новый пост</h2>
                 <input required value={postTitle} onChange={e=>setPostTitle(e.target.value)} className="w-full p-2 rounded bg-white/5 border border-white/10 text-sm" placeholder="Заголовок..." />
                 <textarea required value={postContent} onChange={e=>setPostContent(e.target.value)} rows={3} className="w-full p-2 rounded bg-white/5 border border-white/10 text-sm" placeholder="Текст..." />
-                <button className="btn btn-primary w-full py-2">Опубликовать</button>
+                <button className="btn btn-primary w-full py-2 uppercase font-black text-xs">Опубликовать</button>
               </form>
               
               <div className="space-y-2">
@@ -247,72 +271,132 @@ export default function AdminPage() {
             <form onSubmit={handleCreateMatch} className="space-y-4 max-w-xl glass p-4 rounded-lg">
               <h2 className="text-lg font-bold text-neon uppercase">Добавить матч</h2>
               <input required value={matchName} onChange={e=>setMatchName(e.target.value)} className="w-full p-2 rounded bg-white/5 border border-white/10 text-sm" placeholder="Турнир..." />
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input required value={team1} onChange={e=>setTeam1(e.target.value)} className="p-2 rounded bg-white/5 border border-white/10 text-sm" placeholder="Команда 1" />
                 <input required value={team2} onChange={e=>setTeam2(e.target.value)} className="p-2 rounded bg-white/5 border border-white/10 text-sm" placeholder="Команда 2" />
               </div>
               <input required type="datetime-local" value={deadline} onChange={e=>setDeadline(e.target.value)} className="w-full p-2 rounded bg-white/5 border border-white/10 text-sm" />
-              <button className="btn btn-primary w-full py-2">Создать</button>
+              <button className="btn btn-primary w-full py-2 uppercase font-black text-xs">Создать матч</button>
             </form>
           )}
 
           {activeTab === "users" && (
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid lg:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <h2 className="text-lg font-bold text-neon uppercase">Пользователи</h2>
-                {usersList.map(u => (
-                  <div key={u.id} onClick={() => viewUser(u.id)} className="flex items-center justify-between p-3 rounded bg-white/5 border border-white/10 cursor-pointer hover:border-neon/50 transition-colors">
-                    <div className="text-sm">
-                      <div className="font-bold">{u.username} {u.isBanned && <span className="text-red-500">[БАН]</span>}</div>
-                      <div className="text-[10px] text-white/40">{u.email}</div>
+                <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2">
+                  {usersList.map(u => (
+                    <div key={u.id} onClick={() => viewUser(u.id)} className={`flex items-center justify-between p-3 rounded border transition-colors cursor-pointer ${selectedUser?.user?.id === u.id ? "bg-neon/10 border-neon" : "bg-white/5 border-white/10 hover:border-white/20"}`}>
+                      <div className="text-sm">
+                        <div className="font-bold flex items-center gap-2">
+                          {u.username} 
+                          {u.role === 'admin' && <span className="text-[8px] bg-acid text-black px-1 rounded">ADM</span>}
+                          {u.role === 'moderator' && <span className="text-[8px] bg-neon text-black px-1 rounded">MOD</span>}
+                          {u.isBanned && <span className="text-[8px] bg-red-500 text-white px-1 rounded">BAN</span>}
+                        </div>
+                        <div className="text-[10px] text-white/40 truncate max-w-[150px]">{u.email}</div>
+                      </div>
+                      <div className="text-xs font-mono text-acid">{u.balance} 🪙</div>
                     </div>
-                    <div className="text-xs font-mono text-acid">{u.balance} 🪙</div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
 
               <div className="glass p-4 rounded-lg min-h-[400px]">
                 {selectedUser ? (
-                  <div className="space-y-6">
-                    <div className="flex justify-between items-start">
-                      <h3 className="text-xl font-bold text-neon">{selectedUser.user.username}</h3>
+                  <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
+                    <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+                      <div>
+                        <h3 className="text-xl font-bold text-neon">{selectedUser.user.username}</h3>
+                        <div className="text-[10px] text-white/40 font-mono">ID: {selectedUser.user.id}</div>
+                      </div>
                       <button onClick={() => handleBanUser(selectedUser.user.id, !selectedUser.user.isBanned)} 
-                        className={`px-3 py-1 rounded text-[10px] font-bold uppercase ${selectedUser.user.isBanned ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
-                        {selectedUser.user.isBanned ? "Разбанить" : "Забанить"}
+                        className={`w-full md:w-auto px-4 py-2 rounded text-[10px] font-bold uppercase transition-all ${selectedUser.user.isBanned ? "bg-green-500 text-black hover:bg-green-400" : "bg-red-500 text-white hover:bg-red-400"}`}>
+                        {selectedUser.user.isBanned ? "Разбанить" : "Забанить пользователя"}
                       </button>
                     </div>
                     
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="p-3 bg-black/20 rounded border border-white/5 text-center">
+                        <div className="text-[10px] text-white/40 uppercase">Баланс</div>
+                        <div className="text-lg font-black text-acid">{selectedUser.user.balance}</div>
+                      </div>
+                      <div className="p-3 bg-black/20 rounded border border-white/5 text-center">
+                        <div className="text-[10px] text-white/40 uppercase">Роль</div>
+                        <div className="text-lg font-black uppercase text-white">{selectedUser.user.role}</div>
+                      </div>
+                    </div>
+
                     <div>
                       <h4 className="text-xs font-bold text-white/40 uppercase mb-2">Логи транзакций</h4>
-                      <div className="space-y-1 max-h-40 overflow-y-auto pr-2">
+                      <div className="space-y-1 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
                         {selectedUser.logs.map((l:any) => (
-                          <div key={l.id} className="text-[10px] p-1.5 rounded bg-black/20 flex justify-between">
-                            <span className="text-white/60">{l.note}</span>
-                            <span className={l.amount > 0 ? "text-green-400" : "text-red-400"}>{l.amount > 0 ? "+" : ""}{l.amount}</span>
+                          <div key={l.id} className="text-[10px] p-2 rounded bg-white/5 flex justify-between border-l-2 border-neon/30">
+                            <span className="text-white/60 truncate mr-2">{l.note}</span>
+                            <span className={l.amount > 0 ? "text-green-400 font-bold" : "text-red-400 font-bold"}>
+                              {l.amount > 0 ? "+" : ""}{l.amount}
+                            </span>
                           </div>
                         ))}
                       </div>
                     </div>
 
                     {!isOnlyModerator && (
-                      <div className="pt-4 border-t border-white/10">
+                      <div className="pt-4 border-t border-white/10 space-y-4">
                          <h4 className="text-xs font-bold text-white/40 uppercase mb-2">Админ-действия</h4>
-                         <div className="flex flex-wrap gap-2">
-                           <button onClick={()=>handleUpdateBalance(selectedUser.user.id, 100)} className="flex-1 py-2 rounded bg-white/5 border border-white/10 text-[10px] uppercase font-bold hover:bg-white/10">+100 монет</button>
-                           <button onClick={()=>handleUpdateBalance(selectedUser.user.id, -100)} className="flex-1 py-2 rounded bg-white/5 border border-white/10 text-[10px] uppercase font-bold hover:bg-white/10">-100 монет</button>
-                           <button onClick={()=>handleUpdateRole(selectedUser.user.id, selectedUser.user.role === 'admin' ? 'user' : 'admin')} className="w-full py-2 rounded bg-acid/20 border border-acid/30 text-[10px] uppercase font-bold hover:bg-acid/30">
-                             {selectedUser.user.role === 'admin' ? 'Снять админку' : 'Сделать админом'}
+                         <div className="grid grid-cols-2 gap-2">
+                           <button onClick={()=>handleUpdateBalance(selectedUser.user.id, 100)} className="py-2 rounded bg-white/5 border border-white/10 text-[10px] uppercase font-bold hover:bg-white/10 hover:text-neon transition-all">+100</button>
+                           <button onClick={()=>handleUpdateBalance(selectedUser.user.id, -100)} className="py-2 rounded bg-white/5 border border-white/10 text-[10px] uppercase font-bold hover:bg-white/10 hover:text-red-400 transition-all">-100</button>
+                         </div>
+                         <div className="grid grid-cols-2 gap-2">
+                           <button onClick={()=>handleUpdateRole(selectedUser.user.id, selectedUser.user.role === 'admin' ? 'user' : 'admin')} className={`py-2 rounded border text-[10px] uppercase font-bold transition-all ${selectedUser.user.role === 'admin' ? 'bg-red-500/20 border-red-500/30 text-red-400' : 'bg-acid/20 border-acid/30 text-acid hover:bg-acid hover:text-black'}`}>
+                             {selectedUser.user.role === 'admin' ? 'Снять админ' : 'Дать админ'}
                            </button>
-                           <button onClick={()=>handleUpdateRole(selectedUser.user.id, selectedUser.user.role === 'moderator' ? 'user' : 'moderator')} className="w-full py-2 rounded bg-neon/20 border border-neon/30 text-[10px] uppercase font-bold hover:bg-neon/30">
-                             {selectedUser.user.role === 'moderator' ? 'Снять модератора' : 'Сделать модератором'}
+                           <button onClick={()=>handleUpdateRole(selectedUser.user.id, selectedUser.user.role === 'moderator' ? 'user' : 'moderator')} className={`py-2 rounded border text-[10px] uppercase font-bold transition-all ${selectedUser.user.role === 'moderator' ? 'bg-red-500/20 border-red-500/30 text-red-400' : 'bg-neon/20 border-neon/30 text-neon hover:bg-neon hover:text-black'}`}>
+                             {selectedUser.user.role === 'moderator' ? 'Снять модер' : 'Дать модер'}
                            </button>
                          </div>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center h-full text-white/20 text-sm italic">Выберите пользователя для просмотра логов</div>
+                  <div className="flex flex-col items-center justify-center h-full text-white/20 text-sm italic space-y-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 opacity-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span>Выберите пользователя для управления</span>
+                  </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === "reports" && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-bold text-neon uppercase">Тикеты / Репорты</h2>
+              <div className="grid gap-3">
+                {reportsList.map(r => (
+                  <div key={r.id} className={`p-4 rounded border transition-all ${r.status === 'pending' ? 'bg-red-500/5 border-red-500/20' : 'bg-white/5 border-white/10 opacity-60'}`}>
+                    <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-white">{r.title}</span>
+                          <span className={`text-[8px] px-1.5 py-0.5 rounded font-black uppercase ${r.status === 'pending' ? 'bg-red-500 text-white' : 'bg-green-500 text-black'}`}>
+                            {r.status === 'pending' ? 'Новый' : 'Решено'}
+                          </span>
+                        </div>
+                        <div className="text-[10px] text-white/40">От: {r.username} • {new Date(r.createdAt).toLocaleString()}</div>
+                        <p className="text-sm text-white/70 bg-black/30 p-3 rounded mt-2 italic">"{r.content}"</p>
+                      </div>
+                      {r.status === 'pending' && (
+                        <button onClick={() => handleResolveReport(r.id)} className="w-full md:w-auto btn btn-primary px-4 py-2 text-[10px] uppercase font-black">
+                          Закрыть тикет
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {reportsList.length === 0 && <div className="text-center py-20 text-white/20 uppercase tracking-widest font-bold italic">Тикетов нет</div>}
               </div>
             </div>
           )}
@@ -335,21 +419,34 @@ export default function AdminPage() {
           )}
 
           {activeTab === "chat" && (
-            <div className="flex flex-col h-[600px] glass rounded-lg">
-              <div className="flex-1 p-4 space-y-3 overflow-y-auto">
+            <div className="flex flex-col h-[600px] glass rounded-lg overflow-hidden border border-white/10">
+              <div className="bg-white/5 p-3 border-b border-white/10 flex justify-between items-center">
+                <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Внутренний канал персонала</span>
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 rounded-full bg-neon animate-pulse"></div>
+                  <div className="w-2 h-2 rounded-full bg-acid animate-pulse delay-75"></div>
+                </div>
+              </div>
+              <div className="flex-1 p-4 space-y-4 overflow-y-auto custom-scrollbar bg-black/40">
                 {chatMessages.map(m => (
-                  <div key={m.id} className={`max-w-[80%] ${m.username === user.username ? "ml-auto" : ""}`}>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-[10px] font-bold ${m.role === 'admin' ? 'text-acid' : 'text-neon'}`}>{m.username}</span>
+                  <div key={m.id} className={`max-w-[85%] ${m.username === user.username ? "ml-auto" : ""}`}>
+                    <div className={`flex items-center gap-2 mb-1 ${m.username === user.username ? "justify-end" : ""}`}>
+                      <span className={`text-[10px] font-black uppercase ${m.role === 'admin' ? 'text-acid' : 'text-neon'}`}>{m.username}</span>
                       <span className="text-[8px] text-white/30">{new Date(m.createdAt).toLocaleTimeString()}</span>
                     </div>
-                    <div className="p-3 rounded-lg bg-white/5 border border-white/10 text-sm">{m.message}</div>
+                    <div className={`p-3 rounded-2xl text-sm ${m.username === user.username ? "bg-neon/20 border border-neon/30 rounded-tr-none text-white" : "bg-white/5 border border-white/10 rounded-tl-none text-white/80"}`}>
+                      {m.message}
+                    </div>
                   </div>
                 ))}
               </div>
-              <form onSubmit={sendChatMessage} className="p-4 border-t border-white/10 flex gap-2">
-                <input value={chatInput} onChange={e=>setChatInput(e.target.value)} className="flex-1 p-2 rounded bg-white/5 border border-white/10 text-sm" placeholder="Сообщение для персонала..." />
-                <button className="btn btn-primary px-4 py-2 text-xs uppercase font-bold">Отправить</button>
+              <form onSubmit={sendChatMessage} className="p-3 bg-white/5 border-t border-white/10 flex gap-2">
+                <input value={chatInput} onChange={e=>setChatInput(e.target.value)} className="flex-1 p-3 rounded-xl bg-black/40 border border-white/10 text-sm outline-none focus:border-neon transition-all" placeholder="Написать коллегам..." />
+                <button className="bg-neon text-black p-3 rounded-xl hover:scale-105 active:scale-95 transition-all shadow-neon">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                  </svg>
+                </button>
               </form>
             </div>
           )}
@@ -357,40 +454,35 @@ export default function AdminPage() {
           {activeTab === "about" && (
             <form onSubmit={handleSaveAbout} className="space-y-4 max-w-xl glass p-4 rounded-lg">
               <h2 className="text-lg font-bold text-neon uppercase">Редактировать "О нас"</h2>
-              <div>
-                <label className="block text-xs text-white/40 mb-1">HTML контент</label>
-                <textarea rows={10} value={aboutHtml} onChange={e=>setAboutHtml(e.target.value)} className="w-full p-2 rounded bg-white/5 border border-white/10 text-xs font-mono" placeholder="<h1>О нас</h1>..." />
-              </div>
+              <div className="p-3 bg-acid/10 border border-acid/20 rounded text-[10px] text-acid uppercase font-bold">Поддерживается HTML разметка</div>
+              <textarea rows={10} value={aboutHtml} onChange={e=>setAboutHtml(e.target.value)} className="w-full p-3 rounded bg-black/40 border border-white/10 text-xs font-mono outline-none focus:border-neon" />
               <div className="space-y-2">
-                <label className="block text-xs text-white/40 uppercase">Ссылки</label>
+                <label className="block text-xs font-black text-white/40 uppercase">Социальные сети (Ссылки)</label>
                 {Object.keys(aboutLinks).map(k => (
-                  <div key={k} className="flex items-center gap-2">
-                    <span className="text-[10px] w-20 text-white/60">{k}:</span>
-                    <input value={(aboutLinks as any)[k]} onChange={e=>setAboutLinks({...aboutLinks, [k]: e.target.value})} className="flex-1 p-1.5 rounded bg-white/5 border border-white/10 text-xs" />
+                  <div key={k} className="flex items-center gap-3 bg-white/5 p-2 rounded border border-white/5">
+                    <span className="text-[10px] w-20 text-neon font-black uppercase">{k}</span>
+                    <input value={(aboutLinks as any)[k]} onChange={e=>setAboutLinks({...aboutLinks, [k]: e.target.value})} className="flex-1 p-1.5 rounded bg-black/40 border border-white/10 text-xs outline-none focus:border-neon" />
                   </div>
                 ))}
               </div>
-              <button className="btn btn-primary w-full py-2 uppercase font-bold text-xs">Сохранить</button>
+              <button className="btn btn-primary w-full py-3 uppercase font-black text-xs shadow-neon">Сохранить изменения</button>
             </form>
           )}
 
           {activeTab === "coop" && (
             <form onSubmit={handleSaveCoop} className="space-y-4 max-w-xl glass p-4 rounded-lg">
               <h2 className="text-lg font-bold text-neon uppercase">Редактировать "Сотрудничество"</h2>
-              <div>
-                <label className="block text-xs text-white/40 mb-1">HTML контент</label>
-                <textarea rows={10} value={coopHtml} onChange={e=>setCoopHtml(e.target.value)} className="w-full p-2 rounded bg-white/5 border border-white/10 text-xs font-mono" placeholder="<h1>Сотрудничество</h1>..." />
-              </div>
+              <textarea rows={10} value={coopHtml} onChange={e=>setCoopHtml(e.target.value)} className="w-full p-3 rounded bg-black/40 border border-white/10 text-xs font-mono outline-none focus:border-neon" />
               <div className="space-y-2">
-                <label className="block text-xs text-white/40 uppercase">Контакты</label>
+                <label className="block text-xs font-black text-white/40 uppercase">Контакты</label>
                 {Object.keys(coopLinks).map(k => (
-                  <div key={k} className="flex items-center gap-2">
-                    <span className="text-[10px] w-20 text-white/60">{k}:</span>
-                    <input value={(coopLinks as any)[k]} onChange={e=>setCoopLinks({...coopLinks, [k]: e.target.value})} className="flex-1 p-1.5 rounded bg-white/5 border border-white/10 text-xs" />
+                  <div key={k} className="flex items-center gap-3 bg-white/5 p-2 rounded border border-white/5">
+                    <span className="text-[10px] w-20 text-acid font-black uppercase">{k}</span>
+                    <input value={(coopLinks as any)[k]} onChange={e=>setCoopLinks({...coopLinks, [k]: e.target.value})} className="flex-1 p-1.5 rounded bg-black/40 border border-white/10 text-xs outline-none focus:border-neon" />
                   </div>
                 ))}
               </div>
-              <button className="btn btn-primary w-full py-2 uppercase font-bold text-xs">Сохранить</button>
+              <button className="btn btn-primary w-full py-3 uppercase font-black text-xs shadow-neon">Сохранить изменения</button>
             </form>
           )}
         </div>
