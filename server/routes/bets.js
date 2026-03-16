@@ -31,9 +31,9 @@ r.get("/my", authRequired, (req, res) => {
   res.json(list)
 })
 
-r.get("/recent", authRequired, (req, res) => {
+r.get("/recent", (req, res) => {
   const data = db.get()
-  const list = data.bets.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 50).map(b => {
+  const list = (data.bets || []).sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || "")).slice(0, 50).map(b => {
     const u = data.users.find(x => x.id === b.userId)
     const m = data.matches.find(x => x.id === b.matchId)
     const opt = m?.options.find(o => o.id === b.optionId)

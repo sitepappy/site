@@ -10,14 +10,10 @@ r.get("/captcha", (req, res) => {
 })
 
 r.post("/register", (req, res) => {
-  const { username, email, password, deviceId, promoCode, captchaId, captchaAnswer } = req.body || {}
+  const { username, email, password, deviceId, promoCode } = req.body || {}
   
   if (!username || !email || !password) {
     return res.status(400).json({ error: "Заполните все поля" })
-  }
-
-  if (!verifyCaptcha(captchaId, captchaAnswer)) {
-    return res.status(400).json({ error: "Неверная капча" })
   }
   
   const data = db.get()
@@ -29,7 +25,6 @@ r.post("/register", (req, res) => {
   
   const id = db.id()
   const createdAt = new Date().toISOString()
-  const verifyToken = db.id().slice(0, 8) // Упрощённый токен
 
   const user = {
     id, username, email,
@@ -39,14 +34,16 @@ r.post("/register", (req, res) => {
     createdAt,
     deviceIds: deviceId ? [deviceId] : [],
     ips: [req.ip],
-    emailVerified: false,
-    verifyToken,
+    emailVerified: true, // Сразу подтвержден
     referralByPromo: promoCode || null
   }
   
   data.users.push(user)
   db.save(data)
-  res.json({ ok: true, verifyToken })
+  
+  // Сразу логиним после регистрации
+  const token = signToken({ id: user.id, role: user.role })
+  res.json({ ok: true, token })
 })
 
 r.post("/verify-email", (req, res) => {

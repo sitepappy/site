@@ -5,7 +5,7 @@ import { nowIso } from "../lib/utils.js"
 
 const r = Router()
 
-r.get("/", authRequired, (req, res) => {
+r.get("/", (req, res) => {
   const data = db.get()
   const list = data.matches.filter(m => m.status !== "settled")
   res.json(list)
