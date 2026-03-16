@@ -124,22 +124,12 @@ r.post("/promos/disable", adminOnly, (req, res) => {
   res.json({ ok: true })
 })
 
-r.get("/about", (req, res) => {
-  const data = db.get()
-  res.json(data.about)
-})
-
 r.post("/about", (req, res) => {
   const { contentHtml, links } = req.body || {}
   const data = db.get()
   data.about = { contentHtml: String(contentHtml || ""), links: { ...data.about.links, ...(links || {}) } }
   db.save(data)
   res.json({ ok: true })
-})
-
-r.get("/coop", (req, res) => {
-  const data = db.get()
-  res.json(data.coop || { contentHtml: "", links: {} })
 })
 
 r.post("/coop", (req, res) => {

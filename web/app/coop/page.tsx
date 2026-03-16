@@ -4,7 +4,7 @@ import { api } from "../../lib/api"
 
 export default function CoopPage() {
   const [data, setData] = useState<any>(null)
-  useEffect(()=>{ api("/admin/coop").then(setData).catch(()=>{}) },[])
+  useEffect(()=>{ api("/public/coop").then(setData).catch(()=>{}) },[])
 
   return (
     <div className="glass p-6 rounded prose prose-invert max-w-none">

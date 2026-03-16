@@ -4,7 +4,7 @@ import { api } from "../../lib/api"
 
 export default function AboutPage() {
   const [data, setData] = useState<any>(null)
-  useEffect(()=>{ api("/admin/about").then(setData).catch(()=>{}) },[])
+  useEffect(()=>{ api("/public/about").then(setData).catch(()=>{}) },[])
   return (
     <div className="prose prose-invert max-w-none">
       {data ? (

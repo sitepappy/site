@@ -20,6 +20,12 @@ export default function AdminPage() {
   const [deadline, setDeadline] = useState("")
   const [msg, setMsg] = useState("")
 
+  // Состояния для О нас и Сотрудничества
+  const [aboutHtml, setAboutHtml] = useState("")
+  const [aboutLinks, setAboutLinks] = useState({ telegram: "", discord: "", twitter: "", steam: "", youtube: "" })
+  const [coopHtml, setCoopHtml] = useState("")
+  const [coopLinks, setCoopLinks] = useState({ telegram: "", email: "" })
+
   // Данные для списков
   const [usersList, setUsersList] = useState<any[]>([])
   const [postsList, setPostsList] = useState<any[]>([])
@@ -67,6 +73,14 @@ export default function AdminPage() {
       } else if (tab === "chat") {
         const data = await api("/admin/chat")
         setChatMessages(data)
+      } else if (tab === "about") {
+        const data = await api("/admin/about")
+        setAboutHtml(data.contentHtml || "")
+        setAboutLinks(data.links || { telegram: "", discord: "", twitter: "", steam: "", youtube: "" })
+      } else if (tab === "coop") {
+        const data = await api("/admin/coop")
+        setCoopHtml(data.contentHtml || "")
+        setCoopLinks(data.links || { telegram: "", email: "" })
       }
     } catch (e) { console.error(e) }
   }
@@ -144,6 +158,40 @@ export default function AdminPage() {
     } catch (e: any) { alert(e.message) }
   }
 
+  const handleSaveAbout = async (e: any) => {
+    e.preventDefault()
+    try {
+      await api("/admin/about", { method: "POST", body: JSON.stringify({ contentHtml: aboutHtml, links: aboutLinks }) })
+      setMsg("О нас сохранено!")
+      setTimeout(() => setMsg(""), 3000)
+    } catch (e: any) { alert(e.message) }
+  }
+
+  const handleSaveCoop = async (e: any) => {
+    e.preventDefault()
+    try {
+      await api("/admin/coop", { method: "POST", body: JSON.stringify({ contentHtml: coopHtml, links: coopLinks }) })
+      setMsg("Сотрудничество сохранено!")
+      setTimeout(() => setMsg(""), 3000)
+    } catch (e: any) { alert(e.message) }
+  }
+
+  const handleUpdateRole = async (userId: string, role: string) => {
+    try {
+      await api("/admin/users/role", { method: "POST", body: JSON.stringify({ userId, role }) })
+      loadData("users")
+      if (selectedUser?.user?.id === userId) viewUser(userId)
+    } catch (e: any) { alert(e.message) }
+  }
+
+  const handleUpdateBalance = async (userId: string, delta: number) => {
+    try {
+      await api("/admin/users/balance", { method: "POST", body: JSON.stringify({ userId, delta }) })
+      loadData("users")
+      if (selectedUser?.user?.id === userId) viewUser(userId)
+    } catch (e: any) { alert(e.message) }
+  }
+
   if (loading) return <div className="p-10 text-center text-neon animate-pulse uppercase font-bold tracking-widest">Инициализация протоколов доступа...</div>
 
   const isOnlyModerator = user?.role === "moderator"
@@ -168,6 +216,8 @@ export default function AdminPage() {
           <button onClick={() => setActiveTab("users")} className={`w-full text-left p-3 rounded text-sm transition-all ${activeTab === "users" ? "bg-neon text-black font-bold" : "hover:bg-white/5 text-white/60"}`}>Пользователи</button>
           <button onClick={() => setActiveTab("quests")} className={`w-full text-left p-3 rounded text-sm transition-all ${activeTab === "quests" ? "bg-neon text-black font-bold" : "hover:bg-white/5 text-white/60"}`}>Квесты</button>
           <button onClick={() => setActiveTab("chat")} className={`w-full text-left p-3 rounded text-sm transition-all ${activeTab === "chat" ? "bg-neon text-black font-bold" : "hover:bg-white/5 text-white/60"}`}>Админ-чат 💬</button>
+          <button onClick={() => setActiveTab("about")} className={`w-full text-left p-3 rounded text-sm transition-all ${activeTab === "about" ? "bg-neon text-black font-bold" : "hover:bg-white/5 text-white/60"}`}>О нас</button>
+          <button onClick={() => setActiveTab("coop")} className={`w-full text-left p-3 rounded text-sm transition-all ${activeTab === "coop" ? "bg-neon text-black font-bold" : "hover:bg-white/5 text-white/60"}`}>Сотрудничество</button>
         </div>
 
         {/* Content Area */}
@@ -247,9 +297,15 @@ export default function AdminPage() {
                     {!isOnlyModerator && (
                       <div className="pt-4 border-t border-white/10">
                          <h4 className="text-xs font-bold text-white/40 uppercase mb-2">Админ-действия</h4>
-                         <div className="flex gap-2">
-                           <button className="flex-1 py-2 rounded bg-white/5 border border-white/10 text-[10px] uppercase font-bold hover:bg-white/10">+100 монет</button>
-                           <button className="flex-1 py-2 rounded bg-white/5 border border-white/10 text-[10px] uppercase font-bold hover:bg-white/10">Сделать модером</button>
+                         <div className="flex flex-wrap gap-2">
+                           <button onClick={()=>handleUpdateBalance(selectedUser.user.id, 100)} className="flex-1 py-2 rounded bg-white/5 border border-white/10 text-[10px] uppercase font-bold hover:bg-white/10">+100 монет</button>
+                           <button onClick={()=>handleUpdateBalance(selectedUser.user.id, -100)} className="flex-1 py-2 rounded bg-white/5 border border-white/10 text-[10px] uppercase font-bold hover:bg-white/10">-100 монет</button>
+                           <button onClick={()=>handleUpdateRole(selectedUser.user.id, selectedUser.user.role === 'admin' ? 'user' : 'admin')} className="w-full py-2 rounded bg-acid/20 border border-acid/30 text-[10px] uppercase font-bold hover:bg-acid/30">
+                             {selectedUser.user.role === 'admin' ? 'Снять админку' : 'Сделать админом'}
+                           </button>
+                           <button onClick={()=>handleUpdateRole(selectedUser.user.id, selectedUser.user.role === 'moderator' ? 'user' : 'moderator')} className="w-full py-2 rounded bg-neon/20 border border-neon/30 text-[10px] uppercase font-bold hover:bg-neon/30">
+                             {selectedUser.user.role === 'moderator' ? 'Снять модератора' : 'Сделать модератором'}
+                           </button>
                          </div>
                       </div>
                     )}
@@ -296,6 +352,46 @@ export default function AdminPage() {
                 <button className="btn btn-primary px-4 py-2 text-xs uppercase font-bold">Отправить</button>
               </form>
             </div>
+          )}
+
+          {activeTab === "about" && (
+            <form onSubmit={handleSaveAbout} className="space-y-4 max-w-xl glass p-4 rounded-lg">
+              <h2 className="text-lg font-bold text-neon uppercase">Редактировать "О нас"</h2>
+              <div>
+                <label className="block text-xs text-white/40 mb-1">HTML контент</label>
+                <textarea rows={10} value={aboutHtml} onChange={e=>setAboutHtml(e.target.value)} className="w-full p-2 rounded bg-white/5 border border-white/10 text-xs font-mono" placeholder="<h1>О нас</h1>..." />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-xs text-white/40 uppercase">Ссылки</label>
+                {Object.keys(aboutLinks).map(k => (
+                  <div key={k} className="flex items-center gap-2">
+                    <span className="text-[10px] w-20 text-white/60">{k}:</span>
+                    <input value={(aboutLinks as any)[k]} onChange={e=>setAboutLinks({...aboutLinks, [k]: e.target.value})} className="flex-1 p-1.5 rounded bg-white/5 border border-white/10 text-xs" />
+                  </div>
+                ))}
+              </div>
+              <button className="btn btn-primary w-full py-2 uppercase font-bold text-xs">Сохранить</button>
+            </form>
+          )}
+
+          {activeTab === "coop" && (
+            <form onSubmit={handleSaveCoop} className="space-y-4 max-w-xl glass p-4 rounded-lg">
+              <h2 className="text-lg font-bold text-neon uppercase">Редактировать "Сотрудничество"</h2>
+              <div>
+                <label className="block text-xs text-white/40 mb-1">HTML контент</label>
+                <textarea rows={10} value={coopHtml} onChange={e=>setCoopHtml(e.target.value)} className="w-full p-2 rounded bg-white/5 border border-white/10 text-xs font-mono" placeholder="<h1>Сотрудничество</h1>..." />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-xs text-white/40 uppercase">Контакты</label>
+                {Object.keys(coopLinks).map(k => (
+                  <div key={k} className="flex items-center gap-2">
+                    <span className="text-[10px] w-20 text-white/60">{k}:</span>
+                    <input value={(coopLinks as any)[k]} onChange={e=>setCoopLinks({...coopLinks, [k]: e.target.value})} className="flex-1 p-1.5 rounded bg-white/5 border border-white/10 text-xs" />
+                  </div>
+                ))}
+              </div>
+              <button className="btn btn-primary w-full py-2 uppercase font-bold text-xs">Сохранить</button>
+            </form>
           )}
         </div>
       </div>

@@ -6,10 +6,12 @@ import { useRouter, usePathname } from "next/navigation"
 
 export default function Header() {
   const [user, setUser] = useState<any>(null)
+  const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
 
   useEffect(() => {
+    setMounted(true)
     const loadUser = async () => {
       try {
         const data = await api("/users/me")
@@ -47,17 +49,19 @@ export default function Header() {
           <Link className={`hover:text-neon transition-colors ${pathname === "/about" ? "text-neon" : "text-white/70"}`} href="/about">О нас</Link>
           <Link className={`hover:text-neon transition-colors ${pathname === "/coop" ? "text-neon" : "text-white/70"}`} href="/coop">Сотрудничество</Link>
           
-          {user && (
+          {mounted && user && (
             <Link className={`hover:text-neon transition-colors ${pathname === "/profile" ? "text-neon" : "text-white/70"}`} href="/profile">Профиль</Link>
           )}
 
-          {isAdminOrModerator && (
+          {mounted && isAdminOrModerator && (
             <Link className={`hover:text-acid transition-colors font-bold ${pathname.startsWith("/admin") ? "text-acid" : "text-acid/70"}`} href="/admin">Админ</Link>
           )}
         </nav>
 
         <div className="ml-auto flex items-center gap-3">
-          {user ? (
+          {!mounted ? (
+            <div className="w-20 h-8 bg-white/5 animate-pulse rounded" />
+          ) : user ? (
             <div className="flex items-center gap-3">
               <div className="hidden sm:block text-right">
                 <div className="text-xs font-bold text-white leading-none">{user.username}</div>
