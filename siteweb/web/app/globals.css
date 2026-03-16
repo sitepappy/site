@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0a0a0f;
+  --acid: #39FF14;
+  --neon: #7B2EFF;
+}
+
+html, body, #__next {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: white;
+}
+
+.glass {
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.glow {
+  text-shadow: 0 0 8px #39FF14, 0 0 16px #7B2EFF;
+}
+
+.btn {
+  @apply px-4 py-2 rounded-md transition-transform duration-200;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #7B2EFF, #39FF14);
+  color: black;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 0 10px #39FF14, 0 0 20px #7B2EFF;
+}
+
