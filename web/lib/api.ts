@@ -19,6 +19,11 @@ export async function api(path: string, opts: RequestInit = {}) {
   const res = await fetch(`${API_URL}${path}`, { ...opts, headers, cache: "no-store" })
 
   if (!res.ok) {
+    if (res.status === 401) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token")
+      }
+    }
     const data = await res.json().catch(() => ({}))
     throw new Error(data.error || "Ошибка")
   }

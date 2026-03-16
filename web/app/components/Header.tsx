@@ -13,6 +13,11 @@ export default function Header() {
   useEffect(() => {
     setMounted(true)
     const loadUser = async () => {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
+      if (!token) {
+        setUser(null)
+        return
+      }
       try {
         const data = await api("/users/me")
         setUser(data)
@@ -32,6 +37,13 @@ export default function Header() {
 
   const isAdminOrModerator = user && (user.role === "admin" || user.role === "moderator")
 
+  // Функция для активного класса
+  const getLinkClass = (p: string) => {
+    const base = "hover:text-neon transition-colors"
+    if (!mounted) return `${base} text-white/70`
+    return `${base} ${pathname === p ? "text-neon font-bold" : "text-white/70"}`
+  }
+
   return (
     <header className="border-b border-white/10 sticky top-0 z-50 bg-base/80 backdrop-blur-md">
       <div className="max-w-6xl mx-auto px-4 py-4 flex items-center gap-6">
@@ -40,21 +52,21 @@ export default function Header() {
         </Link>
         
         <nav className="hidden md:flex gap-4 text-xs lg:text-sm font-medium">
-          <Link className={`hover:text-neon transition-colors ${pathname === "/" ? "text-neon" : "text-white/70"}`} href="/">Главная</Link>
-          <Link className={`hover:text-neon transition-colors ${pathname === "/bets" ? "text-neon" : "text-white/70"}`} href="/bets">Ставки</Link>
-          <Link className={`hover:text-neon transition-colors ${pathname === "/quests" ? "text-neon" : "text-white/70"}`} href="/quests">Квесты</Link>
-          <Link className={`hover:text-neon transition-colors ${pathname === "/rewards" ? "text-neon" : "text-white/70"}`} href="/rewards">Награды</Link>
-          <Link className={`hover:text-neon transition-colors ${pathname === "/leaderboard" ? "text-neon" : "text-white/70"}`} href="/leaderboard">Лидерборд</Link>
-          <Link className={`hover:text-neon transition-colors ${pathname === "/referral" ? "text-neon" : "text-white/70"}`} href="/referral">Я реферал</Link>
-          <Link className={`hover:text-neon transition-colors ${pathname === "/about" ? "text-neon" : "text-white/70"}`} href="/about">О нас</Link>
-          <Link className={`hover:text-neon transition-colors ${pathname === "/coop" ? "text-neon" : "text-white/70"}`} href="/coop">Сотрудничество</Link>
+          <Link className={getLinkClass("/")} href="/">Главная</Link>
+          <Link className={getLinkClass("/bets")} href="/bets">Ставки</Link>
+          <Link className={getLinkClass("/quests")} href="/quests">Квесты</Link>
+          <Link className={getLinkClass("/rewards")} href="/rewards">Награды</Link>
+          <Link className={getLinkClass("/leaderboard")} href="/leaderboard">Лидерборд</Link>
+          <Link className={getLinkClass("/referral")} href="/referral">Я реферал</Link>
+          <Link className={getLinkClass("/about")} href="/about">О нас</Link>
+          <Link className={getLinkClass("/coop")} href="/coop">Сотрудничество</Link>
           
           {mounted && user && (
-            <Link className={`hover:text-neon transition-colors ${pathname === "/profile" ? "text-neon" : "text-white/70"}`} href="/profile">Профиль</Link>
+            <Link className={getLinkClass("/profile")} href="/profile">Профиль</Link>
           )}
 
           {mounted && isAdminOrModerator && (
-            <Link className={`hover:text-acid transition-colors font-bold ${pathname.startsWith("/admin") ? "text-acid" : "text-acid/70"}`} href="/admin">Админ</Link>
+            <Link className={`hover:text-acid transition-colors font-bold ${mounted && pathname?.startsWith("/admin") ? "text-acid" : "text-acid/70"}`} href="/admin">Админ</Link>
           )}
         </nav>
 

@@ -17,6 +17,9 @@ export default function ProfilePage() {
       setAvatarUrl(m.avatarUrl || "")
     } catch (e:any) {
       setError(e.message)
+      if (e.message === "Unauthorized" || e.message === "Пользователь не найден") {
+        window.location.href = "/login"
+      }
     }
   }
   useEffect(()=>{ load() },[])
