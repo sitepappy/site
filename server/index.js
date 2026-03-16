@@ -39,10 +39,15 @@ const limiter = rateLimit({
 })
 
 app.use(limiter)
-ensureDataDir()
+
+try {
+  ensureDataDir()
+} catch (e) {
+  console.error("CRITICAL: Failed to init data dir:", e)
+}
 
 app.get("/", (req, res) => {
-  res.json({ ok: true, name: "PAPPY API" })
+  res.json({ ok: true, name: "PAPPY API", status: "online" })
 })
 
 app.use("/auth", authRoutes)
@@ -60,7 +65,6 @@ app.use("/leaderboard", leaderboardRoutes)
 app.use("/admin", adminRoutes)
 
 const PORT = process.env.PORT || 4000;
-// Мы добавляем '0.0.0.0', чтобы Railway мог "увидеть" твой сервер
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Сервер запущен на порту ${PORT}`);
+  console.log(`SERVER_STARTED_ON_PORT: ${PORT}`);
 });
