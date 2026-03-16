@@ -32,10 +32,9 @@ export default function RegisterPage() {
       // Сохраняем токен и редиректим
       if (res.token) {
         localStorage.setItem("token", res.token)
-        router.push("/")
-        router.refresh()
+        window.location.href = "/profile"
       } else {
-        router.push("/login")
+        window.location.href = "/login"
       }
     } catch (e:any) {
       setError(e.message)

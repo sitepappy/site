@@ -21,7 +21,7 @@ export default function Header() {
       try {
         const data = await api("/users/me")
         setUser(data)
-      } catch (e) {
+      } catch (e: any) {
         if (e.message === "UNAUTHORIZED") {
           localStorage.removeItem("token")
         }
