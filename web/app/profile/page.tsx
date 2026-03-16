@@ -2,160 +2,130 @@
 import { useEffect, useState } from "react"
 import { api } from "../../lib/api"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 export default function ProfilePage() {
   const [me, setMe] = useState<any>(null)
-  const [link, setLink] = useState("")
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [mounted, setMounted] = useState(false)
+  
+  const [link, setLink] = useState("")
   const [username, setUsername] = useState("")
   const [avatarUrl, setAvatarUrl] = useState("")
+  
   const router = useRouter()
+
+  useEffect(() => {
+    setMounted(true)
+    load()
+  }, [])
+
   const load = async () => {
-    const token = localStorage.getItem("token")
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
     if (!token) {
-      router.push("/login")
+      setLoading(false)
       return
     }
+
     try {
       const m = await api("/users/me")
       setMe(m)
       setLink(m.steamTradeLink || "")
       setUsername(m.username || "")
       setAvatarUrl(m.avatarUrl || "")
-    } catch (e:any) {
-      setError(e.message)
-      // Если токен плохой - на логин
-      if (e.message.includes("вход") || e.message.includes("найден") || e.message.includes("token")) {
+    } catch (e: any) {
+      if (e.message === "UNAUTHORIZED") {
         localStorage.removeItem("token")
-        router.push("/login")
+        setMe(null)
+      } else {
+        setError(e.message)
       }
+    } finally {
+      setLoading(false)
     }
   }
-  useEffect(()=>{ load() },[])
+
   const save = async () => {
     setError("")
     try {
       await api("/users/me", { method: "PUT", body: JSON.stringify({ username, avatarUrl }) })
       await api("/users/trade-link", { method: "PUT", body: JSON.stringify({ link }) })
       load()
-    } catch (e:any) {
+    } catch (e: any) {
       setError(e.message)
     }
   }
-  if (!me) return <div className="text-white/60">Загрузка...</div>
+
+  if (!mounted) return null
+  
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <div className="w-12 h-12 border-4 border-neon border-t-transparent rounded-full animate-spin"></div>
+        <div className="text-neon font-bold animate-pulse uppercase tracking-widest">Загрузка данных...</div>
+      </div>
+    )
+  }
+
+  if (!me) {
+    return (
+      <div className="max-w-md mx-auto glass p-8 rounded-lg text-center space-y-6">
+        <div className="text-4xl">🔒</div>
+        <h1 className="text-2xl font-bold uppercase">Доступ ограничен</h1>
+        <p className="text-white/60">Чтобы увидеть свой профиль, необходимо войти в систему.</p>
+        <div className="flex gap-2 justify-center">
+          <Link href="/login" className="btn btn-primary px-8">Войти</Link>
+          <Link href="/register" className="btn glass px-8">Регистрация</Link>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-4">
-      <div className="glass p-4 rounded">
-        <h1 className="text-xl font-semibold">Профиль</h1>
-        <div className="mt-2 grid md:grid-cols-3 gap-4 items-start">
-          <div className="flex items-center gap-3">
+    <div className="space-y-4 animate-in fade-in duration-500">
+      <div className="glass p-6 rounded-lg border border-white/5">
+        <h1 className="text-2xl font-bold mb-6 uppercase tracking-tighter">Ваш Профиль</h1>
+        <div className="grid md:grid-cols-3 gap-8 items-start">
+          <div className="flex flex-col items-center gap-4 text-center">
             {me.avatarUrl ? (
-              <img src={me.avatarUrl} alt={me.username} className="w-16 h-16 rounded-full object-cover border border-acid" />
+              <img src={me.avatarUrl} alt={me.username} className="w-32 h-32 rounded-full object-cover border-2 border-neon shadow-neon" />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center text-xl">
+              <div className="w-32 h-32 rounded-full bg-white/5 border-2 border-white/10 flex items-center justify-center text-4xl font-bold text-white/20">
                 {me.username?.[0]?.toUpperCase() || "?"}
               </div>
             )}
             <div>
-              <div className="text-lg font-semibold">{me.username}</div>
-              <div className="text-sm text-white/60">{me.email}</div>
+              <div className="text-xl font-bold text-neon">{me.username}</div>
+              <div className="text-xs text-white/40">{me.email}</div>
             </div>
           </div>
-          <div>
-            <div>Email: {me.email}</div>
-            <div>Баланс: <span className="text-acid">{me.balance}</span></div>
-            <div>Уровень: {me.level?.name || "Нет"}</div>
-            <div>
-              Роль: {me.role}
-              {me.referralLevel && (
-                <span className="ml-2 px-2 py-0.5 rounded-full text-xs border" style={{ borderColor: me.referralColor, color: me.referralColor }}>
-                  {me.referralLevel}
-                </span>
-              )}
+
+          <div className="space-y-3 bg-black/20 p-4 rounded border border-white/5">
+            <div className="flex justify-between text-sm"><span className="text-white/40">Баланс:</span> <span className="text-acid font-mono font-bold">{me.balance} 🪙</span></div>
+            <div className="flex justify-between text-sm"><span className="text-white/40">Роль:</span> <span className="uppercase text-[10px] font-bold px-2 py-0.5 rounded bg-white/5">{me.role}</span></div>
+            <div className="flex justify-between text-sm"><span className="text-white/40">ID:</span> <span className="text-[10px] font-mono opacity-30">{me.id}</span></div>
+            <div className="pt-2 border-t border-white/5">
+              <div className="text-[10px] text-white/30 uppercase mb-1">Дата регистрации</div>
+              <div className="text-xs">{new Date(me.createdAt).toLocaleString()}</div>
             </div>
-            <div>Промокод: {me.promoCode || "—"}</div>
-            <div>Дата регистрации: {new Date(me.createdAt).toLocaleString()}</div>
           </div>
-          <div>
-            <div className="mb-2 font-semibold">Настройки профиля</div>
-            <div className="mb-1 text-xs text-white/50">Ваш никнейм (виден всем)</div>
-            <input className="w-full p-3 rounded bg-white/10 mb-3 border border-white/5 focus:border-neon outline-none" placeholder="Никнейм" value={username} onChange={e=>setUsername(e.target.value)} />
-            
-            <div className="mb-1 text-xs text-white/50">URL аватарки (прямая ссылка)</div>
-            <input className="w-full p-3 rounded bg-white/10 mb-3 border border-white/5 focus:border-neon outline-none" placeholder="https://example.com/avatar.jpg" value={avatarUrl} onChange={e=>setAvatarUrl(e.target.value)} />
-            
-            <div className="mb-1 text-xs text-white/50">Steam trade link</div>
-            <input className="w-full p-3 rounded bg-white/10 border border-white/5 focus:border-neon outline-none" placeholder="https://steamcommunity.com/tradeoffer/new/..." value={link} onChange={e=>setLink(e.target.value)} />
-            
-            <button onClick={save} className="btn btn-primary w-full mt-4">Сохранить изменения</button>
+
+          <div className="space-y-4">
+            <h3 className="text-xs font-bold text-white/40 uppercase">Настройки</h3>
+            <input className="w-full p-2 text-sm rounded bg-white/5 border border-white/10 outline-none focus:border-neon" placeholder="Никнейм" value={username} onChange={e=>setUsername(e.target.value)} />
+            <input className="w-full p-2 text-sm rounded bg-white/5 border border-white/10 outline-none focus:border-neon" placeholder="URL аватарки" value={avatarUrl} onChange={e=>setAvatarUrl(e.target.value)} />
+            <input className="w-full p-2 text-sm rounded bg-white/5 border border-white/10 outline-none focus:border-neon" placeholder="Steam Trade Link" value={link} onChange={e=>setLink(e.target.value)} />
+            <button onClick={save} className="btn btn-primary w-full py-2 text-xs uppercase font-bold">Сохранить</button>
           </div>
         </div>
       </div>
-      <div className="grid md:grid-cols-2 gap-4">
-        <PromoBlock />
-        <TransactionsBlock />
-      </div>
-      {error && <div className="text-red-400">{error}</div>}
-    </div>
-  )
-}
-
-
-
-function PromoBlock() {
-  const [my, setMy] = useState<any>(null)
-  const [code, setCode] = useState("")
-  const [err, setErr] = useState("")
-  const load = async () => {
-    try {
-      const res = await api("/promos")
-      setMy(res.my)
-    } catch {}
-  }
-  useEffect(()=>{ load() },[])
-  const create = async () => {
-    try {
-      const r = await api("/users/promo-code", { method: "POST", body: JSON.stringify({ code }) })
-      setMy({ code: r.code })
-    } catch (e:any) { setErr(e.message) }
-  }
-  return (
-    <div className="glass p-4 rounded">
-      <h2 className="font-semibold mb-2 text-neon">Мой промокод</h2>
-      {my ? <div className="text-lg">{my.code}</div> : (
-        <div>
-          <input className="w-full p-3 rounded bg-white/10" placeholder="Ваш промокод" value={code} onChange={e=>setCode(e.target.value)} />
-          <button onClick={create} className="btn btn-primary mt-2">Создать</button>
-          {err && <div className="text-red-400 mt-2">{err}</div>}
+      
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded text-red-400 text-xs text-center">
+          Ошибка: {error}
         </div>
       )}
-    </div>
-  )
-}
-
-function TransactionsBlock() {
-  const [list, setList] = useState<any[]>([])
-  useEffect(()=> {
-    const token = localStorage.getItem("token")
-    if (!token) return
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1]))
-      const id = payload.id
-      api(`/users/${id}/transactions`).then(setList).catch(()=>{})
-    } catch {}
-  },[])
-  return (
-    <div className="glass p-4 rounded">
-      <h2 className="font-semibold mb-2 text-acid">История транзакций</h2>
-      <div className="space-y-2 max-h-80 overflow-auto pr-2">
-        {list.map(t => (
-          <div key={t.id} className="flex items-center justify-between text-sm">
-            <div>{t.note}</div>
-            <div className={t.amount>=0 ? "text-acid" : "text-red-400"}>{t.amount>=0 ? "+" : ""}{t.amount}</div>
-          </div>
-        ))}
-        {list.length===0 && <div className="text-white/60">Нет операций</div>}
-      </div>
     </div>
   )
 }

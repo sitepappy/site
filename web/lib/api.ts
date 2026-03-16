@@ -1,9 +1,6 @@
 // lib/api.ts
 
-// Берем URL бекенда из переменной окружения или используем хардкод
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://site-production-b614.up.railway.app"
-
-console.log("DEBUG: Current API_URL is:", API_URL)
 
 export function getToken() {
   if (typeof window === "undefined") return ""
@@ -23,6 +20,7 @@ export async function api(path: string, opts: RequestInit = {}) {
       if (typeof window !== "undefined") {
         localStorage.removeItem("token")
       }
+      throw new Error("UNAUTHORIZED")
     }
     const data = await res.json().catch(() => ({}))
     throw new Error(data.error || "Ошибка")
