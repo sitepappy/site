@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import { api } from "../../lib/api"
+import { useRouter } from "next/navigation"
 
 export default function ProfilePage() {
   const [me, setMe] = useState<any>(null)
@@ -8,6 +9,7 @@ export default function ProfilePage() {
   const [error, setError] = useState("")
   const [username, setUsername] = useState("")
   const [avatarUrl, setAvatarUrl] = useState("")
+  const router = useRouter()
   const load = async () => {
     const token = localStorage.getItem("token")
     if (!token) {
