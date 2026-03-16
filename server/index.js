@@ -19,41 +19,40 @@ import adminRoutes from "./routes/admin.js"
 import { ensureDataDir } from "./lib/db.js"
 
 dotenv.config()
-console.log("Starting PAPPY API...")
+console.log("=== PAPPY API STARTING ===")
 
 const app = express()
 
-// CORS
+// 1. СТАТИЧЕСКИЙ ОТВЕТ ДЛЯ RAILWAY (Health Check) - ДО ВСЕХ МИДЛВАРЕЙ
+app.get("/", (req, res) => {
+  res.status(200).send("PAPPY API IS ALIVE");
+})
+
+// 2. Настройки безопасности и CORS
 app.use(cors())
 app.options("*", cors())
-
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }))
 app.use(express.json({ limit: "1mb" }))
-
 app.set("trust proxy", 1)
 
+// 3. Лимитер (после проверки здоровья)
 const limiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 300 // Увеличил лимит, чтобы healthcheck не блокировался
+  max: 1000 // Сильно увеличил, чтобы не было ложных блокировок
 })
 app.use(limiter)
 
-// Инициализация БД
-console.log("Initializing database...")
+// 4. Инициализация БД
 try {
   ensureDataDir()
-  console.log("Database initialized successfully.")
+  console.log("DB check: OK");
 } catch (e) {
-  console.error("Database initialization failed:", e)
+  console.error("DB check: FAILED", e);
 }
 
-// Routes
-app.get("/", (req, res) => {
-  res.json({ ok: true, name: "PAPPY API", status: "online", timestamp: new Date().toISOString() })
-})
-
+// 5. Остальные роуты
 app.use("/auth", authRoutes)
 app.use("/users", userRoutes)
 app.use("/quests", questRoutes)
@@ -70,5 +69,5 @@ app.use("/admin", adminRoutes)
 
 const PORT = process.env.PORT || 4000
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`SERVER_READY_ON_PORT: ${PORT}`)
+  console.log(`=== SERVER READY ON PORT: ${PORT} ===`);
 })
