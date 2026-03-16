@@ -112,3 +112,5 @@ r.get("/reports", authRequired, (req, res) => {
   const list = (data.reports || []).filter(r => r.userId === req.user.id)
   res.json(list)
 })
+
+export default r

@@ -62,10 +62,11 @@ export default function Header() {
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
         {/* Логотип */}
         <Link href="/" className="flex items-center group relative">
-          <span className="text-2xl md:text-3xl font-black tracking-tighter italic text-white group-hover:text-neon transition-colors duration-300">
+          <span className="text-3xl md:text-4xl font-black tracking-tighter italic text-white group-hover:text-neon transition-all duration-300 drop-shadow-[0_0_8px_rgba(57,255,20,0.5)]">
             PAPPY
           </span>
-          <div className="absolute -inset-1 bg-neon/20 blur-sm group-hover:bg-neon/40 rounded-lg transition-all duration-300 -z-10"></div>
+          {/* Тонкое свечение снизу для премиальности */}
+          <div className="absolute -bottom-1 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-neon to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
         </Link>
         
         {/* Десктопная навигация */}

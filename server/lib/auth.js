@@ -18,7 +18,8 @@ export function authRequired(req, res, next) {
     if (!user) return res.status(401).json({ error: "Пользователь не найден" })
     if (user.isBanned) return res.status(403).json({ error: "Ваш аккаунт заблокирован" })
     
-    req.user = data
+    // Передаем актуальные данные пользователя из БД, включая роль
+    req.user = user
     next()
   } catch {
     res.status(401).json({ error: "Недействительный токен" })
