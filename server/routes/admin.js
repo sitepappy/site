@@ -76,7 +76,7 @@ r.get("/users/:id", (req, res) => {
   const bets = data.bets.filter(b => b.userId === u.id).sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))
   
   res.json({ 
-    user: { id: u.id, username: u.username, email: u.email, balance: u.balance, role: u.role, isBanned: u.isBanned, createdAt: u.createdAt },
+    user: { id: u.id, username: u.username, email: u.email, balance: u.balance, role: u.role, levelId: u.levelId, isBanned: u.isBanned, createdAt: u.createdAt },
     logs,
     bets
   })

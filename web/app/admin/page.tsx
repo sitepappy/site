@@ -49,6 +49,9 @@ export default function AdminPage() {
           return
         }
         setUser(data)
+        // Загружаем уровни один раз при входе
+        const levelsData = await api("/levels")
+        setLevelsList(levelsData)
         loadData(activeTab)
       } catch (e: any) {
         router.push("/login")
@@ -68,8 +71,6 @@ export default function AdminPage() {
       if (tab === "users") {
         const usersData = await api("/admin/users")
         setUsersList(usersData)
-        const levelsData = await api("/levels") // Загружаем уровни здесь
-        setLevelsList(levelsData)
       } else if (tab === "posts") {
         const data = await api("/posts")
         setPostsList(data)
@@ -241,7 +242,13 @@ export default function AdminPage() {
     try {
       await api("/admin/users/level", { method: "POST", body: JSON.stringify({ userId, levelId }) })
       loadData("users")
-      if (selectedUser?.user?.id === userId) viewUser(userId)
+      // Обновляем выбранного пользователя вручную, чтобы увидеть изменения мгновенно
+      setSelectedUser(prev => prev ? {
+        ...prev,
+        user: { ...prev.user, levelId }
+      } : null)
+      setMsg("Уровень обновлен!")
+      setTimeout(() => setMsg(""), 3000)
     } catch (e: any) { alert(e.message) }
   }
 
@@ -522,6 +529,7 @@ export default function AdminPage() {
                                  {lvl.name}
                                </button>
                              ))}
+                             {levelsList.length === 0 && <span className="text-[9px] text-red-400">Уровни не загружены. Обновите страницу.</span>}
                            </div>
                          </div>
 
