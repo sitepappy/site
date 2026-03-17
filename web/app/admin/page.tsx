@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react"
 import { api } from "../../lib/api"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 export default function AdminPage() {
   const [user, setUser] = useState<any>(null)
@@ -25,6 +26,9 @@ export default function AdminPage() {
   const [reportReplies, setReportReplies] = useState<Record<string, string>>({})
   const [reportPromoCodes, setReportPromoCodes] = useState<Record<string, string>>({})
   const [balanceDelta, setBalanceDelta] = useState("")
+  const [reportsView, setReportsView] = useState<"active" | "history">("active")
+  const [ticketBalanceAmount, setTicketBalanceAmount] = useState<Record<string, string>>({})
+  const [ticketBalanceNote, setTicketBalanceNote] = useState<Record<string, string>>({})
 
   // Состояния для О нас и Расписания
   const [aboutHtml, setAboutHtml] = useState("")
@@ -310,8 +314,26 @@ export default function AdminPage() {
       const code = String(reportPromoCodes[id] || "").trim()
       if (!code) return alert("Введите промокод")
       await api(`/admin/reports/${id}/referral-credit`, { method: "POST", body: JSON.stringify({ code }) })
+      await api(`/admin/reports/${id}/reply`, { method: "POST", body: JSON.stringify({ message: "Бонус по промокоду начислен. Проверьте баланс.", status: "in_progress" }) })
       loadData("reports")
-      setMsg("Начислено 10+10!")
+      setMsg("Бонус начислен!")
+      setTimeout(() => setMsg(""), 3000)
+    } catch (e: any) { alert(e.message) }
+  }
+
+  const handleTicketBalance = async (r: any, sign: 1 | -1) => {
+    try {
+      const amount = Math.floor(Number(ticketBalanceAmount[r.id]))
+      if (!Number.isFinite(amount) || amount <= 0) return alert("Введите сумму > 0")
+      const delta = amount * sign
+      await api("/admin/users/balance", { method: "POST", body: JSON.stringify({ userId: r.userId, delta }) })
+      const note = String(ticketBalanceNote[r.id] || "").trim()
+      const text = `${delta > 0 ? "Баланс пополнен" : "Баланс списан"} на ${Math.abs(delta)} 🪙.${note ? ` Причина: ${note}` : ""}`
+      await api(`/admin/reports/${r.id}/reply`, { method: "POST", body: JSON.stringify({ message: text, status: "in_progress" }) })
+      setTicketBalanceAmount(prev => ({ ...prev, [r.id]: "" }))
+      setTicketBalanceNote(prev => ({ ...prev, [r.id]: "" }))
+      loadData("reports")
+      setMsg("Баланс изменён!")
       setTimeout(() => setMsg(""), 3000)
     } catch (e: any) { alert(e.message) }
   }
@@ -559,7 +581,16 @@ export default function AdminPage() {
                         </div>
                         <div className="text-[10px] text-white/40 truncate max-w-[150px]">{u.email}</div>
                       </div>
-                      <div className="text-xs font-mono text-acid">{u.balance} 🪙</div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-xs font-mono text-acid">{u.balance} 🪙</div>
+                        <Link
+                          href={`/profile/${u.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="px-2 py-1 rounded bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest text-white/50 hover:text-white hover:border-neon/30 transition-all"
+                        >
+                          Профиль
+                        </Link>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -696,9 +727,43 @@ export default function AdminPage() {
 
           {activeTab === "reports" && (
             <div className="space-y-4">
-              <h2 className="text-lg font-bold text-neon uppercase">Тикеты / Репорты</h2>
+              <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-bold text-neon uppercase">Тикеты / Репорты</h2>
+                  <div className="text-[10px] text-white/30 uppercase font-bold tracking-widest">
+                    Активные: {(reportsList || []).filter((x: any) => x.status !== "resolved").length} • История: {(reportsList || []).filter((x: any) => x.status === "resolved").length}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setReportsView("active")}
+                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${
+                      reportsView === "active" ? "bg-neon text-black border-neon shadow-neon" : "bg-white/5 text-white/50 border-white/10 hover:text-white hover:border-white/20"
+                    }`}
+                  >
+                    Активные
+                  </button>
+                  <button
+                    onClick={() => setReportsView("history")}
+                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${
+                      reportsView === "history" ? "bg-white/10 text-white border-white/20" : "bg-white/5 text-white/50 border-white/10 hover:text-white hover:border-white/20"
+                    }`}
+                  >
+                    История
+                  </button>
+                  <button
+                    onClick={() => loadData("reports")}
+                    className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/50 hover:text-white hover:border-neon/30 transition-all"
+                  >
+                    Обновить
+                  </button>
+                </div>
+              </div>
               <div className="grid gap-3">
-                {reportsList.map(r => (
+                {(reportsView === "active"
+                  ? (reportsList || []).filter((x: any) => x.status !== "resolved")
+                  : (reportsList || []).filter((x: any) => x.status === "resolved")
+                ).map(r => (
                   <div key={r.id} className={`p-4 rounded border transition-all ${
                     r.status === "pending" ? "bg-yellow-500/5 border-yellow-500/20" : r.status === "in_progress" ? "bg-neon/5 border-neon/20" : "bg-white/5 border-white/10 opacity-60"
                   }`}>
@@ -732,45 +797,123 @@ export default function AdminPage() {
                       </div>
 
                       <div className="w-full lg:w-[360px] space-y-3">
-                        <div className="glass p-3 rounded-xl border border-white/10 space-y-2">
-                          <div className="text-[10px] text-white/40 uppercase font-black tracking-widest">Ответ пользователю</div>
-                          <textarea
-                            rows={3}
-                            value={reportReplies[r.id] || ""}
-                            onChange={(e) => setReportReplies(prev => ({ ...prev, [r.id]: e.target.value }))}
-                            className="w-full p-3 rounded-xl bg-black/40 border border-white/10 text-sm outline-none focus:border-neon transition-all"
-                            placeholder="Напишите ответ. Пользователь увидит его в тикетах."
-                          />
-                          <button onClick={() => handleReplyReport(r.id)} className="w-full btn btn-primary py-2 text-[10px] uppercase font-black shadow-neon">
-                            Ответить / Взять в работу
-                          </button>
+                        <div className="glass p-3 rounded-2xl border border-white/10 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="text-[10px] text-white/40 uppercase font-black tracking-widest">Действия</div>
+                            <div className="text-[9px] text-white/20 font-mono">{r.id?.slice?.(0, 8)}</div>
+                          </div>
+
+                          <div className="flex flex-wrap gap-2">
+                            {[
+                              { title: "Взялся за работу", text: "Взяли тикет в работу. Ожидайте." },
+                              { title: "Нужны детали", text: "Нужно уточнение: пришлите детали (скрин/ID/время) и что именно не сработало." },
+                              { title: "Проверяем", text: "Проверяем ситуацию. Если подтвердится — компенсируем." },
+                              { title: "Решили", text: "Проблема решена. Проверьте сейчас, пожалуйста." }
+                            ].map(t => (
+                              <button
+                                key={t.title}
+                                onClick={() => setReportReplies(prev => ({ ...prev, [r.id]: t.text }))}
+                                className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/50 hover:text-white hover:border-neon/30 transition-all"
+                              >
+                                {t.title}
+                              </button>
+                            ))}
+                          </div>
+
+                          {r.status !== "resolved" && (
+                            <>
+                              <textarea
+                                rows={3}
+                                value={reportReplies[r.id] || ""}
+                                onChange={(e) => setReportReplies(prev => ({ ...prev, [r.id]: e.target.value }))}
+                                className="w-full p-3 rounded-xl bg-black/40 border border-white/10 text-sm outline-none focus:border-neon transition-all"
+                                placeholder="Сообщение пользователю"
+                              />
+                              <div className="grid grid-cols-2 gap-2">
+                                <button
+                                  onClick={() => handleReplyReport(r.id)}
+                                  className="py-3 rounded-xl bg-neon text-black text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-neon"
+                                >
+                                  Отправить
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    try {
+                                      await api(`/admin/reports/${r.id}/reply`, { method: "POST", body: JSON.stringify({ message: "Тикет закрыт. Спасибо за обращение.", status: "resolved" }) })
+                                      await handleResolveReport(r.id)
+                                    } catch (e: any) {
+                                      alert(e.message)
+                                    }
+                                  }}
+                                  className="py-3 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-white hover:border-white/20 transition-all"
+                                >
+                                  Закрыть
+                                </button>
+                              </div>
+                            </>
+                          )}
                         </div>
 
-                        {!isOnlyModerator && !r.referralManualAppliedAt && (
-                          <div className="glass p-3 rounded-xl border border-white/10 space-y-2">
-                            <div className="text-[10px] text-white/40 uppercase font-black tracking-widest">Рефералка (ручной фикс)</div>
+                        {!isOnlyModerator && r.status !== "resolved" && (
+                          <div className="glass p-3 rounded-2xl border border-white/10 space-y-3">
+                            <div className="text-[10px] text-white/40 uppercase font-black tracking-widest">Баланс</div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <input
+                                value={ticketBalanceAmount[r.id] || ""}
+                                onChange={(e) => setTicketBalanceAmount(prev => ({ ...prev, [r.id]: e.target.value }))}
+                                className="p-3 rounded-xl bg-black/40 border border-white/10 text-sm outline-none focus:border-neon transition-all font-mono"
+                                placeholder="Сумма"
+                              />
+                              <input
+                                value={ticketBalanceNote[r.id] || ""}
+                                onChange={(e) => setTicketBalanceNote(prev => ({ ...prev, [r.id]: e.target.value }))}
+                                className="p-3 rounded-xl bg-black/40 border border-white/10 text-sm outline-none focus:border-white/20 transition-all"
+                                placeholder="Причина (опц.)"
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <button
+                                onClick={() => handleTicketBalance(r, 1)}
+                                className="py-3 rounded-xl bg-acid text-black text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-acid"
+                              >
+                                Пополнить
+                              </button>
+                              <button
+                                onClick={() => handleTicketBalance(r, -1)}
+                                className="py-3 rounded-xl bg-red-500/15 border border-red-500/25 text-red-300 text-[10px] font-black uppercase tracking-widest hover:bg-red-500/25 transition-all"
+                              >
+                                Списать
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {!isOnlyModerator && !r.referralManualAppliedAt && r.status !== "resolved" && (
+                          <div className="glass p-3 rounded-2xl border border-white/10 space-y-2">
+                            <div className="text-[10px] text-white/40 uppercase font-black tracking-widest">Фикс бонуса по промокоду</div>
                             <input
                               value={reportPromoCodes[r.id] || ""}
                               onChange={(e) => setReportPromoCodes(prev => ({ ...prev, [r.id]: e.target.value }))}
                               className="w-full p-3 rounded-xl bg-black/40 border border-white/10 text-sm outline-none focus:border-acid transition-all font-mono"
-                              placeholder="Промокод (например PAPPY10)"
+                              placeholder="Промокод"
                             />
-                            <button onClick={() => handleManualReferralCredit(r.id)} className="w-full py-2 rounded-xl bg-acid text-black text-[10px] uppercase font-black hover:scale-[1.02] active:scale-95 transition-all shadow-acid">
-                              Начислить 10+10
+                            <button onClick={() => handleManualReferralCredit(r.id)} className="w-full py-3 rounded-xl bg-acid text-black text-[10px] uppercase font-black hover:scale-[1.02] active:scale-95 transition-all shadow-acid">
+                              Начислить бонус
                             </button>
                           </div>
-                        )}
-
-                        {r.status !== "resolved" && (
-                          <button onClick={() => handleResolveReport(r.id)} className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-[10px] uppercase font-black text-white/60 hover:text-white hover:border-white/20 transition-all">
-                            Закрыть тикет
-                          </button>
                         )}
                       </div>
                     </div>
                   </div>
                 ))}
-                {reportsList.length === 0 && <div className="text-center py-20 text-white/20 uppercase tracking-widest font-bold italic">Тикетов нет</div>}
+                {(reportsView === "active"
+                  ? (reportsList || []).filter((x: any) => x.status !== "resolved").length === 0
+                  : (reportsList || []).filter((x: any) => x.status === "resolved").length === 0
+                ) && (
+                  <div className="text-center py-20 text-white/20 uppercase tracking-widest font-bold italic">
+                    {reportsView === "active" ? "Активных тикетов нет" : "История пуста"}
+                  </div>
+                )}
               </div>
             </div>
           )}

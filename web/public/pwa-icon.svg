@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="g" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#39FF14" stop-opacity="0.35"/>
+      <stop offset="55%" stop-color="#B026FF" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#0a0a0f" stop-opacity="1"/>
+    </radialGradient>
+    <linearGradient id="l" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#39FF14"/>
+      <stop offset="55%" stop-color="#B026FF"/>
+      <stop offset="100%" stop-color="#39FF14"/>
+    </linearGradient>
+    <filter id="s" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="b"/>
+      <feColorMatrix in="b" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.9 0" result="c"/>
+      <feMerge>
+        <feMergeNode in="c"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="120" fill="url(#g)"/>
+  <g filter="url(#s)">
+    <text x="256" y="286" text-anchor="middle" font-family="system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="132" font-weight="900" font-style="italic" fill="url(#l)">PAPPY</text>
+  </g>
+</svg>
+

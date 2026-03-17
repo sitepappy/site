@@ -1,0 +1,40 @@
+{
+  "name": "PAPPY",
+  "short_name": "PAPPY",
+  "description": "Киберпанк сообщество PAPPY",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#0a0a0f",
+  "lang": "ru",
+  "icons": [
+    {
+      "src": "/pwa-icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/maskable-icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Ставки",
+      "short_name": "Ставки",
+      "url": "/bets",
+      "icons": [{ "src": "/pwa-icon.svg", "sizes": "512x512", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Награды",
+      "short_name": "Награды",
+      "url": "/rewards",
+      "icons": [{ "src": "/pwa-icon.svg", "sizes": "512x512", "type": "image/svg+xml" }]
+    }
+  ]
+}
+
