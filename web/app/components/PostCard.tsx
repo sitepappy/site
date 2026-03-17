@@ -41,11 +41,15 @@ export default function PostCard({ post }: { post: any }) {
             )}
           </div>
           <div>
-            <div className={`text-sm font-black tracking-tight group-hover:text-neon transition-colors ${author.role === 'admin' ? 'text-acid' : author.role === 'moderator' ? 'text-blue-400' : 'text-white'}`}>
+            <div className={`text-sm font-black tracking-tight group-hover:text-neon transition-colors flex items-center gap-2 ${author.role === 'admin' ? 'text-acid' : author.role === 'moderator' ? 'text-blue-400' : 'text-white'}`}>
+              {author.levelIcon && <img src={author.levelIcon} alt="" className="w-3 h-3 object-contain" />}
               {author.username}
               {author.role === 'admin' && <span className="ml-2 text-[8px] bg-acid/20 text-acid px-1 rounded uppercase">Admin</span>}
             </div>
-            <div className="text-[10px] text-white/30 font-mono">{new Date(post.createdAt).toLocaleString()}</div>
+            <div className="text-[10px] text-white/30 font-mono flex items-center gap-1">
+              {author.levelName && <span className="text-neon">{author.levelName}</span>}
+              • {new Date(post.createdAt).toLocaleString()}
+            </div>
           </div>
         </Link>
       </div>

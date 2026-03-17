@@ -69,7 +69,7 @@ export default function PublicProfilePage({ params }: { params: { id: string } }
                 )}
               </div>
               <div className="absolute -bottom-1 -right-1 bg-acid text-black text-xs font-black px-4 py-1.5 rounded-full uppercase italic tracking-tighter shadow-xl border-2 border-base">
-                LVL {user.level?.name || "1"}
+                {user.level?.name || "1"}
               </div>
             </div>
 

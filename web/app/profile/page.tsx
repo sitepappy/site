@@ -110,7 +110,7 @@ export default function ProfilePage() {
                 )}
               </div>
               <div className="absolute -bottom-1 -right-1 bg-acid text-black text-[10px] font-black px-3 py-1 rounded-full uppercase italic tracking-tighter shadow-lg">
-                LVL {me.level?.name || "1"}
+                {me.level?.name || "1"}
               </div>
             </div>
 

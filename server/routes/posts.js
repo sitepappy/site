@@ -9,13 +9,16 @@ r.get("/", (req, res) => {
   const data = db.get()
   const list = data.posts.map(p => {
     const user = data.users.find(u => u.id === p.userId) || { username: "PAPPY", avatar: null };
+    const level = data.levels.find(l => l.id === user.levelId);
     return {
       ...p,
       author: {
         id: user.id,
         username: user.username,
         avatar: user.avatar,
-        role: user.role
+        role: user.role,
+        levelName: level?.name || "1",
+        levelIcon: level?.iconUrl
       }
     };
   }).sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))

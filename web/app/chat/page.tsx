@@ -40,7 +40,7 @@ export default function GlobalChatPage() {
       const levels = await api("/levels")
       setMessages(data.map((m: any) => {
         const userLevel = levels.find((l: any) => l.id === m.levelId)
-        return { ...m, levelIcon: userLevel?.iconUrl }
+        return { ...m, levelIcon: userLevel?.iconUrl, levelName: userLevel?.name }
       }))
     } catch (e) {
       console.error(e)
@@ -113,7 +113,10 @@ export default function GlobalChatPage() {
                 <div className={`flex flex-col max-w-[80%] ${isMe ? "items-end" : "items-start"}`}>
                   {showAvatar && (
                     <div className="flex items-center gap-2 mb-1 px-1">
-                      {m.levelIcon && <img src={m.levelIcon} alt="" className="w-3 h-3 object-contain" />}
+                      <div className="flex items-center gap-1 bg-white/5 px-1.5 py-0.5 rounded border border-white/5">
+                        {m.levelIcon && <img src={m.levelIcon} alt="" className="w-2.5 h-2.5 object-contain" />}
+                        {m.levelName && <span className="text-[8px] font-black text-neon uppercase">{m.levelName}</span>}
+                      </div>
                       <Link href={`/profile/${m.userId}`} className={`text-[10px] font-black uppercase hover:underline ${m.role === 'admin' ? 'text-acid' : m.role === 'moderator' ? 'text-blue-400' : 'text-white/60'}`}>
                         {m.username}
                       </Link>
