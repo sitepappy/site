@@ -22,7 +22,7 @@ export default function AdminPage() {
 
   // Состояния для О нас и Расписания
   const [aboutHtml, setAboutHtml] = useState("")
-  const [aboutLinks, setAboutLinks] = useState({ telegram: "", discord: "", twitter: "", steam: "", youtube: "" })
+  const [aboutLinks, setAboutLinks] = useState({ telegram: "", discord: "", twitter: "", steam: "", youtube: "", tiktok: "", kick: "", twitch: "", donation: "" })
   const [scheduleHtml, setScheduleHtml] = useState("")
   const [streams, setStreams] = useState<any[]>([])
   const [rewardsList, setRewardsList] = useState<any[]>([])
@@ -86,7 +86,7 @@ export default function AdminPage() {
       } else if (tab === "about") {
         const data = await api("/public/about")
         setAboutHtml(data.contentHtml || "")
-        setAboutLinks(data.links || { telegram: "", discord: "", twitter: "", steam: "", youtube: "" })
+        setAboutLinks({ telegram: "", discord: "", twitter: "", steam: "", youtube: "", tiktok: "", kick: "", twitch: "", donation: "", ...data.links })
       } else if (tab === "schedule") {
         const data = await api("/public/schedule")
         setScheduleHtml(data.contentHtml || "")

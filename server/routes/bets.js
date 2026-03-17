@@ -125,4 +125,53 @@ r.post("/roulette", authRequired, (req, res) => {
   })
 })
 
+r.post("/coinflip", authRequired, (req, res) => {
+  const { side, amount } = req.body || {}
+  const amt = Math.floor(Number(amount))
+  if (amt < 1) return res.status(400).json({ error: "Минимальная ставка 1 монета" })
+  if (!["heads", "tails"].includes(side)) return res.status(400).json({ error: "Неверная сторона" })
+
+  const data = db.get()
+  const u = data.users.find(x => x.id === req.user.id)
+  if (!u || u.balance < amt) return res.status(400).json({ error: "Недостаточно монет" })
+
+  // Тихая логика: 33% шанс на победу
+  const rng = Math.random() * 100
+  let resultSide = "lose"
+  
+  if (rng < 33) {
+    resultSide = side // User wins
+  } else {
+    // User loses, result is the other side
+    resultSide = side === "heads" ? "tails" : "heads"
+  }
+
+  const win = resultSide === side
+  const winAmount = win ? amt * 2 : 0
+
+  u.balance -= amt
+  if (win) u.balance += winAmount
+
+  const createdAt = nowIso()
+  data.transactions.push({ 
+    id: db.id(), 
+    userId: u.id, 
+    type: "coinflip", 
+    amount: win ? amt : -amt, 
+    balanceAfter: u.balance, 
+    note: `Coinflip: ${side} (${win ? 'Победа' : 'Проигрыш'})`, 
+    createdAt 
+  })
+
+  db.save(data)
+
+  res.json({ 
+    ok: true, 
+    win, 
+    winAmount, 
+    resultSide, 
+    newBalance: u.balance 
+  })
+})
+
 export default r

@@ -45,7 +45,7 @@ export function ensureDataDir() {
         votes: [],
         about: {
           contentHtml: "<h1>О нас</h1><p>Киберпанк сообщество PAPPY</p>",
-          links: { telegram: "", discord: "", twitter: "", steam: "", youtube: "" }
+          links: { telegram: "", discord: "", twitter: "", steam: "", youtube: "", tiktok: "", kick: "", twitch: "", donation: "" }
         },
         schedule: {
           contentHtml: "<h1>Расписание стримов</h1><p>Следите за нашими трансляциями!</p>",

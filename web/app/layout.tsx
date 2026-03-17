@@ -1,4 +1,5 @@
 import "./globals.css"
+import "./coinflip.css"
 import type { Metadata } from "next"
 import Header from "./components/Header"
 

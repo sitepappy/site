@@ -57,6 +57,7 @@ export default function Header() {
     { name: "Награды", href: "/rewards" },
     { name: "Я реферал", href: "/referral" },
     { name: "О нас", href: "/about" },
+    { name: "Расписание", href: "/schedule" },
     { name: "Репорт", href: "/report" },
     { name: "Профиль", href: "/profile" },
   ]

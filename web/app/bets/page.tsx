@@ -33,6 +33,12 @@ export default function BetsPage() {
           >
             Рулетка
           </button>
+          <button 
+            onClick={() => setActiveTab("coinflip")}
+            className={`px-6 py-2 rounded-lg text-xs font-black uppercase italic transition-all ${activeTab === "coinflip" ? "bg-yellow-500 text-black shadow-yellow-500" : "text-white/40 hover:text-white"}`}
+          >
+            Coinflip
+          </button>
         </div>
       </div>
 
@@ -46,11 +52,109 @@ export default function BetsPage() {
             </div>
           )}
         </div>
-      ) : (
+      ) : activeTab === "roulette" ? (
         <RouletteGame />
+      ) : (
+        <CoinflipGame />
       )}
 
       {error && <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-bold text-center">{error}</div>}
+    </div>
+  )
+}
+
+function CoinflipGame() {
+  const [amount, setAmount] = useState("5")
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState<any>(null)
+  const [isFlipping, setIsFlipping] = useState(false)
+
+  const play = async (side: string) => {
+    if (loading || isFlipping) return
+    setLoading(true)
+    setIsFlipping(true)
+    setResult(null)
+
+    try {
+      const res = await api("/bets/coinflip", {
+        method: "POST",
+        body: JSON.stringify({ side, amount })
+      })
+      
+      setTimeout(() => {
+        setResult(res)
+        setIsFlipping(false)
+        window.dispatchEvent(new Event("balanceUpdate"))
+      }, 2000) // Длительность анимации
+
+    } catch (e: any) {
+      alert(e.message)
+      setIsFlipping(false)
+    } finally {
+      setTimeout(() => setLoading(false), 2000)
+    }
+  }
+
+  return (
+    <div className="glass p-8 rounded-3xl border border-white/5 space-y-8 shadow-2xl relative overflow-hidden">
+      <div className="text-center space-y-2">
+        <h2 className="text-3xl font-black italic tracking-tighter uppercase">COINFLIP</h2>
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Выигрыш x2, шанс 33%</p>
+      </div>
+
+      <div className="flex justify-center items-center h-48 perspective-1000">
+        <div className={`coin ${isFlipping ? 'flipping' : ''} ${result ? (result.resultSide === 'heads' ? 'heads' : 'tails') : ''}`}>
+          <div className="side-a"></div>
+          <div className="side-b"></div>
+        </div>
+      </div>
+
+      {result && !isFlipping && (
+        <div className="text-center animate-in fade-in zoom-in">
+          <div className={`text-2xl font-black uppercase tracking-widest ${result.win ? 'text-neon' : 'text-red-400'}`}>
+            {result.win ? `ПОБЕДА! +${result.winAmount - Number(amount)} 🪙` : 'ПРОИГРЫШ'}
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
+        <button 
+          disabled={loading || isFlipping}
+          onClick={() => play("heads")}
+          className="group relative overflow-hidden bg-blue-600 hover:bg-blue-500 p-6 rounded-2xl transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50"
+        >
+          <div className="relative z-10 text-center">
+            <div className="text-2xl font-black italic mb-1">ОРЕЛ</div>
+          </div>
+        </button>
+        <button 
+          disabled={loading || isFlipping}
+          onClick={() => play("tails")}
+          className="group relative overflow-hidden bg-red-600 hover:bg-red-500 p-6 rounded-2xl transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50"
+        >
+          <div className="relative z-10 text-center">
+            <div className="text-2xl font-black italic mb-1">РЕШКА</div>
+          </div>
+        </button>
+      </div>
+
+      <div className="max-w-xs mx-auto">
+        <div className="relative">
+          <input 
+            type="number" 
+            value={amount} 
+            onChange={e => setAmount(e.target.value)}
+            className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-center text-xl font-black font-mono text-acid outline-none focus:border-acid transition-all"
+            min="1"
+          />
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-acid opacity-40 font-bold">🪙</div>
+        </div>
+        <div className="flex justify-between mt-2 px-2">
+          <button onClick={() => setAmount("1")} className="text-[9px] font-black text-white/20 hover:text-white uppercase">Мин</button>
+          <button onClick={() => setAmount(prev => (Number(prev) * 2).toString())} className="text-[9px] font-black text-white/20 hover:text-white uppercase">x2</button>
+          <button onClick={() => setAmount(prev => Math.max(1, Math.floor(Number(prev) / 2)).toString())} className="text-[9px] font-black text-white/20 hover:text-white uppercase">1/2</button>
+        </div>
+      </div>
     </div>
   )
 }
