@@ -2,6 +2,7 @@ import { Router } from "express"
 import { db } from "../lib/db.js"
 import { authRequired } from "../lib/auth.js"
 import { nowIso } from "../lib/utils.js"
+import { ensureAchievementState, grantAchievement } from "../lib/achievements.js"
 
 const r = Router()
 
@@ -172,6 +173,9 @@ r.post("/claim", authRequired, (req, res) => {
     u.dailyRewards.lockedUntil = toIso(lockUntil)
     u.dailyRewards.day = 1
     u.dailyRewards.lastClaimAt = null
+    ensureAchievementState(u)
+    u.achievementProgress.dailyStreak = 0
+    u.achievementProgress.lastDailyClaimAt = null
     db.save(data)
     return res.json({ ok: true, locked: true, lockedUntil: toIso(lockUntil) })
   }
@@ -218,6 +222,7 @@ r.post("/claim", authRequired, (req, res) => {
       title: `Ежедневная награда: День ${day} — ${reward.title}`,
       tradeLink: link,
       status: "Pending",
+      messages: [],
       dailyDay: day,
       dailyKind: reward.itemKind,
       createdAt,
@@ -228,6 +233,16 @@ r.post("/claim", authRequired, (req, res) => {
 
   u.dailyRewards.lastClaimAt = createdAt
   u.dailyRewards.lockedUntil = null
+  ensureAchievementState(u)
+  if (!lastMs) {
+    u.achievementProgress.dailyStreak = 1
+  } else {
+    u.achievementProgress.dailyStreak = (u.achievementProgress.dailyStreak || 0) + 1
+  }
+  u.achievementProgress.lastDailyClaimAt = createdAt
+  if (u.achievementProgress.dailyStreak >= 5) {
+    grantAchievement(u, "daily_5", createdAt)
+  }
   if (day >= 30) {
     u.dailyRewards.day = 1
     u.dailyRewards.cycleCount = (u.dailyRewards.cycleCount || 0) + 1

@@ -2,6 +2,8 @@ import { Router } from "express"
 import { db } from "../lib/db.js"
 import { authRequired, adminOnly, moderatorOrAdmin } from "../lib/auth.js"
 import { nowIso } from "../lib/utils.js"
+import { ensureAchievementState, grantAchievement } from "../lib/achievements.js"
+import { pushNotification } from "../lib/notifications.js"
 
 const r = Router()
 
@@ -60,8 +62,17 @@ r.post("/:id/settle", authRequired, moderatorOrAdmin, (req, res) => {
       const win = Math.round(b.amount * b.odds)
       u.balance += win
       data.transactions.push({ id: db.id(), userId: u.id, type: "bet_win", amount: win, balanceAfter: u.balance, note: `Выигрыш: ${m.name}`, createdAt })
+      ensureAchievementState(u)
+      u.achievementProgress.noLossStreak = (u.achievementProgress.noLossStreak || 0) + 1
+      if (u.achievementProgress.noLossStreak >= 10) grantAchievement(u, "no_loss_10", createdAt)
+      pushNotification(data, { userId: u.id, type: "bet_win", title: "Выигрыш!", body: `+${win} 🪙 — ${m.name}`, meta: { matchId: m.id, betId: b.id } })
     } else {
       b.status = "lost"
+      const u = data.users.find(x => x.id === b.userId)
+      if (u) {
+        ensureAchievementState(u)
+        u.achievementProgress.noLossStreak = 0
+      }
     }
   }
   db.save(data)

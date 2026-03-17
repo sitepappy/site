@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { api } from "../../../lib/api"
 import PostCard from "../../components/PostCard"
 import Link from "next/link"
+import AchievementsPanel from "../../components/AchievementsPanel"
 
 export default function PublicProfilePage({ params }: { params: { id: string } }) {
   const { id } = params
@@ -109,6 +110,8 @@ export default function PublicProfilePage({ params }: { params: { id: string } }
           </div>
         </div>
       </div>
+
+      <AchievementsPanel achievements={user.achievements} />
 
       {/* Лента пользователя */}
       <div className="space-y-6">

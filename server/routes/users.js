@@ -24,6 +24,8 @@ r.get("/me", authRequired, (req, res) => {
     referralColor: u.referralColor || null,
     referralCount: typeof u.referralCount === "number" ? u.referralCount : null,
     steamTradeLink: u.steamTradeLink,
+    achievements: Array.isArray(u.achievements) ? u.achievements : [],
+    achievementProgress: u.achievementProgress || null,
     createdAt: u.createdAt
   })
 })
@@ -53,6 +55,7 @@ r.get("/profile/:id", (req, res) => {
     bannerUrl: u.bannerUrl || "",
     level,
     role: u.role,
+    achievements: Array.isArray(u.achievements) ? u.achievements : [],
     createdAt: u.createdAt,
     posts: posts.map(p => ({
       ...p,

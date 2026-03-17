@@ -8,6 +8,9 @@ export default function Header() {
   const [user, setUser] = useState<any>(null)
   const [mounted, setMounted] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [notifications, setNotifications] = useState<any[]>([])
+  const [unreadCount, setUnreadCount] = useState(0)
   const pathname = usePathname()
   const router = useRouter()
 
@@ -39,6 +42,7 @@ export default function Header() {
   // Закрываем меню при переходе по ссылке
   useEffect(() => {
     setMobileMenuOpen(false)
+    setNotificationsOpen(false)
   }, [pathname])
 
   // Блокируем скролл при открытом меню
@@ -71,6 +75,24 @@ export default function Header() {
     { name: "Репорт", href: "/report" },
     { name: "Профиль", href: "/profile" },
   ]
+
+  const loadNotifications = async () => {
+    try {
+      const res = await api("/notifications")
+      setUnreadCount(Number(res.unreadCount) || 0)
+      setNotifications(Array.isArray(res.items) ? res.items : [])
+    } catch {
+      setUnreadCount(0)
+      setNotifications([])
+    }
+  }
+
+  useEffect(() => {
+    if (!mounted || !user) return
+    loadNotifications()
+    const t = window.setInterval(loadNotifications, 20000)
+    return () => window.clearInterval(t)
+  }, [mounted, user?.id])
 
   return (
     <header className="border-b border-white/5 fixed top-0 left-0 right-0 z-[1000] bg-[#0a0a0f]/90 backdrop-blur-xl h-[56px] flex items-center transition-all duration-300">
@@ -127,6 +149,27 @@ export default function Header() {
                 </div>
                 <div className="text-[9px] text-acid font-mono font-bold">{user.balance} 🪙</div>
               </div>
+
+              <button
+                onClick={() => {
+                  const next = !notificationsOpen
+                  setNotificationsOpen(next)
+                  if (next) loadNotifications()
+                }}
+                className="relative p-2 text-white/40 hover:text-neon transition-colors"
+                title="Уведомления"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M10 2a6 6 0 00-6 6v2.586l-.707.707A1 1 0 004 13h12a1 1 0 00.707-1.707L16 10.586V8a6 6 0 00-6-6z" />
+                  <path d="M10 18a3 3 0 01-2.995-2.824L7 15h6a3 3 0 01-3 3z" />
+                </svg>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-neon text-black text-[10px] font-black flex items-center justify-center shadow-neon">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </button>
+
               <button onClick={logout} className="p-2 text-white/40 hover:text-red-400 transition-colors" title="Выход">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd" />
@@ -207,6 +250,67 @@ export default function Header() {
               )}
             </div>
           </nav>
+        </div>
+      )}
+
+      {mounted && user && notificationsOpen && (
+        <div className="fixed inset-0 z-[2200]">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setNotificationsOpen(false)}></div>
+          <div className="absolute top-[56px] right-0 left-0 lg:left-auto lg:right-4 lg:top-[64px] lg:w-[420px] p-4">
+            <div className="glass rounded-3xl border border-white/10 overflow-hidden shadow-2xl">
+              <div className="p-4 border-b border-white/10 flex items-center justify-between">
+                <div className="text-[11px] font-black uppercase tracking-widest text-white/60">Уведомления</div>
+                <button
+                  onClick={async () => {
+                    try {
+                      await api("/notifications/read-all", { method: "POST" })
+                      loadNotifications()
+                    } catch {}
+                  }}
+                  className="text-[10px] font-black uppercase tracking-widest text-neon hover:text-white transition-colors"
+                >
+                  Прочитать все
+                </button>
+              </div>
+              <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
+                {notifications.length === 0 ? (
+                  <div className="p-8 text-center text-white/20 font-black uppercase tracking-widest">
+                    Пусто
+                  </div>
+                ) : (
+                  <div className="p-2">
+                    {notifications.map((n: any) => (
+                      <button
+                        key={n.id}
+                        onClick={async () => {
+                          try {
+                            await api(`/notifications/${n.id}/read`, { method: "POST" })
+                          } catch {}
+                          if (n.meta?.reportId) router.push("/report")
+                          else if (n.meta?.orderId) router.push("/profile")
+                          else if (n.meta?.matchId) router.push("/bets")
+                          setNotificationsOpen(false)
+                          loadNotifications()
+                        }}
+                        className={`w-full text-left p-4 rounded-2xl border transition-all ${
+                          n.read ? "bg-white/5 border-white/5 text-white/50" : "bg-neon/10 border-neon/20 text-white hover:border-neon/40"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="space-y-1">
+                            <div className="text-[11px] font-black uppercase tracking-widest">{n.title}</div>
+                            <div className="text-sm text-white/80">{n.body}</div>
+                            <div className="text-[10px] text-white/30 font-mono">{n.createdAt ? new Date(n.createdAt).toLocaleString() : ""}</div>
+                          </div>
+                          {!n.read && <div className="w-2 h-2 rounded-full bg-neon shadow-neon mt-1"></div>}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

@@ -40,6 +40,8 @@ export function ensureDataDir() {
           { id: "premium", name: "Премиум скин", price: 100 }
         ],
         orders: [],
+        reports: [],
+        notifications: [],
         posts: [],
         polls: [],
         votes: [],
@@ -63,7 +65,7 @@ export function ensureDataDir() {
 
 function read() {
   try {
-    if (!fs.existsSync(dbFile)) return { users: [], transactions: [], promoCodes: [], quests: [], userQuests: [], levels: [], matches: [], bets: [], rewards: [], orders: [], posts: [], polls: [], votes: [], about: {}, coop: {}, emailVerifications: [] };
+    if (!fs.existsSync(dbFile)) return { users: [], transactions: [], promoCodes: [], quests: [], userQuests: [], levels: [], matches: [], bets: [], rewards: [], orders: [], reports: [], notifications: [], posts: [], polls: [], votes: [], about: {}, schedule: {}, coop: {}, emailVerifications: [] };
     const raw = fs.readFileSync(dbFile, "utf-8");
     const data = JSON.parse(raw);
     let changed = false;
@@ -83,6 +85,34 @@ function read() {
     if (!Array.isArray(data.orders)) {
       data.orders = [];
       changed = true;
+    }
+
+    for (const o of data.orders) {
+      if (!o.status) {
+        o.status = "Pending";
+        changed = true;
+      }
+      const s = String(o.status)
+      const sLow = s.toLowerCase()
+      const normalized =
+        sLow === "pending" ? "Pending" :
+        sLow === "inprogress" ? "InProgress" :
+        sLow === "issued" ? "Issued" :
+        sLow === "rejected" ? "Rejected" :
+        sLow === "completed" ? "Completed" :
+        s
+      if (normalized !== o.status) {
+        o.status = normalized
+        changed = true
+      }
+      if (!Array.isArray(o.messages)) {
+        o.messages = []
+        changed = true
+      }
+      if (!o.updatedAt) {
+        o.updatedAt = o.createdAt || new Date().toISOString()
+        changed = true
+      }
     }
 
     if (!Array.isArray(data.reports)) {
@@ -142,11 +172,42 @@ function read() {
       }
     }
 
+    if (!Array.isArray(data.notifications)) {
+      data.notifications = [];
+      changed = true;
+    }
+
+    for (const n of data.notifications) {
+      if (typeof n.read === "undefined") {
+        n.read = false;
+        changed = true;
+      }
+      if (!n.createdAt) {
+        n.createdAt = new Date().toISOString();
+        changed = true;
+      }
+      if (typeof n.meta === "undefined") {
+        n.meta = null;
+        changed = true;
+      }
+      if (typeof n.type === "undefined") {
+        n.type = "info";
+        changed = true;
+      }
+      if (typeof n.title === "undefined") {
+        n.title = "";
+        changed = true;
+      }
+      if (typeof n.body === "undefined") {
+        n.body = "";
+        changed = true;
+      }
+    }
+
     for (const u of data.users) {
       if (!u.dailyRewards || typeof u.dailyRewards !== "object") {
         u.dailyRewards = { day: 1, lastClaimAt: null, lockedUntil: null, cycleCount: 0 };
         changed = true;
-        continue;
       }
 
       if (typeof u.dailyRewards.day !== "number" || u.dailyRewards.day < 1 || u.dailyRewards.day > 30) {
@@ -163,6 +224,27 @@ function read() {
       }
       if (typeof u.dailyRewards.lockedUntil === "undefined") {
         u.dailyRewards.lockedUntil = null;
+        changed = true;
+      }
+
+      if (!Array.isArray(u.achievements)) {
+        u.achievements = [];
+        changed = true;
+      }
+      if (!u.achievementProgress || typeof u.achievementProgress !== "object") {
+        u.achievementProgress = { dailyStreak: 0, noLossStreak: 0, lastDailyClaimAt: null };
+        changed = true;
+      }
+      if (typeof u.achievementProgress.dailyStreak !== "number") {
+        u.achievementProgress.dailyStreak = 0;
+        changed = true;
+      }
+      if (typeof u.achievementProgress.noLossStreak !== "number") {
+        u.achievementProgress.noLossStreak = 0;
+        changed = true;
+      }
+      if (typeof u.achievementProgress.lastDailyClaimAt === "undefined") {
+        u.achievementProgress.lastDailyClaimAt = null;
         changed = true;
       }
     }

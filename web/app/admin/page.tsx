@@ -44,6 +44,8 @@ export default function AdminPage() {
   const [levelsList, setLevelsList] = useState<any[]>([])
   const [promosList, setPromosList] = useState<any[]>([])
   const [ordersList, setOrdersList] = useState<any[]>([])
+  const [orderMessages, setOrderMessages] = useState<Record<string, string>>({})
+  const [orderStatusDraft, setOrderStatusDraft] = useState<Record<string, string>>({})
 
   // Состояние для создания ивент-промо
   const [promoCode, setPromoCode] = useState("")
@@ -343,11 +345,11 @@ export default function AdminPage() {
     } catch (e: any) { alert(e.message) }
   }
 
-  const handleUpdateOrderStatus = async (orderId: string, status: string) => {
+  const handleUpdateOrderStatus = async (orderId: string, status: string, message?: string) => {
     try {
       await api(`/orders/${orderId}/complete`, {
         method: "POST",
-        body: JSON.stringify({ status })
+        body: JSON.stringify({ status, message })
       })
       loadData("orders")
       setMsg("Заказ обновлен!")
@@ -951,19 +953,40 @@ export default function AdminPage() {
                   .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")))
                   .map((o: any) => (
                     <div key={o.id} className="glass p-4 rounded-2xl border border-white/5">
-                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <div className="text-sm font-black text-white uppercase tracking-tight">
                               {o.rewardName || "Заказ"}
                             </div>
-                            <span className={`text-[9px] px-2 py-1 rounded-full font-black uppercase tracking-widest ${
-                              String(o.status).toLowerCase() === "pending" ? "bg-yellow-500/20 text-yellow-300 border border-yellow-500/20" :
-                              String(o.status).toLowerCase() === "completed" ? "bg-neon/15 text-neon border border-neon/20" :
-                              "bg-red-500/10 text-red-300 border border-red-500/20"
-                            }`}>
-                              {o.status}
-                            </span>
+                            {(() => {
+                              const createdMs = o.createdAt ? Date.parse(o.createdAt) : null
+                              const ageMs = createdMs ? Date.now() - createdMs : 0
+                              const ageH = Math.floor(ageMs / 3600000)
+                              const ageM = Math.floor((ageMs % 3600000) / 60000)
+                              const slaBad = (o.status === "Pending" || o.status === "InProgress") && ageH >= 24
+                              const statusRu =
+                                o.status === "Pending" ? "Ожидает" :
+                                o.status === "InProgress" ? "В работе" :
+                                o.status === "Issued" ? "Выдано" :
+                                o.status === "Rejected" ? "Отклонено" : "Выполнено"
+                              return (
+                                <>
+                                  <span className={`text-[9px] px-2 py-1 rounded-full font-black uppercase tracking-widest ${
+                                    o.status === "Pending" ? "bg-yellow-500/20 text-yellow-300 border border-yellow-500/20" :
+                                    o.status === "InProgress" ? "bg-neon/15 text-neon border border-neon/20" :
+                                    o.status === "Issued" ? "bg-acid/15 text-acid border border-acid/20" :
+                                    o.status === "Rejected" ? "bg-red-500/10 text-red-300 border border-red-500/20" :
+                                    "bg-white/10 text-white/60 border border-white/10"
+                                  }`}>
+                                    {statusRu}
+                                  </span>
+                                  <span className={`text-[9px] px-2 py-1 rounded-full font-black uppercase tracking-widest ${slaBad ? "bg-red-500/10 text-red-300 border border-red-500/20" : "bg-white/5 text-white/30 border border-white/10"}`}>
+                                    SLA {ageH}h {ageM}m
+                                  </span>
+                                </>
+                              )
+                            })()}
                           </div>
                           <div className="text-[10px] text-white/30 font-mono">
                             {o.username ? `${o.username} • ` : ""}{o.createdAt ? new Date(o.createdAt).toLocaleString() : ""}
@@ -985,20 +1008,86 @@ export default function AdminPage() {
                           >
                             Copy Trade Link
                           </button>
-                          <button
-                            onClick={() => handleUpdateOrderStatus(o.id, "Completed")}
-                            className="px-4 py-2 rounded-xl bg-neon text-black text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-neon"
-                          >
-                            Выполнено
-                          </button>
-                          <button
-                            onClick={() => handleUpdateOrderStatus(o.id, "Rejected")}
-                            className="px-4 py-2 rounded-xl bg-red-500/15 border border-red-500/25 text-red-300 text-[10px] font-black uppercase tracking-widest hover:bg-red-500/25 transition-all"
-                          >
-                            Отклонить
-                          </button>
                         </div>
                       </div>
+
+                      <div className="grid md:grid-cols-2 gap-3 mt-4">
+                        <div className="glass p-3 rounded-2xl border border-white/10 space-y-2">
+                          <div className="text-[10px] font-black uppercase tracking-widest text-white/40">Статус</div>
+                          <select
+                            value={orderStatusDraft[o.id] || o.status}
+                            onChange={(e) => setOrderStatusDraft(prev => ({ ...prev, [o.id]: e.target.value }))}
+                            className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-3 text-[11px] font-black uppercase tracking-widest outline-none focus:border-neon"
+                          >
+                            <option value="Pending">Ожидает</option>
+                            <option value="InProgress">В работе</option>
+                            <option value="Issued">Выдано</option>
+                            <option value="Completed">Выполнено</option>
+                            <option value="Rejected">Отклонено</option>
+                          </select>
+                        </div>
+
+                        <div className="glass p-3 rounded-2xl border border-white/10 space-y-2">
+                          <div className="text-[10px] font-black uppercase tracking-widest text-white/40">Сообщение пользователю</div>
+                          <textarea
+                            rows={3}
+                            value={orderMessages[o.id] || ""}
+                            onChange={(e) => setOrderMessages(prev => ({ ...prev, [o.id]: e.target.value }))}
+                            className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-3 text-sm outline-none focus:border-neon transition-all"
+                            placeholder="Например: Взяли в работу. Ожидайте."
+                          />
+                          <div className="flex flex-wrap gap-2">
+                            {[
+                              "Взяли в работу. Ожидайте.",
+                              "Нужна новая Trade Link (проверьте доступность).",
+                              "Заказ выдан. Проверьте инвентарь.",
+                              "Отклонено: неверная Trade Link."
+                            ].map(t => (
+                              <button
+                                key={t}
+                                onClick={() => setOrderMessages(prev => ({ ...prev, [o.id]: t }))}
+                                className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/50 hover:text-white hover:border-white/20 transition-all"
+                              >
+                                Шаблон
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row gap-2 mt-3">
+                        <button
+                          onClick={() => {
+                            const status = orderStatusDraft[o.id] || o.status || "Pending"
+                            const msgText = String(orderMessages[o.id] || "").trim()
+                            handleUpdateOrderStatus(o.id, status, msgText || undefined)
+                            setOrderMessages(prev => ({ ...prev, [o.id]: "" }))
+                          }}
+                          className="w-full sm:w-auto px-4 py-3 rounded-xl bg-neon text-black text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-neon"
+                        >
+                          Применить и уведомить
+                        </button>
+                        <button
+                          onClick={() => handleUpdateOrderStatus(o.id, "Rejected", "Отклонено")}
+                          className="w-full sm:w-auto px-4 py-3 rounded-xl bg-red-500/15 border border-red-500/25 text-red-300 text-[10px] font-black uppercase tracking-widest hover:bg-red-500/25 transition-all"
+                        >
+                          Быстро отклонить
+                        </button>
+                      </div>
+
+                      {Array.isArray(o.messages) && o.messages.length > 0 && (
+                        <div className="mt-4 bg-black/30 border border-white/5 rounded-2xl p-4">
+                          <div className="text-[10px] font-black uppercase tracking-widest text-white/40">История</div>
+                          <div className="grid gap-2 mt-2">
+                            {o.messages.slice(-3).reverse().map((m: any) => (
+                              <div key={m.id} className="p-3 rounded-xl bg-white/5 border border-white/10">
+                                <div className="text-[10px] text-white/30 font-mono">{m.adminUsername} • {new Date(m.createdAt).toLocaleString()}</div>
+                                <div className="text-sm text-white/80 mt-1">{m.message}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
 

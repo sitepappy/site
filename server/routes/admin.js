@@ -3,6 +3,7 @@ import { db } from "../lib/db.js"
 import { authRequired, adminOnly, moderatorOrAdmin } from "../lib/auth.js"
 import { nowIso } from "../lib/utils.js"
 import { calculateReferralLevel } from "./quests.js"
+import { pushNotification } from "../lib/notifications.js"
 
 const r = Router()
 const REFERRAL_REWARD = 10
@@ -55,6 +56,7 @@ r.post("/reports/:id/resolve", (req, res) => {
   if (!r) return res.status(404).json({ error: "Не найдено" })
   r.status = "resolved"
   r.updatedAt = nowIso()
+  pushNotification(data, { userId: r.userId, type: "ticket", title: "Тикет закрыт", body: `Тикет: ${r.title}`, meta: { reportId: r.id } })
   db.save(data)
   res.json({ ok: true })
 })
@@ -72,6 +74,7 @@ r.post("/reports/:id/resolve", (req, res) => {
   rep.adminResponses.push(entry)
   rep.status = status && ["pending", "in_progress", "resolved"].includes(status) ? status : "in_progress"
   rep.updatedAt = nowIso()
+  pushNotification(data, { userId: rep.userId, type: "ticket", title: "Ответ по тикету", body: text, meta: { reportId: rep.id } })
   db.save(data)
   res.json({ ok: true, report: rep })
 })
@@ -123,6 +126,8 @@ r.post("/reports/:id/referral-credit", adminOnly, (req, res) => {
   u.activatedPromoCodes.push(promo.code)
   rep.referralManualAppliedAt = createdAt
   rep.updatedAt = createdAt
+  pushNotification(data, { userId: u.id, type: "referral", title: "Рефералка начислена", body: `Начислено ${REFERRAL_REWARD} 🪙 по промокоду ${promo.code}`, meta: { reportId: rep.id } })
+  pushNotification(data, { userId: owner.id, type: "referral", title: "Рефералка начислена", body: `Начислено ${REFERRAL_REWARD} 🪙 за пользователя ${u.username}`, meta: { reportId: rep.id } })
   db.save(data)
   res.json({ ok: true })
 })

@@ -2,6 +2,8 @@ import { Router } from "express"
 import { db } from "../lib/db.js"
 import { authRequired } from "../lib/auth.js"
 import { nowIso } from "../lib/utils.js"
+import { ensureAchievementState, grantAchievement } from "../lib/achievements.js"
+import { pushNotification } from "../lib/notifications.js"
 
 const r = Router()
 
@@ -114,6 +116,15 @@ r.post("/roulette", authRequired, (req, res) => {
     createdAt
   })
 
+  ensureAchievementState(u)
+  if (win) {
+    u.achievementProgress.noLossStreak = (u.achievementProgress.noLossStreak || 0) + 1
+    if (u.achievementProgress.noLossStreak >= 10) grantAchievement(u, "no_loss_10", createdAt)
+    pushNotification(data, { userId: u.id, type: "bet_win", title: "Победа!", body: `Рулетка: +${winAmount - amt} 🪙`, meta: { game: "roulette" } })
+  } else {
+    u.achievementProgress.noLossStreak = 0
+  }
+
   db.save(data)
   
   res.json({ 
@@ -162,6 +173,15 @@ r.post("/coinflip", authRequired, (req, res) => {
     note: `Coinflip: ${side} (${win ? 'Победа' : 'Проигрыш'})`, 
     createdAt 
   })
+
+  ensureAchievementState(u)
+  if (win) {
+    u.achievementProgress.noLossStreak = (u.achievementProgress.noLossStreak || 0) + 1
+    if (u.achievementProgress.noLossStreak >= 10) grantAchievement(u, "no_loss_10", createdAt)
+    pushNotification(data, { userId: u.id, type: "bet_win", title: "Победа!", body: `Coinflip: +${winAmount - amt} 🪙`, meta: { game: "coinflip" } })
+  } else {
+    u.achievementProgress.noLossStreak = 0
+  }
 
   db.save(data)
 

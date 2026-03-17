@@ -3,12 +3,14 @@ import { useEffect, useState } from "react"
 import { api } from "../../lib/api"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import AchievementsPanel from "../components/AchievementsPanel"
 
 export default function ProfilePage() {
   const [me, setMe] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [mounted, setMounted] = useState(false)
+  const [orders, setOrders] = useState<any[]>([])
   
   const [link, setLink] = useState("")
   const [username, setUsername] = useState("")
@@ -36,6 +38,8 @@ export default function ProfilePage() {
       setUsername(m.username || "")
       setAvatarUrl(m.avatarUrl || "")
       setBannerUrl(m.bannerUrl || "")
+      const myOrders = await api("/orders/my")
+      setOrders(Array.isArray(myOrders) ? myOrders : [])
     } catch (e: any) {
       if (e.message === "UNAUTHORIZED") {
         localStorage.removeItem("token")
@@ -187,6 +191,85 @@ export default function ProfilePage() {
           Ошибка: {error}
         </div>
       )}
+
+      <AchievementsPanel achievements={me.achievements} />
+
+      <div className="glass p-6 rounded-2xl border border-white/5">
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <div className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Заказы</div>
+            <div className="text-xl font-black text-white uppercase tracking-tighter">Статусы и SLA</div>
+          </div>
+          <button
+            onClick={async () => {
+              try {
+                const myOrders = await api("/orders/my")
+                setOrders(Array.isArray(myOrders) ? myOrders : [])
+              } catch {}
+            }}
+            className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/50 hover:text-white hover:border-neon/30 transition-all"
+          >
+            Обновить
+          </button>
+        </div>
+
+        {orders.length === 0 ? (
+          <div className="text-center py-10 text-white/20 font-black uppercase tracking-widest">
+            Заказов пока нет
+          </div>
+        ) : (
+          <div className="grid gap-3 mt-6">
+            {orders
+              .slice()
+              .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")))
+              .map((o: any) => {
+                const createdMs = o.createdAt ? Date.parse(o.createdAt) : null
+                const updatedMs = o.updatedAt ? Date.parse(o.updatedAt) : null
+                const ageMs = createdMs ? Date.now() - createdMs : 0
+                const ageH = Math.floor(ageMs / 3600000)
+                const ageM = Math.floor((ageMs % 3600000) / 60000)
+                const slaBad = (o.status === "Pending" || o.status === "InProgress") && ageH >= 24
+                const statusRu =
+                  o.status === "Pending" ? "Ожидает" :
+                  o.status === "InProgress" ? "В работе" :
+                  o.status === "Issued" ? "Выдано" :
+                  o.status === "Rejected" ? "Отклонено" : "Выполнено"
+                const lastMsg = Array.isArray(o.messages) && o.messages.length > 0 ? o.messages[o.messages.length - 1] : null
+                return (
+                  <div key={o.id} className="p-4 rounded-2xl bg-white/5 border border-white/10">
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+                      <div className="space-y-1">
+                        <div className="text-sm font-black text-white uppercase tracking-tight">{o.rewardName || "Заказ"}</div>
+                        <div className="text-[10px] text-white/30 font-mono">
+                          {o.createdAt ? new Date(o.createdAt).toLocaleString() : ""}{updatedMs ? ` • upd ${new Date(o.updatedAt).toLocaleString()}` : ""}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`text-[9px] px-2 py-1 rounded-full font-black uppercase tracking-widest ${
+                          o.status === "Pending" ? "bg-yellow-500/20 text-yellow-300 border border-yellow-500/20" :
+                          o.status === "InProgress" ? "bg-neon/15 text-neon border border-neon/20" :
+                          o.status === "Issued" ? "bg-acid/15 text-acid border border-acid/20" :
+                          o.status === "Rejected" ? "bg-red-500/10 text-red-300 border border-red-500/20" :
+                          "bg-white/10 text-white/60 border border-white/10"
+                        }`}>{statusRu}</span>
+                        <span className={`text-[9px] px-2 py-1 rounded-full font-black uppercase tracking-widest ${slaBad ? "bg-red-500/10 text-red-300 border border-red-500/20" : "bg-white/5 text-white/30 border border-white/10"}`}>
+                          SLA {ageH}h {ageM}m
+                        </span>
+                      </div>
+                    </div>
+                    {lastMsg && (
+                      <div className="mt-3 bg-black/30 border border-white/5 rounded-xl p-3">
+                        <div className="text-[9px] text-white/30 uppercase font-black tracking-widest">Сообщение</div>
+                        <div className="text-sm text-white/80 mt-1">{lastMsg.message}</div>
+                        <div className="text-[9px] text-white/25 font-mono mt-2">{lastMsg.adminUsername} • {new Date(lastMsg.createdAt).toLocaleString()}</div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

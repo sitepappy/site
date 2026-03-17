@@ -13,6 +13,7 @@ import betRoutes from "./routes/bets.js"
 import rewardRoutes from "./routes/rewards.js"
 import orderRoutes from "./routes/orders.js"
 import dailyRewardsRoutes from "./routes/dailyRewards.js"
+import notificationRoutes from "./routes/notifications.js"
 import postRoutes from "./routes/posts.js"
 import pollRoutes from "./routes/polls.js"
 import chatRoutes from "./routes/chat.js"
@@ -66,6 +67,7 @@ app.use("/bets", betRoutes)
 app.use("/rewards", rewardRoutes)
 app.use("/orders", orderRoutes)
 app.use("/daily-rewards", dailyRewardsRoutes)
+app.use("/notifications", notificationRoutes)
 app.use("/posts", postRoutes)
 app.use("/polls", pollRoutes)
 app.use("/chat", chatRoutes)
