@@ -41,6 +41,16 @@ export default function Header() {
     setMobileMenuOpen(false)
   }, [pathname])
 
+  // Блокируем скролл при открытом меню
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    return () => { document.body.style.overflow = 'unset' }
+  }, [mobileMenuOpen])
+
   const logout = () => {
     localStorage.removeItem("token")
     setUser(null)
@@ -63,8 +73,8 @@ export default function Header() {
   ]
 
   return (
-    <header className="border-b border-white/10 sticky top-0 z-50 bg-base/80 backdrop-blur-md">
-      <div className="max-w-6xl mx-auto px-4 py-2 flex items-center justify-between gap-4">
+    <header className="border-b border-white/10 sticky top-0 z-[999] bg-base/80 backdrop-blur-md h-[56px] flex items-center">
+      <div className="max-w-6xl mx-auto px-4 w-full flex items-center justify-between gap-4">
         {/* Логотип */}
         <Link href="/" className="flex items-center group relative">
           <span className="text-2xl md:text-3xl font-black tracking-tighter italic text-white group-hover:text-neon transition-all duration-300 drop-shadow-[0_0_8px_rgba(57,255,20,0.5)]">
@@ -148,14 +158,14 @@ export default function Header() {
 
       {/* Мобильное меню */}
       {mounted && mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 top-[61px] z-[100] bg-base/95 backdrop-blur-xl animate-in fade-in slide-in-from-top-4">
-          <nav className="flex flex-col p-4 gap-2">
+        <div className="lg:hidden fixed inset-0 top-[56px] z-[1000] bg-base/98 backdrop-blur-2xl animate-in fade-in slide-in-from-top-4">
+          <nav className="flex flex-col p-4 gap-1 h-[calc(100vh-56px)] overflow-y-auto custom-scrollbar">
             {navLinks.map((link) => (
               <Link 
                 key={link.href}
                 href={link.href}
-                className={`p-4 rounded-lg text-sm font-black uppercase tracking-widest ${
-                  pathname === link.href ? "bg-neon text-black" : "text-white/60 bg-white/5"
+                className={`p-3.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                  pathname === link.href ? "bg-neon text-black shadow-neon" : "text-white/60 bg-white/5 active:bg-white/10"
                 }`}
               >
                 {link.name}
@@ -164,8 +174,8 @@ export default function Header() {
             {user && (
               <Link 
                 href="/profile"
-                className={`p-4 rounded-lg text-sm font-black uppercase tracking-widest ${
-                  pathname === "/profile" ? "bg-neon text-black" : "text-white/60 bg-white/5"
+                className={`p-3.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                  pathname === "/profile" ? "bg-neon text-black shadow-neon" : "text-white/60 bg-white/5 active:bg-white/10"
                 }`}
               >
                 Профиль ({user.balance} 🪙)
@@ -174,18 +184,19 @@ export default function Header() {
             {isAdminOrModerator && (
               <Link 
                 href="/admin"
-                className={`p-4 rounded-lg text-sm font-black uppercase tracking-widest border border-acid/30 ${
-                  pathname.startsWith("/admin") ? "bg-acid text-black" : "text-acid bg-acid/10"
+                className={`p-3.5 rounded-xl text-xs font-black uppercase tracking-widest border border-acid/30 transition-all ${
+                  pathname.startsWith("/admin") ? "bg-acid text-black" : "text-acid bg-acid/10 active:bg-acid/20"
                 }`}
               >
                 Админ Панель
               </Link>
             )}
             {user && (
-              <button onClick={logout} className="p-4 rounded-lg text-sm font-black uppercase tracking-widest text-red-400 bg-red-400/10 text-left">
+              <button onClick={logout} className="mt-4 p-3.5 rounded-xl text-xs font-black uppercase tracking-widest text-red-400 bg-red-400/10 active:bg-red-400/20 text-left transition-all">
                 Выйти из аккаунта
               </button>
             )}
+            <div className="py-10 opacity-0">Bottom Spacer</div>
           </nav>
         </div>
       )}
