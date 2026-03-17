@@ -87,7 +87,7 @@ function RouletteGame() {
       
       <div className="text-center space-y-2">
         <h2 className="text-3xl font-black italic tracking-tighter uppercase">Классическая Рулетка</h2>
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Максимальная ставка: 15 монет</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Ставка без лимита</p>
       </div>
 
       <div className="flex justify-center gap-2 mb-8">
@@ -165,14 +165,13 @@ function RouletteGame() {
             onChange={e => setAmount(e.target.value)}
             className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-center text-xl font-black font-mono text-acid outline-none focus:border-acid transition-all"
             min="1"
-            max="15"
           />
           <div className="absolute right-4 top-1/2 -translate-y-1/2 text-acid opacity-40 font-bold">🪙</div>
         </div>
         <div className="flex justify-between mt-2 px-2">
           <button onClick={() => setAmount("1")} className="text-[9px] font-black text-white/20 hover:text-white uppercase">Мин</button>
-          <button onClick={() => setAmount("7")} className="text-[9px] font-black text-white/20 hover:text-white uppercase">1/2</button>
-          <button onClick={() => setAmount("15")} className="text-[9px] font-black text-white/20 hover:text-white uppercase">Макс</button>
+          <button onClick={() => setAmount(Math.floor(Number(amount) * 2).toString())} className="text-[9px] font-black text-white/20 hover:text-white uppercase">x2</button>
+          <button onClick={() => setAmount(Math.floor(Number(amount) / 2).toString())} className="text-[9px] font-black text-white/20 hover:text-white uppercase">1/2</button>
         </div>
       </div>
     </div>

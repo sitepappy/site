@@ -53,7 +53,7 @@ r.get("/recent", (req, res) => {
 r.post("/roulette", authRequired, (req, res) => {
   const { color, amount } = req.body || {}
   const amt = Math.floor(Number(amount))
-  if (amt < 1 || amt > 15) return res.status(400).json({ error: "Ставка от 1 до 15 монет" })
+  if (amt < 1) return res.status(400).json({ error: "Минимальная ставка 1 монета" })
   if (!["red", "black", "green"].includes(color)) return res.status(400).json({ error: "Неверный цвет" })
   
   const data = db.get()

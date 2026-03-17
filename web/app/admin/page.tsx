@@ -30,6 +30,7 @@ export default function AdminPage() {
   // Данные для списков
   const [usersList, setUsersList] = useState<any[]>([])
   const [postsList, setPostsList] = useState<any[]>([])
+  const [matchesList, setMatchesList] = useState<any[]>([])
   const [questsList, setQuestsList] = useState<any[]>([])
   const [chatMessages, setChatMessages] = useState<any[]>([])
   const [chatInput, setChatInput] = useState("")
@@ -72,6 +73,9 @@ export default function AdminPage() {
       } else if (tab === "posts") {
         const data = await api("/posts")
         setPostsList(data)
+      } else if (tab === "matches") {
+        const data = await api("/matches/all")
+        setMatchesList(data)
       } else if (tab === "quests") {
         const data = await api("/quests")
         setQuestsList(data)
@@ -127,8 +131,32 @@ export default function AdminPage() {
         })
       })
       setMatchName(""); setTeam1(""); setTeam2(""); setMsg("Матч добавлен!")
+      loadData("matches")
       setTimeout(() => setMsg(""), 3000)
     } catch (err: any) { alert(err.message) }
+  }
+
+  const handleDeleteMatch = async (id: string) => {
+    if (!confirm("Удалить этот матч и все ставки на него?")) return
+    try {
+      await api(`/matches/${id}`, { method: "DELETE" })
+      loadData("matches")
+      setMsg("Матч удален")
+      setTimeout(() => setMsg(""), 3000)
+    } catch (e: any) { alert(e.message) }
+  }
+
+  const handleSettleMatch = async (matchId: string, optionId: string) => {
+    if (!confirm("Рассчитать ставки с этим победителем?")) return
+    try {
+      await api(`/matches/${matchId}/settle`, { 
+        method: "POST", 
+        body: JSON.stringify({ optionId }) 
+      })
+      loadData("matches")
+      setMsg("Ставки рассчитаны!")
+      setTimeout(() => setMsg(""), 3000)
+    } catch (e: any) { alert(e.message) }
   }
 
   const handleDeletePost = async (id: string) => {
@@ -306,16 +334,89 @@ export default function AdminPage() {
           )}
 
           {activeTab === "matches" && (
-            <form onSubmit={handleCreateMatch} className="space-y-4 max-w-xl glass p-4 rounded-lg">
-              <h2 className="text-lg font-bold text-neon uppercase">Добавить матч</h2>
-              <input required value={matchName} onChange={e=>setMatchName(e.target.value)} className="w-full p-2 rounded bg-white/5 border border-white/10 text-sm" placeholder="Турнир..." />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input required value={team1} onChange={e=>setTeam1(e.target.value)} className="p-2 rounded bg-white/5 border border-white/10 text-sm" placeholder="Команда 1" />
-                <input required value={team2} onChange={e=>setTeam2(e.target.value)} className="p-2 rounded bg-white/5 border border-white/10 text-sm" placeholder="Команда 2" />
+            <div className="space-y-10">
+              <form onSubmit={handleCreateMatch} className="space-y-4 max-w-xl glass p-4 rounded-lg">
+                <h2 className="text-lg font-bold text-neon uppercase">Добавить новый матч</h2>
+                <input required value={matchName} onChange={e=>setMatchName(e.target.value)} className="w-full p-2 rounded bg-white/5 border border-white/10 text-sm outline-none focus:border-neon" placeholder="Название турнира / матча..." />
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] text-white/30 uppercase font-black ml-1">Команда 1</label>
+                    <input required value={team1} onChange={e=>setTeam1(e.target.value)} className="w-full p-2 rounded bg-white/5 border border-white/10 text-sm outline-none focus:border-neon" placeholder="Название..." />
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-white/30 uppercase font-black">Коэф:</span>
+                      <input required type="number" step="0.1" value={odds1} onChange={e=>setOdds1(e.target.value)} className="w-20 p-1.5 rounded bg-white/5 border border-white/10 text-xs text-neon font-mono" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] text-white/30 uppercase font-black ml-1">Команда 2</label>
+                    <input required value={team2} onChange={e=>setTeam2(e.target.value)} className="w-full p-2 rounded bg-white/5 border border-white/10 text-sm outline-none focus:border-neon" placeholder="Название..." />
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-white/30 uppercase font-black">Коэф:</span>
+                      <input required type="number" step="0.1" value={odds2} onChange={e=>setOdds2(e.target.value)} className="w-20 p-1.5 rounded bg-white/5 border border-white/10 text-xs text-neon font-mono" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] text-white/30 uppercase font-black ml-1">Дедлайн (до когда ставки)</label>
+                  <input required type="datetime-local" value={deadline} onChange={e=>setDeadline(e.target.value)} className="w-full p-2 rounded bg-white/5 border border-white/10 text-sm outline-none focus:border-neon" />
+                </div>
+                
+                <button className="btn btn-primary w-full py-3 uppercase font-black text-xs shadow-neon">Создать матч</button>
+              </form>
+
+              <div className="space-y-4">
+                <h2 className="text-lg font-bold text-white uppercase tracking-widest">Управление матчами</h2>
+                <div className="grid gap-4">
+                  {matchesList.map(m => (
+                    <div key={m.id} className={`glass p-5 rounded-xl border ${m.status === 'settled' ? 'border-white/5 opacity-60' : 'border-white/10'}`}>
+                      <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-1">
+                            <span className="text-lg font-black text-white italic">{m.name}</span>
+                            <span className={`text-[8px] px-2 py-0.5 rounded font-black uppercase ${m.status === 'open' ? 'bg-neon text-black' : m.status === 'closed' ? 'bg-yellow-500 text-black' : 'bg-white/10 text-white/40'}`}>
+                              {m.status === 'open' ? 'Открыт' : m.status === 'closed' ? 'Закрыт' : 'Рассчитан'}
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-white/30 font-mono uppercase tracking-widest">Дедлайн: {new Date(m.deadline).toLocaleString()}</div>
+                          
+                          <div className="grid grid-cols-2 gap-4 mt-4">
+                            {m.options.map((opt: any) => (
+                              <div key={opt.id} className={`p-3 rounded-lg border flex flex-col items-center gap-1 ${m.resultOptionId === opt.id ? 'bg-neon/20 border-neon' : 'bg-white/5 border-white/5'}`}>
+                                <span className="text-xs font-bold text-white/80">{opt.name}</span>
+                                <span className="text-neon font-mono font-black italic text-sm">x{opt.odds}</span>
+                                {m.status !== 'settled' && (
+                                  <button 
+                                    onClick={() => handleSettleMatch(m.id, opt.id)}
+                                    className="mt-2 w-full py-1.5 rounded bg-neon text-black text-[9px] font-black uppercase tracking-tighter hover:scale-105 transition-all shadow-neon"
+                                  >
+                                    Выбрать победителем
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-col gap-2">
+                          <button 
+                            onClick={() => handleDeleteMatch(m.id)}
+                            className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white transition-all group"
+                            title="Удалить матч"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {matchesList.length === 0 && <div className="text-center py-10 text-white/20 italic uppercase tracking-widest text-xs">Матчей пока нет</div>}
+                </div>
               </div>
-              <input required type="datetime-local" value={deadline} onChange={e=>setDeadline(e.target.value)} className="w-full p-2 rounded bg-white/5 border border-white/10 text-sm" />
-              <button className="btn btn-primary w-full py-2 uppercase font-black text-xs">Создать матч</button>
-            </form>
+            </div>
           )}
 
           {activeTab === "users" && (
@@ -365,25 +466,43 @@ export default function AdminPage() {
                       </div>
                     </div>
 
-                    <div>
-                      <h4 className="text-xs font-bold text-white/40 uppercase mb-2">Ставки пользователя</h4>
-                      <div className="space-y-1 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
-                        {selectedUser.bets.map((b:any) => (
-                          <div key={b.id} className="text-[10px] p-2 rounded bg-white/5 flex justify-between items-center border-l-2 border-blue-500/30">
-                            <div>
-                              <div className="text-white/80">{b.matchName || "Ставка"}</div>
-                              <div className="text-white/40 italic">{b.optionName} x{b.odds}</div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="text-xs font-bold text-white/40 uppercase mb-2">Ставки пользователя</h4>
+                        <div className="space-y-1 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                          {selectedUser.bets.map((b:any) => (
+                            <div key={b.id} className="text-[10px] p-2 rounded bg-white/5 flex justify-between items-center border-l-2 border-blue-500/30">
+                              <div>
+                                <div className="text-white/80">{b.matchName || "Ставка"}</div>
+                                <div className="text-white/40 italic">{b.optionName} x{b.odds}</div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-acid">{b.amount} 🪙</span>
+                                <button onClick={() => handleDeleteBet(b.id)} className="text-red-400 hover:text-red-300 ml-2" title="Удалить ставку">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                  </svg>
+                                </button>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-acid">{b.amount} 🪙</span>
-                              <button onClick={() => handleDeleteBet(b.id)} className="text-red-400 hover:text-red-300 ml-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                                  <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                                </svg>
-                              </button>
+                          ))}
+                          {selectedUser.bets.length === 0 && <div className="text-[10px] text-white/20 italic">Ставок нет</div>}
+                        </div>
+                      </div>
+
+                      <div>
+                        <h4 className="text-xs font-bold text-white/40 uppercase mb-2">Логи транзакций</h4>
+                        <div className="space-y-1 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                          {selectedUser.logs.map((l:any) => (
+                            <div key={l.id} className="text-[10px] p-2 rounded bg-white/5 flex justify-between border-l-2 border-neon/30">
+                              <span className="text-white/60 truncate mr-2">{l.note}</span>
+                              <span className={l.amount > 0 ? "text-green-400 font-bold" : "text-red-400 font-bold"}>
+                                {l.amount > 0 ? "+" : ""}{l.amount}
+                              </span>
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                          {selectedUser.logs.length === 0 && <div className="text-[10px] text-white/20 italic">Логов нет</div>}
+                        </div>
                       </div>
                     </div>
 

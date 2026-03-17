@@ -7,8 +7,23 @@ const r = Router()
 
 r.get("/", (req, res) => {
   const data = db.get()
-  const list = data.matches.filter(m => m.status !== "settled")
+  const list = data.matches.filter(m => m.status !== "settled").sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))
   res.json(list)
+})
+
+r.get("/all", authRequired, moderatorOrAdmin, (req, res) => {
+  const data = db.get()
+  const list = data.matches.sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))
+  res.json(list)
+})
+
+r.delete("/:id", authRequired, moderatorOrAdmin, (req, res) => {
+  const data = db.get()
+  data.matches = data.matches.filter(m => m.id !== req.params.id)
+  // Also delete associated bets? 
+  // Probably better to keep them in history but for now let's just delete the match
+  db.save(data)
+  res.json({ ok: true })
 })
 
 r.post("/", authRequired, moderatorOrAdmin, (req, res) => {
