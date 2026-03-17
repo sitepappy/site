@@ -65,8 +65,10 @@ export default function AdminPage() {
   const loadData = async (tab: string) => {
     try {
       if (tab === "users") {
-        const data = await api("/admin/users")
-        setUsersList(data)
+        const usersData = await api("/admin/users")
+        setUsersList(usersData)
+        const levelsData = await api("/levels") // Загружаем уровни здесь
+        setLevelsList(levelsData)
       } else if (tab === "posts") {
         const data = await api("/posts")
         setPostsList(data)
