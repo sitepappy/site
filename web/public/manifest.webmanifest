@@ -1,13 +1,18 @@
 {
+  "id": "/",
   "name": "PAPPY",
   "short_name": "PAPPY",
   "description": "Киберпанк сообщество PAPPY",
-  "start_url": "/",
+  "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
   "background_color": "#0a0a0f",
   "theme_color": "#0a0a0f",
   "lang": "ru",
+  "categories": ["games", "entertainment"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/pwa-icon.svg",
@@ -34,7 +39,12 @@
       "short_name": "Награды",
       "url": "/rewards",
       "icons": [{ "src": "/pwa-icon.svg", "sizes": "512x512", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Профиль",
+      "short_name": "Профиль",
+      "url": "/profile",
+      "icons": [{ "src": "/pwa-icon.svg", "sizes": "512x512", "type": "image/svg+xml" }]
     }
   ]
 }
-

@@ -1,8 +1,8 @@
-const CACHE = "pappy-v2"
+const CACHE = "pappy-v3"
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(["/manifest.webmanifest", "/pwa-icon.svg", "/maskable-icon.svg"]))
+    caches.open(CACHE).then((cache) => cache.addAll(["/manifest.webmanifest", "/pwa-icon.svg", "/maskable-icon.svg", "/offline.html"]))
   )
   self.skipWaiting()
 })
@@ -32,7 +32,7 @@ self.addEventListener("fetch", (event) => {
   const dest = req.destination
 
   if (isNavigation) {
-    event.respondWith(fetch(req).catch(() => caches.match("/")))
+    event.respondWith(fetch(req).catch(() => caches.match("/offline.html")))
     return
   }
 

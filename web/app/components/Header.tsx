@@ -11,6 +11,7 @@ export default function Header() {
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [notifications, setNotifications] = useState<any[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
+  const [bottomMoreOpen, setBottomMoreOpen] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
 
@@ -43,17 +44,18 @@ export default function Header() {
   useEffect(() => {
     setMobileMenuOpen(false)
     setNotificationsOpen(false)
+    setBottomMoreOpen(false)
   }, [pathname])
 
   // Блокируем скролл при открытом меню
   useEffect(() => {
-    if (mobileMenuOpen) {
+    if (mobileMenuOpen || notificationsOpen || bottomMoreOpen) {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = 'unset'
     }
     return () => { document.body.style.overflow = 'unset' }
-  }, [mobileMenuOpen])
+  }, [mobileMenuOpen, notificationsOpen, bottomMoreOpen])
 
   const logout = () => {
     localStorage.removeItem("token")
@@ -328,77 +330,110 @@ export default function Header() {
       {mounted && (
         <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[1500]">
           <div className="absolute inset-0 bg-[#0a0a0f]/95 backdrop-blur-xl border-t border-white/10"></div>
-          <div className="absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-[#0a0a0f] to-transparent pointer-events-none"></div>
-          <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-[#0a0a0f] to-transparent pointer-events-none"></div>
           <div className="relative max-w-7xl mx-auto px-2 py-2">
-            <div className="flex gap-2 overflow-x-auto snap-x snap-mandatory" style={{ WebkitOverflowScrolling: "touch", scrollbarWidth: "none" } as any}>
-              {[
-                { href: "/", label: "Дом", icon: "🏠" },
-                { href: "/leaderboard", label: "Топ", icon: "🏆" },
-                { href: "/chat", label: "Чат", icon: "💬" },
-                { href: "/bets", label: "Ставки", icon: "🎲" },
-                { href: "/rewards", label: "Награды", icon: "🎁" },
-                { href: "/referral", label: "Реф", icon: "🧬" },
-                { href: "/about", label: "О нас", icon: "ℹ️" },
-                { href: "/schedule", label: "Распис", icon: "📅" },
-                { href: "/report", label: "Репорт", icon: "🧾" }
-              ].map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`snap-start min-w-[84px] flex flex-col items-center justify-center rounded-2xl py-2 px-2 transition-all ${
-                    pathname === item.href ? "bg-neon text-black shadow-neon" : "bg-white/5 text-white/60 active:bg-white/10"
-                  }`}
-                >
-                  <span className="text-lg leading-none">{item.icon}</span>
-                  <span className="text-[9px] font-black uppercase tracking-widest mt-1">{item.label}</span>
-                </Link>
-              ))}
+            <div className="grid grid-cols-5 gap-2">
+              <Link href="/" className={`flex flex-col items-center justify-center rounded-2xl py-2 transition-all ${pathname === "/" ? "bg-neon text-black shadow-neon" : "bg-white/5 text-white/60 active:bg-white/10"}`}>
+                <span className="text-lg leading-none">🏠</span>
+                <span className="text-[9px] font-black uppercase tracking-widest mt-1">Дом</span>
+              </Link>
+              <Link href="/chat" className={`flex flex-col items-center justify-center rounded-2xl py-2 transition-all ${pathname === "/chat" ? "bg-neon text-black shadow-neon" : "bg-white/5 text-white/60 active:bg-white/10"}`}>
+                <span className="text-lg leading-none">💬</span>
+                <span className="text-[9px] font-black uppercase tracking-widest mt-1">Чат</span>
+              </Link>
+              <Link href="/bets" className={`flex flex-col items-center justify-center rounded-2xl py-2 transition-all ${pathname === "/bets" ? "bg-neon text-black shadow-neon" : "bg-white/5 text-white/60 active:bg-white/10"}`}>
+                <span className="text-lg leading-none">🎲</span>
+                <span className="text-[9px] font-black uppercase tracking-widest mt-1">Ставки</span>
+              </Link>
+              <Link href="/rewards" className={`flex flex-col items-center justify-center rounded-2xl py-2 transition-all ${pathname === "/rewards" ? "bg-neon text-black shadow-neon" : "bg-white/5 text-white/60 active:bg-white/10"}`}>
+                <span className="text-lg leading-none">🎁</span>
+                <span className="text-[9px] font-black uppercase tracking-widest mt-1">Награды</span>
+              </Link>
+              <button onClick={() => setBottomMoreOpen(true)} className={`flex flex-col items-center justify-center rounded-2xl py-2 transition-all ${bottomMoreOpen ? "bg-white/10 text-white border border-white/20" : "bg-white/5 text-white/60 active:bg-white/10"}`}>
+                <span className="text-lg leading-none">⋯</span>
+                <span className="text-[9px] font-black uppercase tracking-widest mt-1">Ещё</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-              {user ? (
-                <Link
-                  href="/profile"
-                  className={`snap-start min-w-[84px] flex flex-col items-center justify-center rounded-2xl py-2 px-2 transition-all ${
-                    pathname === "/profile" ? "bg-neon text-black shadow-neon" : "bg-white/5 text-white/60 active:bg-white/10"
-                  }`}
-                >
-                  <span className="text-lg leading-none">👤</span>
-                  <span className="text-[9px] font-black uppercase tracking-widest mt-1">Профиль</span>
-                </Link>
-              ) : (
-                <>
+      {mounted && bottomMoreOpen && (
+        <div className="fixed inset-0 z-[2300]">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setBottomMoreOpen(false)}></div>
+          <div className="absolute bottom-0 left-0 right-0 p-4">
+            <div className="glass rounded-[32px] border border-white/10 overflow-hidden shadow-2xl">
+              <div className="p-4 border-b border-white/10 flex items-center justify-between">
+                <div className="text-[11px] font-black uppercase tracking-widest text-white/60">Меню</div>
+                <button onClick={() => setBottomMoreOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors">
+                  Закрыть
+                </button>
+              </div>
+              <div className="p-4 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                {user ? (
+                  <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+                    <div className="text-[10px] font-black uppercase tracking-widest text-white/30">Аккаунт</div>
+                    <div className="flex items-center justify-between mt-2">
+                      <div className="text-sm font-black text-white">{user.username}</div>
+                      <div className="text-xs font-mono text-acid">{user.balance} 🪙</div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 mt-3">
+                      <Link href="/profile" onClick={() => setBottomMoreOpen(false)} className="text-center p-3 rounded-xl bg-neon text-black text-[10px] font-black uppercase tracking-widest shadow-neon">
+                        Профиль
+                      </Link>
+                      <button onClick={logout} className="p-3 rounded-xl bg-red-500/15 border border-red-500/25 text-red-300 text-[10px] font-black uppercase tracking-widest">
+                        Выход
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+                    <div className="text-[10px] font-black uppercase tracking-widest text-white/30">Аккаунт</div>
+                    <div className="grid grid-cols-2 gap-2 mt-3">
+                      <Link href="/login" onClick={() => setBottomMoreOpen(false)} className="text-center p-3 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/70">
+                        Войти
+                      </Link>
+                      <Link href="/register" onClick={() => setBottomMoreOpen(false)} className="text-center p-3 rounded-xl bg-neon text-black text-[10px] font-black uppercase tracking-widest shadow-neon">
+                        Регистрация
+                      </Link>
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { href: "/leaderboard", label: "Топ", icon: "🏆" },
+                    { href: "/referral", label: "Рефералы", icon: "🧬" },
+                    { href: "/about", label: "О нас", icon: "ℹ️" },
+                    { href: "/schedule", label: "Расписание", icon: "📅" },
+                    { href: "/report", label: "Репорт", icon: "🧾" }
+                  ].map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setBottomMoreOpen(false)}
+                      className={`p-4 rounded-2xl border transition-all flex items-center justify-between ${
+                        pathname === item.href ? "bg-neon text-black border-neon shadow-neon" : "bg-white/5 border-white/10 text-white/70 active:bg-white/10"
+                      }`}
+                    >
+                      <span className="text-[11px] font-black uppercase tracking-widest">{item.label}</span>
+                      <span className="text-lg leading-none">{item.icon}</span>
+                    </Link>
+                  ))}
+                </div>
+
+                {isAdminOrModerator && (
                   <Link
-                    href="/login"
-                    className={`snap-start min-w-[84px] flex flex-col items-center justify-center rounded-2xl py-2 px-2 transition-all ${
-                      pathname === "/login" ? "bg-neon text-black shadow-neon" : "bg-white/5 text-white/60 active:bg-white/10"
+                    href="/admin"
+                    onClick={() => setBottomMoreOpen(false)}
+                    className={`p-4 rounded-2xl border transition-all flex items-center justify-between ${
+                      pathname.startsWith("/admin") ? "bg-acid text-black border-acid/20 shadow-acid" : "bg-acid/10 text-acid border-acid/20 active:bg-acid/15"
                     }`}
                   >
-                    <span className="text-lg leading-none">🔑</span>
-                    <span className="text-[9px] font-black uppercase tracking-widest mt-1">Вход</span>
+                    <span className="text-[11px] font-black uppercase tracking-widest">Админ</span>
+                    <span className="text-lg leading-none">🛠️</span>
                   </Link>
-                  <Link
-                    href="/register"
-                    className={`snap-start min-w-[84px] flex flex-col items-center justify-center rounded-2xl py-2 px-2 transition-all ${
-                      pathname === "/register" ? "bg-neon text-black shadow-neon" : "bg-white/5 text-white/60 active:bg-white/10"
-                    }`}
-                  >
-                    <span className="text-lg leading-none">🧾</span>
-                    <span className="text-[9px] font-black uppercase tracking-widest mt-1">Рег</span>
-                  </Link>
-                </>
-              )}
-
-              {isAdminOrModerator && (
-                <Link
-                  href="/admin"
-                  className={`snap-start min-w-[84px] flex flex-col items-center justify-center rounded-2xl py-2 px-2 transition-all border ${
-                    pathname.startsWith("/admin") ? "bg-acid text-black shadow-acid border-acid/20" : "bg-acid/10 text-acid border-acid/20 active:bg-acid/15"
-                  }`}
-                >
-                  <span className="text-lg leading-none">🛠️</span>
-                  <span className="text-[9px] font-black uppercase tracking-widest mt-1">Админ</span>
-                </Link>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
