@@ -1,30 +1,66 @@
+const CACHE = "pappy-v2"
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open("pappy-v1").then((cache) => cache.addAll(["/", "/manifest.webmanifest"]))
+    caches.open(CACHE).then((cache) => cache.addAll(["/manifest.webmanifest", "/pwa-icon.svg", "/maskable-icon.svg"]))
   )
   self.skipWaiting()
 })
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim())
+  event.waitUntil(
+    Promise.all([
+      caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))),
+      self.clients.claim()
+    ])
+  )
+})
+
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting()
+  }
 })
 
 self.addEventListener("fetch", (event) => {
   const req = event.request
   if (req.method !== "GET") return
 
-  event.respondWith(
-    caches.match(req).then((cached) => {
-      if (cached) return cached
-      return fetch(req).then((res) => {
-        const copy = res.clone()
-        caches.open("pappy-v1").then((cache) => {
-          const url = new URL(req.url)
-          if (url.origin === location.origin) cache.put(req, copy)
-        })
-        return res
-      }).catch(() => caches.match("/"))
-    })
-  )
-})
+  const url = new URL(req.url)
+  const isSameOrigin = url.origin === self.location.origin
+  const isNavigation = req.mode === "navigate"
+  const dest = req.destination
 
+  if (isNavigation) {
+    event.respondWith(fetch(req).catch(() => caches.match("/")))
+    return
+  }
+
+  if (!isSameOrigin) {
+    event.respondWith(fetch(req))
+    return
+  }
+
+  const isStatic =
+    url.pathname.startsWith("/_next/static/") ||
+    dest === "style" ||
+    dest === "script" ||
+    dest === "image" ||
+    dest === "font"
+
+  if (isStatic) {
+    event.respondWith(
+      caches.match(req).then((cached) => {
+        if (cached) return cached
+        return fetch(req).then((res) => {
+          const copy = res.clone()
+          caches.open(CACHE).then((cache) => cache.put(req, copy))
+          return res
+        })
+      })
+    )
+    return
+  }
+
+  event.respondWith(fetch(req).catch(() => caches.match(req)))
+})
