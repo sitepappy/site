@@ -66,6 +66,7 @@ function read() {
     if (!fs.existsSync(dbFile)) return { users: [], transactions: [], promoCodes: [], quests: [], userQuests: [], levels: [], matches: [], bets: [], rewards: [], orders: [], posts: [], polls: [], votes: [], about: {}, coop: {}, emailVerifications: [] };
     const raw = fs.readFileSync(dbFile, "utf-8");
     const data = JSON.parse(raw);
+    let changed = false;
     
     // Миграция: если уровней нет или они пустые, добавляем дефолтные
     if (!data.levels || data.levels.length === 0) {
@@ -76,7 +77,50 @@ function read() {
         { id: "lvl4", name: "Мастер", iconUrl: "https://cdn-icons-png.flaticon.com/512/2583/2583350.png" },
         { id: "lvl5", name: "Легенда", iconUrl: "https://cdn-icons-png.flaticon.com/512/2583/2583386.png" }
       ];
-      // Сохраняем сразу, чтобы больше не заходить сюда
+      changed = true;
+    }
+
+    if (!Array.isArray(data.orders)) {
+      data.orders = [];
+      changed = true;
+    }
+
+    if (!Array.isArray(data.reports)) {
+      data.reports = [];
+      changed = true;
+    }
+
+    if (!Array.isArray(data.users)) {
+      data.users = [];
+      changed = true;
+    }
+
+    for (const u of data.users) {
+      if (!u.dailyRewards || typeof u.dailyRewards !== "object") {
+        u.dailyRewards = { day: 1, lastClaimAt: null, lockedUntil: null, cycleCount: 0 };
+        changed = true;
+        continue;
+      }
+
+      if (typeof u.dailyRewards.day !== "number" || u.dailyRewards.day < 1 || u.dailyRewards.day > 30) {
+        u.dailyRewards.day = 1;
+        changed = true;
+      }
+      if (typeof u.dailyRewards.cycleCount !== "number" || u.dailyRewards.cycleCount < 0) {
+        u.dailyRewards.cycleCount = 0;
+        changed = true;
+      }
+      if (typeof u.dailyRewards.lastClaimAt === "undefined") {
+        u.dailyRewards.lastClaimAt = null;
+        changed = true;
+      }
+      if (typeof u.dailyRewards.lockedUntil === "undefined") {
+        u.dailyRewards.lockedUntil = null;
+        changed = true;
+      }
+    }
+
+    if (changed) {
       fs.writeFileSync(dbFile, JSON.stringify(data, null, 2), "utf-8");
     }
     

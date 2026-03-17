@@ -18,24 +18,37 @@ export default function BetsPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-black uppercase italic tracking-tighter text-white">Игровой Центр</h1>
-        <div className="flex bg-white/5 p-1 rounded-xl border border-white/5">
-          <button 
+
+        <div className="sm:hidden">
+          <select
+            value={activeTab}
+            onChange={(e) => setActiveTab(e.target.value)}
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest outline-none focus:border-neon"
+          >
+            <option value="matches">Матчи</option>
+            <option value="roulette">Рулетка</option>
+            <option value="coinflip">Coinflip</option>
+          </select>
+        </div>
+
+        <div className="hidden sm:flex bg-white/5 p-1 rounded-xl border border-white/5 overflow-x-auto">
+          <button
             onClick={() => setActiveTab("matches")}
-            className={`px-6 py-2 rounded-lg text-xs font-black uppercase italic transition-all ${activeTab === "matches" ? "bg-neon text-black shadow-neon" : "text-white/40 hover:text-white"}`}
+            className={`px-4 py-2 rounded-lg text-xs font-black uppercase italic transition-all whitespace-nowrap ${activeTab === "matches" ? "bg-neon text-black shadow-neon" : "text-white/40 hover:text-white"}`}
           >
             Матчи
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab("roulette")}
-            className={`px-6 py-2 rounded-lg text-xs font-black uppercase italic transition-all ${activeTab === "roulette" ? "bg-acid text-black shadow-acid" : "text-white/40 hover:text-white"}`}
+            className={`px-4 py-2 rounded-lg text-xs font-black uppercase italic transition-all whitespace-nowrap ${activeTab === "roulette" ? "bg-acid text-black shadow-acid" : "text-white/40 hover:text-white"}`}
           >
             Рулетка
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab("coinflip")}
-            className={`px-6 py-2 rounded-lg text-xs font-black uppercase italic transition-all ${activeTab === "coinflip" ? "bg-yellow-500 text-black shadow-yellow-500" : "text-white/40 hover:text-white"}`}
+            className={`px-4 py-2 rounded-lg text-xs font-black uppercase italic transition-all whitespace-nowrap ${activeTab === "coinflip" ? "bg-yellow-500 text-black shadow-yellow-500" : "text-white/40 hover:text-white"}`}
           >
             Coinflip
           </button>

@@ -23,7 +23,13 @@ r.post("/", authRequired, (req, res) => {
 
 r.get("/my", authRequired, (req, res) => {
   const data = db.get()
-  const list = data.orders.filter(o => o.userId === req.user.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const list = data.orders
+    .filter(o => o.userId === req.user.id)
+    .map(o => {
+      const reward = o.rewardId ? data.rewards.find(x => x.id === o.rewardId) : null
+      return { ...o, rewardName: reward?.name || o.title || "Заказ" }
+    })
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   res.json(list)
 })
 
@@ -31,8 +37,8 @@ r.get("/", authRequired, adminOnly, (req, res) => {
   const data = db.get()
   const list = data.orders.map(o => {
     const u = data.users.find(x => x.id === o.userId)
-    const r = data.rewards.find(x => x.id === o.rewardId)
-    return { ...o, username: u?.username, rewardName: r?.name }
+    const reward = o.rewardId ? data.rewards.find(x => x.id === o.rewardId) : null
+    return { ...o, username: u?.username, rewardName: reward?.name || o.title || "Заказ" }
   })
   res.json(list)
 })

@@ -40,6 +40,7 @@ export default function AdminPage() {
   const [reportsList, setReportsList] = useState<any[]>([])
   const [levelsList, setLevelsList] = useState<any[]>([])
   const [promosList, setPromosList] = useState<any[]>([])
+  const [ordersList, setOrdersList] = useState<any[]>([])
 
   // Состояние для создания ивент-промо
   const [promoCode, setPromoCode] = useState("")
@@ -112,6 +113,9 @@ export default function AdminPage() {
       } else if (tab === "promos") {
         const data = await api("/admin/promos")
         setPromosList(data)
+      } else if (tab === "orders") {
+        const data = await api("/orders")
+        setOrdersList(data)
       }
     } catch (e) { console.error(e) }
   }
@@ -313,6 +317,18 @@ export default function AdminPage() {
     } catch (e: any) { alert(e.message) }
   }
 
+  const handleUpdateOrderStatus = async (orderId: string, status: string) => {
+    try {
+      await api(`/orders/${orderId}/complete`, {
+        method: "POST",
+        body: JSON.stringify({ status })
+      })
+      loadData("orders")
+      setMsg("Заказ обновлен!")
+      setTimeout(() => setMsg(""), 3000)
+    } catch (e: any) { alert(e.message) }
+  }
+
   const handleUpdateRole = async (userId: string, role: string) => {
     try {
       await api("/admin/users/role", { method: "POST", body: JSON.stringify({ userId, role }) })
@@ -343,6 +359,7 @@ export default function AdminPage() {
     { id: "about", name: "О нас" },
     { id: "schedule", name: "РАСПИСАНИЕ" },
     { id: "rewards", name: "Награды" },
+    { id: "orders", name: "Заказы" },
     { id: "promos", name: "Промокоды 🎁" },
   ]
 
@@ -359,17 +376,30 @@ export default function AdminPage() {
       </div>
 
       <div className="flex flex-col md:flex-row min-h-[700px]">
-        {/* Sidebar - Mobile Responsive */}
-        <div className="w-full md:w-64 bg-black/20 border-r border-white/5 p-2 flex md:flex-col overflow-x-auto md:overflow-x-visible gap-1 md:gap-1">
-          {sidebarLinks.map((link) => (
-            <button 
-              key={link.id}
-              onClick={() => setActiveTab(link.id)} 
-              className={`whitespace-nowrap md:whitespace-normal text-left p-3 rounded text-xs md:text-sm transition-all flex-shrink-0 md:flex-shrink ${activeTab === link.id ? "bg-neon text-black font-bold shadow-neon" : "hover:bg-white/5 text-white/60"}`}
+        <div className="w-full md:w-64 bg-black/20 border-r border-white/5 p-2">
+          <div className="md:hidden">
+            <select
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[11px] font-black uppercase tracking-widest outline-none focus:border-neon"
             >
-              {link.name}
-            </button>
-          ))}
+              {sidebarLinks.map((l) => (
+                <option key={l.id} value={l.id}>{l.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="hidden md:flex md:flex-col gap-1">
+            {sidebarLinks.map((link) => (
+              <button
+                key={link.id}
+                onClick={() => setActiveTab(link.id)}
+                className={`whitespace-nowrap md:whitespace-normal text-left p-3 rounded text-xs md:text-sm transition-all ${activeTab === link.id ? "bg-neon text-black font-bold shadow-neon" : "hover:bg-white/5 text-white/60"}`}
+              >
+                {link.name}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Content Area */}
@@ -806,6 +836,84 @@ export default function AdminPage() {
                 ))}
               </div>
               <button onClick={handleSaveRewards} className="btn btn-primary w-full py-3 uppercase font-black text-xs shadow-neon">Сохранить все награды</button>
+            </div>
+          )}
+
+          {activeTab === "orders" && (
+            <div className="space-y-6">
+              <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-bold text-neon uppercase">Заказы</h2>
+                  <div className="text-[10px] text-white/30 uppercase font-bold tracking-widest">Магазин + ежедневные награды</div>
+                </div>
+                <button onClick={() => loadData("orders")} className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/50 hover:text-white hover:border-neon/40 transition-all">
+                  Обновить
+                </button>
+              </div>
+
+              <div className="grid gap-3">
+                {ordersList
+                  .slice()
+                  .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")))
+                  .map((o: any) => (
+                    <div key={o.id} className="glass p-4 rounded-2xl border border-white/5">
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <div className="text-sm font-black text-white uppercase tracking-tight">
+                              {o.rewardName || "Заказ"}
+                            </div>
+                            <span className={`text-[9px] px-2 py-1 rounded-full font-black uppercase tracking-widest ${
+                              String(o.status).toLowerCase() === "pending" ? "bg-yellow-500/20 text-yellow-300 border border-yellow-500/20" :
+                              String(o.status).toLowerCase() === "completed" ? "bg-neon/15 text-neon border border-neon/20" :
+                              "bg-red-500/10 text-red-300 border border-red-500/20"
+                            }`}>
+                              {o.status}
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-white/30 font-mono">
+                            {o.username ? `${o.username} • ` : ""}{o.createdAt ? new Date(o.createdAt).toLocaleString() : ""}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <button
+                            onClick={async () => {
+                              try {
+                                await navigator.clipboard.writeText(String(o.tradeLink || ""))
+                                setMsg("Trade Link скопирован")
+                                setTimeout(() => setMsg(""), 2000)
+                              } catch {
+                                alert("Не удалось скопировать")
+                              }
+                            }}
+                            className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/50 hover:text-white hover:border-white/20 transition-all"
+                          >
+                            Copy Trade Link
+                          </button>
+                          <button
+                            onClick={() => handleUpdateOrderStatus(o.id, "Completed")}
+                            className="px-4 py-2 rounded-xl bg-neon text-black text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-neon"
+                          >
+                            Выполнено
+                          </button>
+                          <button
+                            onClick={() => handleUpdateOrderStatus(o.id, "Rejected")}
+                            className="px-4 py-2 rounded-xl bg-red-500/15 border border-red-500/25 text-red-300 text-[10px] font-black uppercase tracking-widest hover:bg-red-500/25 transition-all"
+                          >
+                            Отклонить
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                {ordersList.length === 0 && (
+                  <div className="text-center py-20 text-white/20 uppercase tracking-widest font-black">
+                    Заказов пока нет
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
