@@ -2,8 +2,10 @@ import { Router } from "express"
 import { db } from "../lib/db.js"
 import { authRequired, adminOnly, moderatorOrAdmin } from "../lib/auth.js"
 import { nowIso } from "../lib/utils.js"
+import { calculateReferralLevel } from "./quests.js"
 
 const r = Router()
+const REFERRAL_REWARD = 10
 
 // Модераторы и Админы могут заходить в панель в целом
 r.use(authRequired, moderatorOrAdmin)
@@ -52,6 +54,75 @@ r.post("/reports/:id/resolve", (req, res) => {
   const r = (data.reports || []).find(x => x.id === req.params.id)
   if (!r) return res.status(404).json({ error: "Не найдено" })
   r.status = "resolved"
+  r.updatedAt = nowIso()
+  db.save(data)
+  res.json({ ok: true })
+})
+
+ r.post("/reports/:id/reply", (req, res) => {
+  const { message, status } = req.body || {}
+  const text = String(message || "").trim()
+  if (!text) return res.status(400).json({ error: "Пустой ответ" })
+  const data = db.get()
+  const rep = (data.reports || []).find(x => x.id === req.params.id)
+  if (!rep) return res.status(404).json({ error: "Не найдено" })
+  if (!Array.isArray(rep.adminResponses)) rep.adminResponses = []
+  const admin = data.users.find(u => u.id === req.user.id)
+  const entry = { id: db.id(), adminId: req.user.id, adminUsername: admin?.username || "Admin", message: text, createdAt: nowIso() }
+  rep.adminResponses.push(entry)
+  rep.status = status && ["pending", "in_progress", "resolved"].includes(status) ? status : "in_progress"
+  rep.updatedAt = nowIso()
+  db.save(data)
+  res.json({ ok: true, report: rep })
+})
+
+r.post("/reports/:id/referral-credit", adminOnly, (req, res) => {
+  const { code } = req.body || {}
+  const promoCode = String(code || "").trim()
+  if (!promoCode) return res.status(400).json({ error: "Введите промокод" })
+  const data = db.get()
+  const rep = (data.reports || []).find(x => x.id === req.params.id)
+  if (!rep) return res.status(404).json({ error: "Тикет не найден" })
+  if (rep.referralManualAppliedAt) return res.status(400).json({ error: "Уже начислено" })
+
+  const promo = (data.promoCodes || []).find(p => p.code && p.code.toLowerCase() === promoCode.toLowerCase())
+  if (!promo) return res.status(404).json({ error: "Промокод не найден" })
+  if (promo.disabled) return res.status(400).json({ error: "Промокод отключен" })
+  const promoType = promo.type || "referral"
+  if (promoType !== "referral") return res.status(400).json({ error: "Это не реферальный промокод" })
+
+  const u = data.users.find(x => x.id === rep.userId)
+  if (!u) return res.status(404).json({ error: "Пользователь тикета не найден" })
+  if (!Array.isArray(u.activatedPromoCodes)) u.activatedPromoCodes = []
+  if (u.activatedPromoCodes.includes(promo.code)) return res.status(400).json({ error: "Уже активировано этим пользователем" })
+  if (promo.ownerUserId === u.id) return res.status(400).json({ error: "Нельзя начислить за свой код" })
+
+  const owner = data.users.find(x => x.id === promo.ownerUserId)
+  if (!owner) return res.status(404).json({ error: "Владелец промокода не найден" })
+
+  u.balance += REFERRAL_REWARD
+  owner.balance += REFERRAL_REWARD
+
+  owner.referralCount = (owner.referralCount || 0) + 1
+  const lvlObj = calculateReferralLevel(owner.referralCount)
+  owner.referralLevel = lvlObj?.name || null
+  owner.referralColor = lvlObj?.color || null
+
+  const createdAt = nowIso()
+  data.transactions.push({ id: db.id(), userId: u.id, type: "referral_manual", amount: REFERRAL_REWARD, balanceAfter: u.balance, note: `Реферальный бонус (ручной): ${promo.code}`, createdAt })
+  data.transactions.push({ id: db.id(), userId: owner.id, type: "referral_manual_owner", amount: REFERRAL_REWARD, balanceAfter: owner.balance, note: `Реферальный бонус (ручной): ${u.username}`, createdAt })
+
+  if (!Array.isArray(promo.lastActivations)) promo.lastActivations = []
+  if (!promo.dailyActivations || typeof promo.dailyActivations !== "object") promo.dailyActivations = {}
+  if (typeof promo.totalActivations !== "number") promo.totalActivations = 0
+  const dayKey = createdAt.slice(0, 10)
+  promo.dailyActivations[dayKey] = (promo.dailyActivations[dayKey] || 0) + 1
+  promo.totalActivations += 1
+  promo.lastActivations.push({ userId: u.id, deviceId: "", ip: "", date: createdAt, manual: true })
+
+  u.activatedPromoCodes.push(promo.code)
+  rep.referralManualAppliedAt = createdAt
+  rep.updatedAt = createdAt
   db.save(data)
   res.json({ ok: true })
 })

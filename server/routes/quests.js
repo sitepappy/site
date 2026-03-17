@@ -34,34 +34,6 @@ r.post("/:id/complete", authRequired, (req, res) => {
   data.userQuests.push({ id: db.id(), userId: u.id, questId: q.id, completedAt: createdAt })
   u.balance += q.reward
   data.transactions.push({ id: db.id(), userId: u.id, type: "quest", amount: q.reward, balanceAfter: u.balance, note: `Квест: ${q.name}`, createdAt })
-  if (u.referralByPromo && !u.referralRewarded && u.emailVerified) {
-    const promo = data.promoCodes.find(p => p.code === u.referralByPromo && !p.disabled)
-    if (promo) {
-      const day = new Date().toISOString().slice(0, 10)
-      promo.dailyActivations[day] = promo.dailyActivations[day] || 0
-      if (promo.dailyActivations[day] < 50) {
-        const dupDevice = promo.lastActivations.find(a => a.deviceId && u.deviceIds.includes(a.deviceId))
-        const dupIp = promo.lastActivations.find(a => a.ip && u.ips.includes(a.ip))
-        if (!dupDevice && !dupIp) {
-          u.balance += 1
-          data.transactions.push({ id: db.id(), userId: u.id, type: "referral", amount: 1, balanceAfter: u.balance, note: "Бонус за промокод", createdAt })
-          const owner = data.users.find(x => x.id === promo.ownerUserId)
-          if (owner) {
-            owner.balance += 1
-            data.transactions.push({ id: db.id(), userId: owner.id, type: "referral_owner", amount: 1, balanceAfter: owner.balance, note: `Активация промокода ${promo.code}`, createdAt })
-            owner.referralCount = (owner.referralCount || 0) + 1
-            const lvlObj = calculateReferralLevel(owner.referralCount)
-            owner.referralLevel = lvlObj?.name || null
-            owner.referralColor = lvlObj?.color || null
-          }
-          promo.totalActivations += 1
-          promo.dailyActivations[day] += 1
-          promo.lastActivations.push({ userId: u.id, deviceId: u.deviceIds[0] || "", ip: u.ips[0] || "", date: createdAt })
-          u.referralRewarded = true
-        }
-      }
-    }
-  }
   db.save(data)
   res.json({ ok: true })
 })

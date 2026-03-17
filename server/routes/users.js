@@ -106,11 +106,11 @@ r.post("/promo-code", authRequired, (req, res) => {
   const u = data.users.find(x => x.id === req.user.id)
   if (!u) return res.status(404).json({ error: "Не найдено" })
   if (u.promoCode) return res.status(400).json({ error: "Промокод уже создан" })
-  const c = String(code || "").trim()
+  const c = String(code || "").trim().toUpperCase()
   if (c.length < 4 || c.length > 12 || !isAlnum(c)) return res.status(400).json({ error: "4-12 символов, только буквы и цифры" })
   if (data.promoCodes.find(p => p.code.toLowerCase() === c.toLowerCase())) return res.status(400).json({ error: "Занято" })
   u.promoCode = c
-  data.promoCodes.push({ code: c, ownerUserId: u.id, totalActivations: 0, lastActivations: [], dailyActivations: {}, disabled: false })
+  data.promoCodes.push({ code: c, type: "referral", ownerUserId: u.id, totalActivations: 0, lastActivations: [], dailyActivations: {}, disabled: false })
   db.save(data)
   res.json({ ok: true, code: c })
 })
@@ -136,7 +136,9 @@ r.post("/reports", authRequired, (req, res) => {
     title,
     content,
     status: "pending",
-    createdAt: new Date().toISOString()
+    adminResponses: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   }
   
   data.reports.push(report)

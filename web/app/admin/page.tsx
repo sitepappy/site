@@ -22,6 +22,9 @@ export default function AdminPage() {
   const [odds2, setOdds2] = useState("1.5")
   const [deadline, setDeadline] = useState("")
   const [msg, setMsg] = useState("")
+  const [reportReplies, setReportReplies] = useState<Record<string, string>>({})
+  const [reportPromoCodes, setReportPromoCodes] = useState<Record<string, string>>({})
+  const [balanceDelta, setBalanceDelta] = useState("")
 
   // Состояния для О нас и Расписания
   const [aboutHtml, setAboutHtml] = useState("")
@@ -285,6 +288,29 @@ export default function AdminPage() {
     try {
       await api(`/admin/reports/${id}/resolve`, { method: "POST" })
       loadData("reports")
+    } catch (e: any) { alert(e.message) }
+  }
+
+  const handleReplyReport = async (id: string) => {
+    try {
+      const message = String(reportReplies[id] || "").trim()
+      if (!message) return alert("Пустой ответ")
+      await api(`/admin/reports/${id}/reply`, { method: "POST", body: JSON.stringify({ message, status: "in_progress" }) })
+      setReportReplies(prev => ({ ...prev, [id]: "" }))
+      loadData("reports")
+      setMsg("Ответ отправлен!")
+      setTimeout(() => setMsg(""), 3000)
+    } catch (e: any) { alert(e.message) }
+  }
+
+  const handleManualReferralCredit = async (id: string) => {
+    try {
+      const code = String(reportPromoCodes[id] || "").trim()
+      if (!code) return alert("Введите промокод")
+      await api(`/admin/reports/${id}/referral-credit`, { method: "POST", body: JSON.stringify({ code }) })
+      loadData("reports")
+      setMsg("Начислено 10+10!")
+      setTimeout(() => setMsg(""), 3000)
     } catch (e: any) { alert(e.message) }
   }
 
@@ -623,8 +649,25 @@ export default function AdminPage() {
                          </div>
 
                          <div className="grid grid-cols-2 gap-2">
-                           <button onClick={()=>handleUpdateBalance(selectedUser.user.id, 100)} className="py-2 rounded bg-white/5 border border-white/10 text-[10px] uppercase font-bold hover:bg-white/10 hover:text-neon transition-all">+100</button>
-                           <button onClick={()=>handleUpdateBalance(selectedUser.user.id, -100)} className="py-2 rounded bg-white/5 border border-white/10 text-[10px] uppercase font-bold hover:bg-white/10 hover:text-red-400 transition-all">-100</button>
+                          <input
+                            value={balanceDelta}
+                            onChange={(e) => setBalanceDelta(e.target.value)}
+                            className="py-2 px-3 rounded bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest outline-none focus:border-neon"
+                            placeholder="+50 / -25"
+                          />
+                          <button
+                            onClick={() => {
+                              const value = Number(balanceDelta)
+                              if (!Number.isFinite(value) || value === 0) return alert("Введите число (например 50 или -25)")
+                              handleUpdateBalance(selectedUser.user.id, value)
+                              setBalanceDelta("")
+                              setMsg("Баланс обновлен!")
+                              setTimeout(() => setMsg(""), 3000)
+                            }}
+                            className="py-2 rounded bg-neon text-black text-[10px] uppercase font-black hover:scale-[1.02] active:scale-95 transition-all shadow-neon"
+                          >
+                            Применить
+                          </button>
                          </div>
                          <div className="grid grid-cols-2 gap-2">
                            <button onClick={()=>handleUpdateRole(selectedUser.user.id, selectedUser.user.role === 'admin' ? 'user' : 'admin')} className={`py-2 rounded border text-[10px] uppercase font-bold transition-all ${selectedUser.user.role === 'admin' ? 'bg-red-500/20 border-red-500/30 text-red-400' : 'bg-acid/20 border-acid/30 text-acid hover:bg-acid hover:text-black'}`}>
@@ -654,23 +697,74 @@ export default function AdminPage() {
               <h2 className="text-lg font-bold text-neon uppercase">Тикеты / Репорты</h2>
               <div className="grid gap-3">
                 {reportsList.map(r => (
-                  <div key={r.id} className={`p-4 rounded border transition-all ${r.status === 'pending' ? 'bg-red-500/5 border-red-500/20' : 'bg-white/5 border-white/10 opacity-60'}`}>
-                    <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
+                  <div key={r.id} className={`p-4 rounded border transition-all ${
+                    r.status === "pending" ? "bg-yellow-500/5 border-yellow-500/20" : r.status === "in_progress" ? "bg-neon/5 border-neon/20" : "bg-white/5 border-white/10 opacity-60"
+                  }`}>
+                    <div className="flex flex-col lg:flex-row justify-between items-start gap-4">
+                      <div className="space-y-3 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-bold text-white">{r.title}</span>
-                          <span className={`text-[8px] px-1.5 py-0.5 rounded font-black uppercase ${r.status === 'pending' ? 'bg-red-500 text-white' : 'bg-green-500 text-black'}`}>
-                            {r.status === 'pending' ? 'Новый' : 'Решено'}
+                          <span className={`text-[8px] px-1.5 py-0.5 rounded font-black uppercase ${
+                            r.status === "pending" ? "bg-yellow-500 text-black" : r.status === "in_progress" ? "bg-neon text-black" : "bg-green-500 text-black"
+                          }`}>
+                            {r.status === "pending" ? "Новый" : r.status === "in_progress" ? "В работе" : "Решено"}
                           </span>
+                          {r.referralManualAppliedAt && (
+                            <span className="text-[8px] px-1.5 py-0.5 rounded font-black uppercase bg-acid/20 border border-acid/30 text-acid">
+                              Реф начислен
+                            </span>
+                          )}
                         </div>
                         <div className="text-[10px] text-white/40">От: {r.username} • {new Date(r.createdAt).toLocaleString()}</div>
-                        <p className="text-sm text-white/70 bg-black/30 p-3 rounded mt-2 italic">"{r.content}"</p>
+                        <p className="text-sm text-white/70 bg-black/30 p-3 rounded italic">"{r.content}"</p>
+
+                        {Array.isArray(r.adminResponses) && r.adminResponses.length > 0 && (
+                          <div className="bg-neon/10 border border-neon/20 rounded-xl p-3">
+                            <div className="text-[9px] font-black uppercase tracking-widest text-neon">Последний ответ</div>
+                            <div className="text-sm text-white/80 mt-1">{r.adminResponses[r.adminResponses.length - 1].message}</div>
+                            <div className="text-[10px] text-white/30 mt-2 font-mono">
+                              {r.adminResponses[r.adminResponses.length - 1].adminUsername} • {new Date(r.adminResponses[r.adminResponses.length - 1].createdAt).toLocaleString()}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      {r.status === 'pending' && (
-                        <button onClick={() => handleResolveReport(r.id)} className="w-full md:w-auto btn btn-primary px-4 py-2 text-[10px] uppercase font-black">
-                          Закрыть тикет
-                        </button>
-                      )}
+
+                      <div className="w-full lg:w-[360px] space-y-3">
+                        <div className="glass p-3 rounded-xl border border-white/10 space-y-2">
+                          <div className="text-[10px] text-white/40 uppercase font-black tracking-widest">Ответ пользователю</div>
+                          <textarea
+                            rows={3}
+                            value={reportReplies[r.id] || ""}
+                            onChange={(e) => setReportReplies(prev => ({ ...prev, [r.id]: e.target.value }))}
+                            className="w-full p-3 rounded-xl bg-black/40 border border-white/10 text-sm outline-none focus:border-neon transition-all"
+                            placeholder="Напишите ответ. Пользователь увидит его в тикетах."
+                          />
+                          <button onClick={() => handleReplyReport(r.id)} className="w-full btn btn-primary py-2 text-[10px] uppercase font-black shadow-neon">
+                            Ответить / Взять в работу
+                          </button>
+                        </div>
+
+                        {!isOnlyModerator && !r.referralManualAppliedAt && (
+                          <div className="glass p-3 rounded-xl border border-white/10 space-y-2">
+                            <div className="text-[10px] text-white/40 uppercase font-black tracking-widest">Рефералка (ручной фикс)</div>
+                            <input
+                              value={reportPromoCodes[r.id] || ""}
+                              onChange={(e) => setReportPromoCodes(prev => ({ ...prev, [r.id]: e.target.value }))}
+                              className="w-full p-3 rounded-xl bg-black/40 border border-white/10 text-sm outline-none focus:border-acid transition-all font-mono"
+                              placeholder="Промокод (например PAPPY10)"
+                            />
+                            <button onClick={() => handleManualReferralCredit(r.id)} className="w-full py-2 rounded-xl bg-acid text-black text-[10px] uppercase font-black hover:scale-[1.02] active:scale-95 transition-all shadow-acid">
+                              Начислить 10+10
+                            </button>
+                          </div>
+                        )}
+
+                        {r.status !== "resolved" && (
+                          <button onClick={() => handleResolveReport(r.id)} className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-[10px] uppercase font-black text-white/60 hover:text-white hover:border-white/20 transition-all">
+                            Закрыть тикет
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}

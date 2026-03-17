@@ -99,16 +99,31 @@ export default function ReportPage() {
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span className="font-bold text-white text-sm">{r.title}</span>
-                  <span className={`text-[8px] px-2 py-0.5 rounded font-black uppercase ${r.status === 'pending' ? 'bg-acid text-black' : 'bg-green-500 text-black'}`}>
-                    {r.status === 'pending' ? 'В обработке' : 'Решено'}
+                  <span className={`text-[8px] px-2 py-0.5 rounded font-black uppercase ${
+                    r.status === "pending" ? "bg-yellow-500 text-black" : r.status === "in_progress" ? "bg-neon text-black" : "bg-green-500 text-black"
+                  }`}>
+                    {r.status === "pending" ? "Новый" : r.status === "in_progress" ? "В работе" : "Решено"}
                   </span>
                 </div>
                 <div className="text-[10px] text-white/30 uppercase font-bold tracking-tighter">
                   ID: {r.id.slice(0,8)} • {new Date(r.createdAt).toLocaleDateString()}
                 </div>
               </div>
-              <div className="text-xs text-white/60 italic bg-black/20 p-3 rounded-lg w-full md:max-w-xs">
-                {r.content.length > 100 ? r.content.slice(0, 100) + "..." : r.content}
+              <div className="w-full md:max-w-xs space-y-2">
+                <div className="text-xs text-white/60 italic bg-black/20 p-3 rounded-lg">
+                  {r.content.length > 100 ? r.content.slice(0, 100) + "..." : r.content}
+                </div>
+                {Array.isArray(r.adminResponses) && r.adminResponses.length > 0 && (
+                  <div className="bg-neon/10 border border-neon/20 rounded-lg p-3">
+                    <div className="text-[9px] font-black uppercase tracking-widest text-neon">Ответ администрации</div>
+                    <div className="text-xs text-white/80 mt-1">
+                      {r.adminResponses[r.adminResponses.length - 1].message}
+                    </div>
+                    <div className="text-[9px] text-white/30 mt-2 font-mono">
+                      {r.adminResponses[r.adminResponses.length - 1].adminUsername} • {new Date(r.adminResponses[r.adminResponses.length - 1].createdAt).toLocaleString()}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ))}

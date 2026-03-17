@@ -1,8 +1,11 @@
 import { Router } from "express"
 import { db } from "../lib/db.js"
 import { authRequired } from "../lib/auth.js"
+import { calculateReferralLevel } from "./quests.js"
 
 const r = Router()
+const REFERRAL_REWARD = 10
+const DAILY_LIMIT = 50
 
 r.get("/", authRequired, (req, res) => {
   const data = db.get()
@@ -39,36 +42,54 @@ r.post("/activate", authRequired, (req, res) => {
   const promo = data.promoCodes.find(p => p.code.toLowerCase() === code.toLowerCase())
   if (!promo) return res.status(404).json({ error: "Промокод не найден" })
   if (promo.disabled) return res.status(400).json({ error: "Промокод отключен" })
+  const promoType = promo.type || "referral"
   
   const u = data.users.find(x => x.id === req.user.id)
   if (!u) return res.status(404).json({ error: "Пользователь не найден" })
+  if (!Array.isArray(u.activatedPromoCodes)) u.activatedPromoCodes = []
   
-  if (u.activatedPromoCodes && u.activatedPromoCodes.includes(promo.code)) {
+  if (u.activatedPromoCodes.includes(promo.code)) {
     return res.status(400).json({ error: "Вы уже активировали этот промокод" })
   }
 
   // Если это реферальный код
-  if (promo.type === "referral") {
+  if (promoType === "referral") {
     if (promo.ownerUserId === u.id) return res.status(400).json({ error: "Нельзя активировать свой код" })
     
-    // Выдаем награду обоим по 10 монет
-    const reward = 10
-    u.balance += reward
+    if (!Array.isArray(promo.lastActivations)) promo.lastActivations = []
+    if (!promo.dailyActivations || typeof promo.dailyActivations !== "object") promo.dailyActivations = {}
+    if (typeof promo.totalActivations !== "number") promo.totalActivations = 0
+
+    const dayKey = new Date().toISOString().slice(0, 10)
+    promo.dailyActivations[dayKey] = promo.dailyActivations[dayKey] || 0
+    if (promo.dailyActivations[dayKey] >= DAILY_LIMIT) return res.status(400).json({ error: "Лимит активаций на сегодня исчерпан" })
+
+    const deviceId = Array.isArray(u.deviceIds) ? u.deviceIds[0] : null
+    const ip = Array.isArray(u.ips) ? u.ips[0] : null
+    const dupDevice = deviceId ? promo.lastActivations.find(a => a.deviceId && a.deviceId === deviceId) : null
+    const dupIp = ip ? promo.lastActivations.find(a => a.ip && a.ip === ip) : null
+    if (dupDevice || dupIp) return res.status(400).json({ error: "Подозрительная активация" })
+
+    u.balance += REFERRAL_REWARD
     
     const owner = data.users.find(x => x.id === promo.ownerUserId)
     if (owner) {
-      owner.balance += reward
-      data.transactions.push({ id: db.id(), userId: owner.id, type: "referral_reward", amount: reward, balanceAfter: owner.balance, note: `Реферальный бонус: ${u.username}`, createdAt: new Date().toISOString() })
+      owner.balance += REFERRAL_REWARD
+      owner.referralCount = (owner.referralCount || 0) + 1
+      const lvlObj = calculateReferralLevel(owner.referralCount)
+      owner.referralLevel = lvlObj?.name || null
+      owner.referralColor = lvlObj?.color || null
+      data.transactions.push({ id: db.id(), userId: owner.id, type: "referral_reward", amount: REFERRAL_REWARD, balanceAfter: owner.balance, note: `Реферальный бонус: ${u.username}`, createdAt: new Date().toISOString() })
     }
     
     promo.totalActivations = (promo.totalActivations || 0) + 1
-    if (!promo.lastActivations) promo.lastActivations = []
-    promo.lastActivations.push({ userId: u.id, date: new Date().toISOString() })
+    promo.dailyActivations[dayKey] += 1
+    promo.lastActivations.push({ userId: u.id, deviceId: deviceId || "", ip: ip || "", date: new Date().toISOString() })
     
-    data.transactions.push({ id: db.id(), userId: u.id, type: "referral_activate", amount: reward, balanceAfter: u.balance, note: `Активация реферала: ${promo.code}`, createdAt: new Date().toISOString() })
+    data.transactions.push({ id: db.id(), userId: u.id, type: "referral_activate", amount: REFERRAL_REWARD, balanceAfter: u.balance, note: `Активация реферала: ${promo.code}`, createdAt: new Date().toISOString() })
   } 
   // Если это ивент-код
-  else if (promo.type === "event") {
+  else if (promoType === "event") {
     if (promo.maxActivations && (promo.totalActivations || 0) >= promo.maxActivations) {
       return res.status(400).json({ error: "Лимит активаций исчерпан" })
     }
@@ -80,11 +101,10 @@ r.post("/activate", authRequired, (req, res) => {
     data.transactions.push({ id: db.id(), userId: u.id, type: "event_promo", amount: reward, balanceAfter: u.balance, note: `Ивент промокод: ${promo.code}`, createdAt: new Date().toISOString() })
   }
 
-  if (!u.activatedPromoCodes) u.activatedPromoCodes = []
   u.activatedPromoCodes.push(promo.code)
   
   db.save(data)
-  res.json({ ok: true, reward: promo.type === "referral" ? 10 : promo.rewardAmount })
+  res.json({ ok: true, reward: promoType === "referral" ? REFERRAL_REWARD : promo.rewardAmount })
 })
 
 export default r

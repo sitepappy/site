@@ -90,9 +90,56 @@ function read() {
       changed = true;
     }
 
+    for (const rep of data.reports) {
+      if (!rep.status) {
+        rep.status = "pending";
+        changed = true;
+      }
+      if (!Array.isArray(rep.adminResponses)) {
+        rep.adminResponses = [];
+        changed = true;
+      }
+      if (!rep.updatedAt) {
+        rep.updatedAt = rep.createdAt || new Date().toISOString();
+        changed = true;
+      }
+      if (typeof rep.referralManualAppliedAt === "undefined") {
+        rep.referralManualAppliedAt = null;
+        changed = true;
+      }
+    }
+
     if (!Array.isArray(data.users)) {
       data.users = [];
       changed = true;
+    }
+
+    if (!Array.isArray(data.promoCodes)) {
+      data.promoCodes = [];
+      changed = true;
+    }
+
+    for (const p of data.promoCodes) {
+      if (!p.type) {
+        p.type = "referral";
+        changed = true;
+      }
+      if (typeof p.totalActivations !== "number") {
+        p.totalActivations = 0;
+        changed = true;
+      }
+      if (!Array.isArray(p.lastActivations)) {
+        p.lastActivations = [];
+        changed = true;
+      }
+      if (!p.dailyActivations || typeof p.dailyActivations !== "object") {
+        p.dailyActivations = {};
+        changed = true;
+      }
+      if (typeof p.disabled === "undefined") {
+        p.disabled = false;
+        changed = true;
+      }
     }
 
     for (const u of data.users) {
