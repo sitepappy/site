@@ -36,6 +36,12 @@ export default function AdminPage() {
   const [chatInput, setChatInput] = useState("")
   const [reportsList, setReportsList] = useState<any[]>([])
   const [levelsList, setLevelsList] = useState<any[]>([])
+  const [promosList, setPromosList] = useState<any[]>([])
+
+  // Состояние для создания ивент-промо
+  const [promoCode, setPromoCode] = useState("")
+  const [promoReward, setPromoReward] = useState("50")
+  const [promoLimit, setPromoLimit] = useState("100")
 
   // Просмотр профиля юзера
   const [selectedUser, setSelectedUser] = useState<any>(null)
@@ -100,6 +106,9 @@ export default function AdminPage() {
       } else if (tab === "levels") {
         const data = await api("/levels")
         setLevelsList(data)
+      } else if (tab === "promos") {
+        const data = await api("/admin/promos")
+        setPromosList(data)
       }
     } catch (e) { console.error(e) }
   }
@@ -259,6 +268,35 @@ export default function AdminPage() {
     } catch (e: any) { alert(e.message) }
   }
 
+  const handleCreateEventPromo = async (e: any) => {
+    e.preventDefault()
+    try {
+      await api("/admin/promos", {
+        method: "POST",
+        body: JSON.stringify({
+          code: promoCode,
+          type: "event",
+          rewardAmount: Number(promoReward),
+          maxActivations: Number(promoLimit)
+        })
+      })
+      setPromoCode("")
+      setMsg("Промокод создан!")
+      loadData("promos")
+      setTimeout(() => setMsg(""), 3000)
+    } catch (e: any) { alert(e.message) }
+  }
+
+  const handleDisablePromo = async (code: string, disabled: boolean) => {
+    try {
+      await api("/admin/promos/disable", {
+        method: "POST",
+        body: JSON.stringify({ code, disabled })
+      })
+      loadData("promos")
+    } catch (e: any) { alert(e.message) }
+  }
+
   const handleUpdateRole = async (userId: string, role: string) => {
     try {
       await api("/admin/users/role", { method: "POST", body: JSON.stringify({ userId, role }) })
@@ -289,6 +327,7 @@ export default function AdminPage() {
     { id: "about", name: "О нас" },
     { id: "schedule", name: "РАСПИСАНИЕ" },
     { id: "rewards", name: "Награды" },
+    { id: "promos", name: "Промокоды 🎁" },
   ]
 
   return (
@@ -729,6 +768,56 @@ export default function AdminPage() {
                 ))}
               </div>
               <button onClick={handleSaveRewards} className="btn btn-primary w-full py-3 uppercase font-black text-xs shadow-neon">Сохранить все награды</button>
+            </div>
+          )}
+
+          {activeTab === "promos" && (
+            <div className="space-y-10">
+              <form onSubmit={handleCreateEventPromo} className="space-y-4 max-w-xl glass p-4 rounded-lg">
+                <h2 className="text-lg font-bold text-neon uppercase">Создать Ивент-Промокод</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] text-white/30 uppercase font-black ml-1">Код</label>
+                    <input required value={promoCode} onChange={e=>setPromoCode(e.target.value.toUpperCase())} className="w-full p-2 rounded bg-white/5 border border-white/10 text-sm font-mono text-neon outline-none focus:border-neon" placeholder="SPRING2024" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] text-white/30 uppercase font-black ml-1">Награда (🪙)</label>
+                    <input required type="number" value={promoReward} onChange={e=>setPromoReward(e.target.value)} className="w-full p-2 rounded bg-white/5 border border-white/10 text-sm font-mono text-acid outline-none focus:border-neon" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] text-white/30 uppercase font-black ml-1">Лимит активаций</label>
+                  <input required type="number" value={promoLimit} onChange={e=>setPromoLimit(e.target.value)} className="w-full p-2 rounded bg-white/5 border border-white/10 text-sm outline-none focus:border-neon" />
+                </div>
+                <button className="btn btn-primary w-full py-3 uppercase font-black text-xs shadow-neon">Создать ивент-код</button>
+              </form>
+
+              <div className="space-y-4">
+                <h2 className="text-lg font-bold text-white uppercase tracking-widest">Список промокодов</h2>
+                <div className="grid gap-3">
+                  {promosList.map((p: any) => (
+                    <div key={p.code} className={`glass p-4 rounded-xl border flex flex-col md:flex-row justify-between items-center gap-4 ${p.disabled ? 'opacity-40 border-white/5' : 'border-white/10'}`}>
+                      <div className="flex items-center gap-4">
+                        <div className="text-xl font-black italic text-white">{p.code}</div>
+                        <div className="flex flex-col">
+                          <span className={`text-[8px] px-1.5 py-0.5 rounded font-black uppercase w-fit ${p.type === 'referral' ? 'bg-blue-500 text-white' : 'bg-purple-500 text-white'}`}>
+                            {p.type === 'referral' ? 'Реферал' : 'Ивент'}
+                          </span>
+                          <span className="text-[10px] text-white/40 mt-1">
+                            {p.type === 'event' ? `Награда: ${p.rewardAmount} 🪙 | Лимит: ${p.activations}/${p.maxActivations}` : `Активаций: ${p.activations}`}
+                          </span>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => handleDisablePromo(p.code, !p.disabled)}
+                        className={`px-4 py-2 rounded text-[10px] font-black uppercase transition-all ${p.disabled ? "bg-neon text-black" : "bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500 hover:text-white"}`}
+                      >
+                        {p.disabled ? "Включить" : "Отключить"}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
         </div>

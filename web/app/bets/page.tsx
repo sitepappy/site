@@ -99,7 +99,7 @@ function CoinflipGame() {
     <div className="glass p-8 rounded-3xl border border-white/5 space-y-8 shadow-2xl relative overflow-hidden">
       <div className="text-center space-y-2">
         <h2 className="text-3xl font-black italic tracking-tighter uppercase">COINFLIP</h2>
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Выигрыш x2, шанс 33%</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Выигрыш x2</p>
       </div>
 
       <div className="flex justify-center items-center h-48 perspective-1000">

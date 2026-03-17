@@ -138,8 +138,41 @@ r.post("/chat", (req, res) => {
 
 r.get("/promos", adminOnly, (req, res) => {
   const data = db.get()
-  const list = data.promoCodes.map(p => ({ code: p.code, ownerUserId: p.ownerUserId, activations: p.totalActivations, disabled: p.disabled }))
+  const list = data.promoCodes.map(p => ({ 
+    code: p.code, 
+    type: p.type || "referral",
+    ownerUserId: p.ownerUserId, 
+    activations: p.totalActivations || 0, 
+    maxActivations: p.maxActivations,
+    rewardAmount: p.rewardAmount,
+    disabled: p.disabled 
+  }))
   res.json(list)
+})
+
+r.post("/promos", adminOnly, (req, res) => {
+  const { code, type, maxActivations, rewardAmount } = req.body || {}
+  if (!code) return res.status(400).json({ error: "Введите код" })
+  
+  const data = db.get()
+  if (data.promoCodes.find(p => p.code.toLowerCase() === code.toLowerCase())) {
+    return res.status(400).json({ error: "Код уже существует" })
+  }
+
+  const promo = {
+    id: db.id(),
+    code: code.toUpperCase(),
+    type: type || "event",
+    maxActivations: maxActivations ? Number(maxActivations) : null,
+    rewardAmount: rewardAmount ? Number(rewardAmount) : 0,
+    totalActivations: 0,
+    disabled: false,
+    createdAt: new Date().toISOString()
+  }
+
+  data.promoCodes.push(promo)
+  db.save(data)
+  res.json(promo)
 })
 
 r.post("/promos/disable", adminOnly, (req, res) => {
