@@ -14,7 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <div className="min-h-screen bg-base bg-cyber">
           <Header />
-          <div className="h-[56px]"></div> {/* Spacer for fixed header */}
+          <div className="h-[56px]"></div>
           <main className="max-w-7xl mx-auto px-4 py-6">{children}</main>
         </div>
       </body>

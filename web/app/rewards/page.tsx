@@ -103,7 +103,6 @@ export default function RewardsPage() {
         </div>
       )}
 
-      {/* Modal */}
       {select && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 animate-in fade-in duration-300">
           <div className="absolute inset-0 bg-base/90 backdrop-blur-md" onClick={() => setSelect(null)}></div>

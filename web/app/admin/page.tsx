@@ -15,6 +15,7 @@ export default function AdminPage() {
   const [postImage, setPostImage] = useState("")
   const [questName, setQuestName] = useState("")
   const [questReward, setQuestReward] = useState("10")
+  const [matchName, setMatchName] = useState("")
   const [team1, setTeam1] = useState("")
   const [team2, setTeam2] = useState("")
   const [odds1, setOdds1] = useState("1.5")
