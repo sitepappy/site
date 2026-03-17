@@ -1,11 +1,11 @@
 "use client"
-import { useEffect, useState, use } from "react"
+import { useEffect, useState } from "react"
 import { api } from "../../../lib/api"
 import PostCard from "../../components/PostCard"
 import Link from "next/link"
 
-export default function PublicProfilePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
+export default function PublicProfilePage({ params }: { params: { id: string } }) {
+  const { id } = params
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
