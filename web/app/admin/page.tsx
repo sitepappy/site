@@ -12,7 +12,9 @@ export default function AdminPage() {
   // Состояния для форм
   const [postTitle, setPostTitle] = useState("")
   const [postContent, setPostContent] = useState("")
-  const [matchName, setMatchName] = useState("")
+  const [postImage, setPostImage] = useState("")
+  const [questName, setQuestName] = useState("")
+  const [questReward, setQuestReward] = useState("10")
   const [team1, setTeam1] = useState("")
   const [team2, setTeam2] = useState("")
   const [odds1, setOdds1] = useState("1.5")
@@ -118,10 +120,23 @@ export default function AdminPage() {
     try {
       await api("/posts", { 
         method: "POST", 
-        body: JSON.stringify({ title: postTitle, content: postContent }) 
+        body: JSON.stringify({ title: postTitle, content: postContent, imageUrl: postImage }) 
       })
-      setPostTitle(""); setPostContent(""); setMsg("Пост создан!")
+      setPostTitle(""); setPostContent(""); setPostImage(""); setMsg("Пост создан!")
       loadData("posts")
+      setTimeout(() => setMsg(""), 3000)
+    } catch (err: any) { alert(err.message) }
+  }
+
+  const handleCreateQuest = async (e: any) => {
+    e.preventDefault()
+    try {
+      await api("/quests", {
+        method: "POST",
+        body: JSON.stringify({ name: questName, reward: Number(questReward) })
+      })
+      setQuestName(""); setQuestReward("10"); setMsg("Квест добавлен!")
+      loadData("quests")
       setTimeout(() => setMsg(""), 3000)
     } catch (err: any) { alert(err.message) }
   }
@@ -362,8 +377,12 @@ export default function AdminPage() {
             <div className="space-y-8">
               <form onSubmit={handleCreatePost} className="space-y-4 max-w-xl glass p-4 rounded-lg">
                 <h2 className="text-lg font-bold text-neon uppercase">Новый пост</h2>
-                <input required value={postTitle} onChange={e=>setPostTitle(e.target.value)} className="w-full p-2 rounded bg-white/5 border border-white/10 text-sm" placeholder="Заголовок..." />
-                <textarea required value={postContent} onChange={e=>setPostContent(e.target.value)} rows={3} className="w-full p-2 rounded bg-white/5 border border-white/10 text-sm" placeholder="Текст..." />
+                <input required value={postTitle} onChange={e=>setPostTitle(e.target.value)} className="w-full p-2 rounded bg-white/5 border border-white/10 text-sm outline-none focus:border-neon" placeholder="Заголовок..." />
+                <textarea required value={postContent} onChange={e=>setPostContent(e.target.value)} rows={3} className="w-full p-2 rounded bg-white/5 border border-white/10 text-sm outline-none focus:border-neon" placeholder="Текст..." />
+                <div className="space-y-1">
+                  <label className="text-[10px] text-white/30 uppercase font-black ml-1">Ссылка на фото (URL)</label>
+                  <input value={postImage} onChange={e=>setPostImage(e.target.value)} className="w-full p-2 rounded bg-white/5 border border-white/10 text-sm outline-none focus:border-neon" placeholder="https://..." />
+                </div>
                 <button className="btn btn-primary w-full py-2 uppercase font-black text-xs">Опубликовать</button>
               </form>
               
@@ -630,18 +649,31 @@ export default function AdminPage() {
           )}
 
           {activeTab === "quests" && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-bold text-neon uppercase">Активные квесты</h2>
-              <div className="grid gap-2">
-                {questsList.map(q => (
-                  <div key={q.id} className="flex items-center justify-between p-4 rounded bg-white/5 border border-white/10">
-                    <div>
-                      <div className="font-bold">{q.name}</div>
-                      <div className="text-xs text-acid">{q.reward} 🪙</div>
+            <div className="space-y-8">
+              <form onSubmit={handleCreateQuest} className="space-y-4 max-w-xl glass p-4 rounded-lg">
+                <h2 className="text-lg font-bold text-neon uppercase">Создать новый квест</h2>
+                <input required value={questName} onChange={e=>setQuestName(e.target.value)} className="w-full p-2 rounded bg-white/5 border border-white/10 text-sm outline-none focus:border-neon" placeholder="Название квеста (например, Подписка на ТГ)..." />
+                <div className="space-y-1">
+                  <label className="text-[10px] text-white/30 uppercase font-black ml-1">Награда (🪙)</label>
+                  <input required type="number" value={questReward} onChange={e=>setQuestReward(e.target.value)} className="w-full p-2 rounded bg-white/5 border border-white/10 text-sm outline-none focus:border-neon font-mono text-acid" />
+                </div>
+                <button className="btn btn-primary w-full py-2 uppercase font-black text-xs shadow-neon">Добавить квест</button>
+              </form>
+
+              <div className="space-y-4">
+                <h2 className="text-lg font-bold text-white uppercase tracking-widest">Активные квесты</h2>
+                <div className="grid gap-2">
+                  {questsList.map(q => (
+                    <div key={q.id} className="flex items-center justify-between p-4 rounded bg-white/5 border border-white/10 group">
+                      <div>
+                        <div className="font-bold text-white group-hover:text-neon transition-colors">{q.name}</div>
+                        <div className="text-xs text-acid font-mono">Награда: {q.reward} 🪙</div>
+                      </div>
+                      <button onClick={() => handleDeleteQuest(q.id)} className="text-red-400 hover:text-red-300 text-[10px] uppercase font-bold border border-red-500/20 px-2 py-1 rounded bg-red-500/5 hover:bg-red-500/20 transition-all">Удалить</button>
                     </div>
-                    <button onClick={() => handleDeleteQuest(q.id)} className="text-red-400 hover:text-red-300 text-xs uppercase font-bold">Удалить</button>
-                  </div>
-                ))}
+                  ))}
+                  {questsList.length === 0 && <div className="text-center py-10 text-white/20 italic">Квестов пока нет</div>}
+                </div>
               </div>
             </div>
           )}
@@ -738,7 +770,7 @@ export default function AdminPage() {
             <div className="space-y-6 max-w-xl">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-bold text-neon uppercase">Управление Наградами</h2>
-                <button onClick={() => setRewardsList([...rewardsList, { id: Date.now().toString(), name: "Новая награда", price: 0 }])} className="btn btn-primary px-4 py-2 text-[10px] font-black uppercase italic">Добавить Награду</button>
+                <button onClick={() => setRewardsList([...rewardsList, { id: Date.now().toString(), name: "Новая награда", price: 0, imageUrl: "" }])} className="btn btn-primary px-4 py-2 text-[10px] font-black uppercase italic">Добавить Награду</button>
               </div>
               
               <div className="grid gap-3">
@@ -750,6 +782,11 @@ export default function AdminPage() {
                       newList[idx].name = e.target.value;
                       setRewardsList(newList);
                     }} className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-sm font-bold" placeholder="Название награды" />
+                    <input value={r.imageUrl} onChange={e => {
+                      const newList = [...rewardsList];
+                      newList[idx].imageUrl = e.target.value;
+                      setRewardsList(newList);
+                    }} className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-[10px] font-mono" placeholder="Ссылка на изображение (URL)" />
                     <div className="flex items-center gap-3">
                       <div className="flex-1">
                         <label className="text-[9px] text-white/20 uppercase font-black ml-1 mb-1 block">Стоимость (🪙)</label>

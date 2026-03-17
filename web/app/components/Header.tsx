@@ -73,8 +73,8 @@ export default function Header() {
   ]
 
   return (
-    <header className="border-b border-white/10 sticky top-0 z-[999] bg-base/80 backdrop-blur-md h-[56px] flex items-center">
-      <div className="max-w-6xl mx-auto px-4 w-full flex items-center justify-between gap-4">
+    <header className="border-b border-white/5 fixed top-0 left-0 right-0 z-[1000] bg-[#0a0a0f]/90 backdrop-blur-xl h-[56px] flex items-center transition-all duration-300">
+      <div className="max-w-7xl mx-auto px-4 w-full flex items-center justify-between gap-4">
         {/* Логотип */}
         <Link href="/" className="flex items-center group relative">
           <span className="text-2xl md:text-3xl font-black tracking-tighter italic text-white group-hover:text-neon transition-all duration-300 drop-shadow-[0_0_8px_rgba(57,255,20,0.5)]">
@@ -158,45 +158,51 @@ export default function Header() {
 
       {/* Мобильное меню */}
       {mounted && mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 top-[56px] z-[1000] bg-base/98 backdrop-blur-2xl animate-in fade-in slide-in-from-top-4">
-          <nav className="flex flex-col p-4 gap-1 h-[calc(100vh-56px)] overflow-y-auto custom-scrollbar">
+        <div className="lg:hidden fixed inset-0 top-[56px] z-[999] bg-[#0a0a0f] animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="absolute inset-0 bg-cyber opacity-10 pointer-events-none"></div>
+          <nav className="relative z-10 flex flex-col p-6 gap-2 h-full overflow-y-auto custom-scrollbar">
+            <div className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-4 border-b border-white/5 pb-2">Протоколы Навигации</div>
             {navLinks.map((link) => (
               <Link 
                 key={link.href}
                 href={link.href}
-                className={`p-3.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                className={`p-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-between group ${
                   pathname === link.href ? "bg-neon text-black shadow-neon" : "text-white/60 bg-white/5 active:bg-white/10"
                 }`}
               >
                 {link.name}
+                <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity ${pathname === link.href ? 'text-black' : 'text-neon'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                </svg>
               </Link>
             ))}
-            {user && (
-              <Link 
-                href="/profile"
-                className={`p-3.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                  pathname === "/profile" ? "bg-neon text-black shadow-neon" : "text-white/60 bg-white/5 active:bg-white/10"
-                }`}
-              >
-                Профиль ({user.balance} 🪙)
-              </Link>
-            )}
+            
             {isAdminOrModerator && (
               <Link 
                 href="/admin"
-                className={`p-3.5 rounded-xl text-xs font-black uppercase tracking-widest border border-acid/30 transition-all ${
-                  pathname.startsWith("/admin") ? "bg-acid text-black" : "text-acid bg-acid/10 active:bg-acid/20"
+                className={`p-4 rounded-2xl text-[11px] font-black uppercase tracking-widest border border-acid/30 transition-all flex items-center justify-between group ${
+                  pathname.startsWith("/admin") ? "bg-acid text-black" : "text-acid bg-acid/5 active:bg-acid/10"
                 }`}
               >
                 Админ Панель
+                <div className="w-2 h-2 rounded-full bg-acid animate-pulse shadow-[0_0_8px_#39FF14]"></div>
               </Link>
             )}
-            {user && (
-              <button onClick={logout} className="mt-4 p-3.5 rounded-xl text-xs font-black uppercase tracking-widest text-red-400 bg-red-400/10 active:bg-red-400/20 text-left transition-all">
-                Выйти из аккаунта
-              </button>
-            )}
-            <div className="py-10 opacity-0">Bottom Spacer</div>
+
+            <div className="mt-auto pt-10 space-y-4">
+              {user && (
+                <div className="glass p-4 rounded-2xl border border-white/10">
+                   <div className="text-[10px] font-black text-white/40 uppercase mb-2">Авторизован как:</div>
+                   <div className="flex items-center justify-between">
+                     <span className="text-sm font-black text-white">{user.username}</span>
+                     <span className="text-xs font-mono text-acid">{user.balance} 🪙</span>
+                   </div>
+                   <button onClick={logout} className="mt-4 w-full p-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-400 bg-red-400/10 active:bg-red-400/20 text-center border border-red-500/20 transition-all">
+                    Выйти из системы
+                  </button>
+                </div>
+              )}
+            </div>
           </nav>
         </div>
       )}

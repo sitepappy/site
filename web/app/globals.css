@@ -10,17 +10,34 @@
 
 html, body, #__next {
   height: 100%;
+  overflow-x: hidden;
+  width: 100vw;
 }
 
 body {
   background: var(--bg);
   color: white;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.2);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--neon);
+  border-radius: 10px;
 }
 
 .glass {
   background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.05);
 }
 
 .glow {
