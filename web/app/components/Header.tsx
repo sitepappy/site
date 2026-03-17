@@ -209,6 +209,43 @@ export default function Header() {
           </nav>
         </div>
       )}
+
+      {mounted && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[1500]">
+          <div className="absolute inset-0 bg-[#0a0a0f]/95 backdrop-blur-xl border-t border-white/10"></div>
+          <div className="relative max-w-7xl mx-auto px-3 py-2">
+            <div className="grid grid-cols-5 gap-2">
+              <Link href="/" className={`flex flex-col items-center justify-center rounded-2xl py-2 transition-all ${pathname === "/" ? "bg-neon text-black shadow-neon" : "bg-white/5 text-white/60"}`}>
+                <span className="text-lg leading-none">🏠</span>
+                <span className="text-[9px] font-black uppercase tracking-widest mt-1">Дом</span>
+              </Link>
+              <Link href="/chat" className={`flex flex-col items-center justify-center rounded-2xl py-2 transition-all ${pathname === "/chat" ? "bg-neon text-black shadow-neon" : "bg-white/5 text-white/60"}`}>
+                <span className="text-lg leading-none">💬</span>
+                <span className="text-[9px] font-black uppercase tracking-widest mt-1">Чат</span>
+              </Link>
+              <Link href="/bets" className={`flex flex-col items-center justify-center rounded-2xl py-2 transition-all ${pathname === "/bets" ? "bg-neon text-black shadow-neon" : "bg-white/5 text-white/60"}`}>
+                <span className="text-lg leading-none">🎲</span>
+                <span className="text-[9px] font-black uppercase tracking-widest mt-1">Ставки</span>
+              </Link>
+              <Link href="/rewards" className={`flex flex-col items-center justify-center rounded-2xl py-2 transition-all ${pathname === "/rewards" ? "bg-neon text-black shadow-neon" : "bg-white/5 text-white/60"}`}>
+                <span className="text-lg leading-none">🎁</span>
+                <span className="text-[9px] font-black uppercase tracking-widest mt-1">Награды</span>
+              </Link>
+              {user ? (
+                <Link href="/profile" className={`flex flex-col items-center justify-center rounded-2xl py-2 transition-all ${pathname === "/profile" ? "bg-neon text-black shadow-neon" : "bg-white/5 text-white/60"}`}>
+                  <span className="text-lg leading-none">👤</span>
+                  <span className="text-[9px] font-black uppercase tracking-widest mt-1">Профиль</span>
+                </Link>
+              ) : (
+                <Link href="/login" className={`flex flex-col items-center justify-center rounded-2xl py-2 transition-all ${pathname === "/login" ? "bg-neon text-black shadow-neon" : "bg-white/5 text-white/60"}`}>
+                  <span className="text-lg leading-none">🔑</span>
+                  <span className="text-[9px] font-black uppercase tracking-widest mt-1">Вход</span>
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   )
 }
