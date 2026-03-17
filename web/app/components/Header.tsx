@@ -158,10 +158,13 @@ export default function Header() {
 
       {/* Мобильное меню */}
       {mounted && mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 top-[56px] z-[999] bg-[#0a0a0f] animate-in fade-in slide-in-from-top-4 duration-300">
-          <div className="absolute inset-0 bg-cyber opacity-10 pointer-events-none"></div>
-          <nav className="relative z-10 flex flex-col p-6 gap-2 h-full overflow-y-auto custom-scrollbar">
-            <div className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-4 border-b border-white/5 pb-2">Протоколы Навигации</div>
+        <div className="lg:hidden fixed inset-0 z-[2000] bg-[#0a0a0f]/95 backdrop-blur-2xl animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setMobileMenuOpen(false)}></div>
+          <div className="absolute inset-0 bg-cyber opacity-20 pointer-events-none"></div>
+          <nav className="relative z-10 flex flex-col pt-[72px] px-6 pb-10 gap-2 h-full overflow-y-auto custom-scrollbar">
+            <div className="text-[11px] font-black text-white/60 uppercase tracking-[0.3em] mb-4 border-b border-white/10 pb-3">
+              Протоколы Навигации
+            </div>
             {navLinks.map((link) => (
               <Link 
                 key={link.href}
