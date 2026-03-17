@@ -14,6 +14,7 @@ import rewardRoutes from "./routes/rewards.js"
 import orderRoutes from "./routes/orders.js"
 import postRoutes from "./routes/posts.js"
 import pollRoutes from "./routes/polls.js"
+import chatRoutes from "./routes/chat.js"
 import leaderboardRoutes from "./routes/leaderboard.js"
 import adminRoutes from "./routes/admin.js"
 import publicRoutes from "./routes/public.js"
@@ -65,6 +66,7 @@ app.use("/rewards", rewardRoutes)
 app.use("/orders", orderRoutes)
 app.use("/posts", postRoutes)
 app.use("/polls", pollRoutes)
+app.use("/chat", chatRoutes)
 app.use("/leaderboard", leaderboardRoutes)
 app.use("/admin", adminRoutes)
 app.use("/public", publicRoutes)

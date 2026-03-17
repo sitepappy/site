@@ -8,9 +8,9 @@ r.get("/about", (req, res) => {
   res.json(data.about || { contentHtml: "", links: {} })
 })
 
-r.get("/coop", (req, res) => {
+r.get("/schedule", (req, res) => {
   const data = db.get()
-  res.json(data.coop || { contentHtml: "", links: {} })
+  res.json(data.schedule || { contentHtml: "", streams: [] })
 })
 
 export default r

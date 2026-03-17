@@ -38,11 +38,6 @@ export default async function Home() {
   
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <div className="glass p-4 rounded-lg">
-        <h2 className="text-xs font-bold mb-3 text-neon uppercase tracking-widest">Последние ставки</h2>
-        <RecentBets />
-      </div>
-
       <div className="space-y-4">
         {feed.map((item: any) => {
           if (item.type === 'post') {

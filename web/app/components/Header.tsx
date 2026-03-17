@@ -30,6 +30,10 @@ export default function Header() {
       }
     }
     loadUser()
+
+    // Listen for balance updates from other components
+    window.addEventListener("balanceUpdate", loadUser)
+    return () => window.removeEventListener("balanceUpdate", loadUser)
   }, [pathname])
 
   // Закрываем меню при переходе по ссылке
@@ -47,59 +51,52 @@ export default function Header() {
 
   const navLinks = [
     { name: "Главная", href: "/" },
-    { name: "Ставки", href: "/bets" },
-    { name: "Квесты", href: "/quests" },
-    { name: "Награды", href: "/rewards" },
     { name: "Лидерборд", href: "/leaderboard" },
+    { name: "Чат", href: "/chat" },
+    { name: "Ставки", href: "/bets" },
+    { name: "Награды", href: "/rewards" },
     { name: "Я реферал", href: "/referral" },
     { name: "О нас", href: "/about" },
-    { name: "Сотрудничество", href: "/coop" },
     { name: "Репорт", href: "/report" },
+    { name: "Профиль", href: "/profile" },
   ]
 
   return (
     <header className="border-b border-white/10 sticky top-0 z-50 bg-base/80 backdrop-blur-md">
-      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <div className="max-w-6xl mx-auto px-4 py-2 flex items-center justify-between gap-4">
         {/* Логотип */}
         <Link href="/" className="flex items-center group relative">
-          <span className="text-3xl md:text-4xl font-black tracking-tighter italic text-white group-hover:text-neon transition-all duration-300 drop-shadow-[0_0_8px_rgba(57,255,20,0.5)]">
+          <span className="text-2xl md:text-3xl font-black tracking-tighter italic text-white group-hover:text-neon transition-all duration-300 drop-shadow-[0_0_8px_rgba(57,255,20,0.5)]">
             PAPPY
           </span>
-          {/* Тонкое свечение снизу для премиальности */}
-          <div className="absolute -bottom-1 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-neon to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
+          <div className="absolute -bottom-1 left-0 w-full h-[1.5px] bg-gradient-to-r from-transparent via-neon to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
         </Link>
         
         {/* Десктопная навигация */}
-        <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
-          {navLinks.map((link) => (
-            <Link 
-              key={link.href}
-              href={link.href}
-              className={`px-3 py-1.5 rounded-md text-[11px] xl:text-[13px] font-bold uppercase transition-all duration-200 ${
-                pathname === link.href 
-                  ? "bg-neon text-black" 
-                  : "text-white/60 hover:text-white hover:bg-white/5"
-              }`}
-            >
-              {link.name}
-            </Link>
-          ))}
+        <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1">
+          {navLinks.map((link) => {
+            // Если ссылка на профиль, показываем её только если залогинен
+            if (link.href === "/profile" && !user) return null;
+            
+            return (
+              <Link 
+                key={link.href}
+                href={link.href}
+                className={`px-2.5 py-1 rounded-md text-[10px] xl:text-[11px] font-black uppercase transition-all duration-200 ${
+                  pathname === link.href 
+                    ? "bg-neon text-black" 
+                    : "text-white/50 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                {link.name}
+              </Link>
+            )
+          })}
           
-          {mounted && user && (
-            <Link 
-              href="/profile"
-              className={`px-3 py-1.5 rounded-md text-[11px] xl:text-[13px] font-bold uppercase transition-all duration-200 ${
-                pathname === "/profile" ? "bg-neon text-black" : "text-white/60 hover:text-white hover:bg-white/5"
-              }`}
-            >
-              Профиль
-            </Link>
-          )}
-
           {mounted && isAdminOrModerator && (
             <Link 
               href="/admin"
-              className={`px-3 py-1.5 rounded-md text-[11px] xl:text-[13px] font-bold uppercase transition-all duration-200 ${
+              className={`px-2.5 py-1 rounded-md text-[10px] xl:text-[11px] font-black uppercase transition-all duration-200 ${
                 pathname.startsWith("/admin") ? "bg-acid text-black" : "text-acid/70 hover:text-acid hover:bg-acid/10 border border-acid/20"
               }`}
             >
@@ -109,12 +106,15 @@ export default function Header() {
         </nav>
 
         {/* Правая часть (Баланс / Вход) */}
-        <div className="flex items-center gap-2 md:gap-4">
+        <div className="flex items-center gap-2 md:gap-3">
           {mounted && user ? (
             <div className="flex items-center gap-2 md:gap-3">
               <div className="hidden sm:block text-right">
-                <div className="text-[10px] font-black text-white uppercase leading-none">{user.username}</div>
-                <div className="text-[10px] text-acid font-mono font-bold">{user.balance} 🪙</div>
+                <div className="text-[9px] font-black text-white uppercase leading-none flex items-center justify-end gap-1">
+                  {user.level?.iconUrl && <img src={user.level.iconUrl} alt="" className="w-3 h-3 object-contain" />}
+                  {user.username}
+                </div>
+                <div className="text-[9px] text-acid font-mono font-bold">{user.balance} 🪙</div>
               </div>
               <button onClick={logout} className="p-2 text-white/40 hover:text-red-400 transition-colors" title="Выход">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

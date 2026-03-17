@@ -31,6 +31,17 @@ r.post("/users/role", adminOnly, (req, res) => {
   res.json({ ok: true, role })
 })
 
+r.post("/users/level", adminOnly, (req, res) => {
+  const { userId, levelId } = req.body || {}
+  const data = db.get()
+  const u = data.users.find(x => x.id === userId)
+  if (!u) return res.status(404).json({ error: "Не найдено" })
+  
+  u.levelId = levelId
+  db.save(data)
+  res.json({ ok: true, levelId })
+})
+
 r.get("/reports", (req, res) => {
   const data = db.get()
   res.json(data.reports || [])
@@ -149,10 +160,31 @@ r.post("/about", (req, res) => {
   res.json({ ok: true })
 })
 
-r.post("/coop", (req, res) => {
-  const { contentHtml, links } = req.body || {}
+r.post("/schedule", (req, res) => {
+  const { contentHtml, streams } = req.body || {}
   const data = db.get()
-  data.coop = { contentHtml: String(contentHtml || ""), links: { ...(data.coop?.links || {}), ...(links || {}) } }
+  data.schedule = { contentHtml: String(contentHtml || ""), streams: streams || [] }
+  db.save(data)
+  res.json({ ok: true })
+})
+
+r.post("/rewards", adminOnly, (req, res) => {
+  const { rewards } = req.body || {}
+  if (!Array.isArray(rewards)) return res.status(400).json({ error: "Неверный формат" })
+  const data = db.get()
+  data.rewards = rewards
+  db.save(data)
+  res.json({ ok: true })
+})
+
+r.delete("/bets/:id", (req, res) => {
+  const data = db.get()
+  const bet = data.bets.find(b => b.id === req.params.id)
+  if (!bet) return res.status(404).json({ error: "Ставка не найдена" })
+  
+  // Optional: refund coins if bet is pending? 
+  // User didn't ask for refund, just "possibility to delete bets"
+  data.bets = data.bets.filter(b => b.id !== req.params.id)
   db.save(data)
   res.json({ ok: true })
 })

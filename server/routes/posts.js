@@ -7,14 +7,32 @@ const r = Router()
 
 r.get("/", (req, res) => {
   const data = db.get()
-  const list = data.posts.sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))
+  const list = data.posts.map(p => {
+    const user = data.users.find(u => u.id === p.userId) || { username: "PAPPY", avatar: null };
+    return {
+      ...p,
+      author: {
+        id: user.id,
+        username: user.username,
+        avatar: user.avatar,
+        role: user.role
+      }
+    };
+  }).sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))
   res.json(list)
 })
 
-r.post("/", authRequired, adminOnly, (req, res) => {
+r.post("/", authRequired, moderatorOrAdmin, (req, res) => {
   const { title, content, imageUrl } = req.body || {}
   const data = db.get()
-  const p = { id: db.id(), title, content, imageUrl, createdAt: nowIso() }
+  const p = { 
+    id: db.id(), 
+    title, 
+    content, 
+    imageUrl, 
+    userId: req.user.id, // Store author ID
+    createdAt: nowIso() 
+  }
   data.posts.push(p)
   db.save(data)
   res.json(p)

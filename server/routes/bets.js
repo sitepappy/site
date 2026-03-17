@@ -50,4 +50,79 @@ r.get("/recent", (req, res) => {
   res.json(list)
 })
 
+r.post("/roulette", authRequired, (req, res) => {
+  const { color, amount } = req.body || {}
+  const amt = Math.floor(Number(amount))
+  if (amt < 1 || amt > 15) return res.status(400).json({ error: "Ставка от 1 до 15 монет" })
+  if (!["red", "black", "green"].includes(color)) return res.status(400).json({ error: "Неверный цвет" })
+  
+  const data = db.get()
+  const u = data.users.find(x => x.id === req.user.id)
+  if (!u || u.balance < amt) return res.status(400).json({ error: "Недостаточно монет" })
+  
+  // Тихая логика шансов
+  // Зеленое: 1%
+  // Общий шанс на выигрыш: 33%
+  // Красное/Черное: (33 - 1) / 2 = 16% каждое
+  const rng = Math.random() * 100
+  let resultColor = "lose" // Default to losing
+  
+  if (rng < 1) {
+    resultColor = "green"
+  } else if (rng < 17) {
+    resultColor = "red"
+  } else if (rng < 33) {
+    resultColor = "black"
+  } else {
+    // 67% chance to lose (anything else)
+    // To make it look real, we pick a color that the user DID NOT bet on
+    const colors = ["red", "black", "green"]
+    const otherColors = colors.filter(c => c !== color)
+    resultColor = otherColors[Math.floor(Math.random() * otherColors.length)]
+  }
+
+  const win = resultColor === color
+  let winAmount = 0
+  if (win) {
+    if (color === "green") winAmount = amt * 10
+    else winAmount = amt * 2
+  }
+
+  u.balance -= amt
+  if (win) u.balance += winAmount
+
+  const createdAt = nowIso()
+  data.transactions.push({ 
+    id: db.id(), 
+    userId: u.id, 
+    type: "roulette", 
+    amount: win ? (winAmount - amt) : -amt, 
+    balanceAfter: u.balance, 
+    note: `Рулетка: ${color} (${win ? 'Победа' : 'Проигрыш'})`, 
+    createdAt 
+  })
+  
+  // Добавляем в общие ставки для истории
+  data.bets.push({
+    id: db.id(),
+    userId: u.id,
+    matchName: "Рулетка",
+    optionName: color,
+    amount: amt,
+    odds: color === "green" ? 10 : 2,
+    status: win ? "won" : "lost",
+    createdAt
+  })
+
+  db.save(data)
+  
+  res.json({ 
+    ok: true, 
+    win, 
+    winAmount, 
+    resultColor, 
+    newBalance: u.balance 
+  })
+})
+
 export default r

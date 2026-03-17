@@ -20,11 +20,12 @@ export default function AdminPage() {
   const [deadline, setDeadline] = useState("")
   const [msg, setMsg] = useState("")
 
-  // Состояния для О нас и Сотрудничества
+  // Состояния для О нас и Расписания
   const [aboutHtml, setAboutHtml] = useState("")
   const [aboutLinks, setAboutLinks] = useState({ telegram: "", discord: "", twitter: "", steam: "", youtube: "" })
-  const [coopHtml, setCoopHtml] = useState("")
-  const [coopLinks, setCoopLinks] = useState({ telegram: "", email: "" })
+  const [scheduleHtml, setScheduleHtml] = useState("")
+  const [streams, setStreams] = useState<any[]>([])
+  const [rewardsList, setRewardsList] = useState<any[]>([])
 
   // Данные для списков
   const [usersList, setUsersList] = useState<any[]>([])
@@ -33,6 +34,7 @@ export default function AdminPage() {
   const [chatMessages, setChatMessages] = useState<any[]>([])
   const [chatInput, setChatInput] = useState("")
   const [reportsList, setReportsList] = useState<any[]>([])
+  const [levelsList, setLevelsList] = useState<any[]>([])
 
   // Просмотр профиля юзера
   const [selectedUser, setSelectedUser] = useState<any>(null)
@@ -78,13 +80,19 @@ export default function AdminPage() {
         const data = await api("/public/about")
         setAboutHtml(data.contentHtml || "")
         setAboutLinks(data.links || { telegram: "", discord: "", twitter: "", steam: "", youtube: "" })
-      } else if (tab === "coop") {
-        const data = await api("/public/coop")
-        setCoopHtml(data.contentHtml || "")
-        setCoopLinks(data.links || { telegram: "", email: "" })
+      } else if (tab === "schedule") {
+        const data = await api("/public/schedule")
+        setScheduleHtml(data.contentHtml || "")
+        setStreams(data.streams || [])
+      } else if (tab === "rewards") {
+        const data = await api("/rewards")
+        setRewardsList(data)
       } else if (tab === "reports") {
         const data = await api("/admin/reports")
         setReportsList(data)
+      } else if (tab === "levels") {
+        const data = await api("/levels")
+        setLevelsList(data)
       }
     } catch (e) { console.error(e) }
   }
@@ -171,12 +179,39 @@ export default function AdminPage() {
     } catch (e: any) { alert(e.message) }
   }
 
-  const handleSaveCoop = async (e: any) => {
+  const handleSaveSchedule = async (e: any) => {
     e.preventDefault()
     try {
-      await api("/admin/coop", { method: "POST", body: JSON.stringify({ contentHtml: coopHtml, links: coopLinks }) })
-      setMsg("Сотрудничество сохранено!")
+      await api("/admin/schedule", { method: "POST", body: JSON.stringify({ contentHtml: scheduleHtml, streams }) })
+      setMsg("Расписание сохранено!")
       setTimeout(() => setMsg(""), 3000)
+    } catch (e: any) { alert(e.message) }
+  }
+
+  const handleSaveRewards = async (e: any) => {
+    e.preventDefault()
+    try {
+      await api("/admin/rewards", { method: "POST", body: JSON.stringify({ rewards: rewardsList }) })
+      setMsg("Награды сохранены!")
+      setTimeout(() => setMsg(""), 3000)
+    } catch (e: any) { alert(e.message) }
+  }
+
+  const handleDeleteBet = async (id: string) => {
+    if (!confirm("Удалить эту ставку?")) return
+    try {
+      await api(`/admin/bets/${id}`, { method: "DELETE" })
+      if (selectedUser) viewUser(selectedUser.user.id)
+      setMsg("Ставка удалена!")
+      setTimeout(() => setMsg(""), 3000)
+    } catch (e: any) { alert(e.message) }
+  }
+
+  const handleUpdateLevel = async (userId: string, levelId: string) => {
+    try {
+      await api("/admin/users/level", { method: "POST", body: JSON.stringify({ userId, levelId }) })
+      loadData("users")
+      if (selectedUser?.user?.id === userId) viewUser(userId)
     } catch (e: any) { alert(e.message) }
   }
 
@@ -215,7 +250,8 @@ export default function AdminPage() {
     { id: "reports", name: "Репорты / Тикеты" },
     { id: "chat", name: "Админ-чат 💬" },
     { id: "about", name: "О нас" },
-    { id: "coop", name: "Сотрудничество" },
+    { id: "schedule", name: "РАСПИСАНИЕ" },
+    { id: "rewards", name: "Награды" },
   ]
 
   return (
@@ -328,14 +364,22 @@ export default function AdminPage() {
                     </div>
 
                     <div>
-                      <h4 className="text-xs font-bold text-white/40 uppercase mb-2">Логи транзакций</h4>
+                      <h4 className="text-xs font-bold text-white/40 uppercase mb-2">Ставки пользователя</h4>
                       <div className="space-y-1 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
-                        {selectedUser.logs.map((l:any) => (
-                          <div key={l.id} className="text-[10px] p-2 rounded bg-white/5 flex justify-between border-l-2 border-neon/30">
-                            <span className="text-white/60 truncate mr-2">{l.note}</span>
-                            <span className={l.amount > 0 ? "text-green-400 font-bold" : "text-red-400 font-bold"}>
-                              {l.amount > 0 ? "+" : ""}{l.amount}
-                            </span>
+                        {selectedUser.bets.map((b:any) => (
+                          <div key={b.id} className="text-[10px] p-2 rounded bg-white/5 flex justify-between items-center border-l-2 border-blue-500/30">
+                            <div>
+                              <div className="text-white/80">{b.matchName || "Ставка"}</div>
+                              <div className="text-white/40 italic">{b.optionName} x{b.odds}</div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-acid">{b.amount} 🪙</span>
+                              <button onClick={() => handleDeleteBet(b.id)} className="text-red-400 hover:text-red-300 ml-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                </svg>
+                              </button>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -344,6 +388,22 @@ export default function AdminPage() {
                     {!isOnlyModerator && (
                       <div className="pt-4 border-t border-white/10 space-y-4">
                          <h4 className="text-xs font-bold text-white/40 uppercase mb-2">Админ-действия</h4>
+                         
+                         <div className="space-y-2">
+                           <label className="text-[9px] text-white/30 uppercase font-black">Выдать Уровень</label>
+                           <div className="flex flex-wrap gap-1">
+                             {levelsList.map((lvl: any) => (
+                               <button 
+                                 key={lvl.id}
+                                 onClick={() => handleUpdateLevel(selectedUser.user.id, lvl.id)}
+                                 className={`px-2 py-1 rounded text-[9px] font-black uppercase transition-all ${selectedUser.user.levelId === lvl.id ? "bg-acid text-black" : "bg-white/5 text-white/40 hover:bg-white/10"}`}
+                               >
+                                 {lvl.name}
+                               </button>
+                             ))}
+                           </div>
+                         </div>
+
                          <div className="grid grid-cols-2 gap-2">
                            <button onClick={()=>handleUpdateBalance(selectedUser.user.id, 100)} className="py-2 rounded bg-white/5 border border-white/10 text-[10px] uppercase font-bold hover:bg-white/10 hover:text-neon transition-all">+100</button>
                            <button onClick={()=>handleUpdateBalance(selectedUser.user.id, -100)} className="py-2 rounded bg-white/5 border border-white/10 text-[10px] uppercase font-bold hover:bg-white/10 hover:text-red-400 transition-all">-100</button>
@@ -469,21 +529,78 @@ export default function AdminPage() {
             </form>
           )}
 
-          {activeTab === "coop" && (
-            <form onSubmit={handleSaveCoop} className="space-y-4 max-w-xl glass p-4 rounded-lg">
-              <h2 className="text-lg font-bold text-neon uppercase">Редактировать "Сотрудничество"</h2>
-              <textarea rows={10} value={coopHtml} onChange={e=>setCoopHtml(e.target.value)} className="w-full p-3 rounded bg-black/40 border border-white/10 text-xs font-mono outline-none focus:border-neon" />
-              <div className="space-y-2">
-                <label className="block text-xs font-black text-white/40 uppercase">Контакты</label>
-                {Object.keys(coopLinks).map(k => (
-                  <div key={k} className="flex items-center gap-3 bg-white/5 p-2 rounded border border-white/5">
-                    <span className="text-[10px] w-20 text-acid font-black uppercase">{k}</span>
-                    <input value={(coopLinks as any)[k]} onChange={e=>setCoopLinks({...coopLinks, [k]: e.target.value})} className="flex-1 p-1.5 rounded bg-black/40 border border-white/10 text-xs outline-none focus:border-neon" />
+          {activeTab === "schedule" && (
+            <form onSubmit={handleSaveSchedule} className="space-y-4 max-w-xl glass p-4 rounded-lg">
+              <h2 className="text-lg font-bold text-neon uppercase">Редактировать "РАСПИСАНИЕ"</h2>
+              <div className="p-3 bg-acid/10 border border-acid/20 rounded text-[10px] text-acid uppercase font-bold">Поддерживается HTML разметка</div>
+              <textarea rows={10} value={scheduleHtml} onChange={e=>setScheduleHtml(e.target.value)} className="w-full p-3 rounded bg-black/40 border border-white/10 text-xs font-mono outline-none focus:border-neon" />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-black text-white/40 uppercase tracking-widest">Стримы</h3>
+                  <button type="button" onClick={() => setStreams([...streams, { id: Date.now(), title: "", time: "", link: "" }])} className="text-[10px] bg-neon text-black px-2 py-1 rounded font-black uppercase tracking-tighter shadow-neon">Добавить</button>
+                </div>
+                {streams.map((s, idx) => (
+                  <div key={s.id || idx} className="p-3 bg-white/5 rounded border border-white/5 space-y-2 relative">
+                    <button type="button" onClick={() => setStreams(streams.filter((_, i) => i !== idx))} className="absolute top-2 right-2 text-red-400">×</button>
+                    <input value={s.title} onChange={e => {
+                      const newStreams = [...streams];
+                      newStreams[idx].title = e.target.value;
+                      setStreams(newStreams);
+                    }} className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-xs" placeholder="Название стрима" />
+                    <div className="grid grid-cols-2 gap-2">
+                      <input value={s.time} onChange={e => {
+                        const newStreams = [...streams];
+                        newStreams[idx].time = e.target.value;
+                        setStreams(newStreams);
+                      }} className="bg-black/40 border border-white/10 rounded px-3 py-2 text-xs" placeholder="Время (напр. 18:00)" />
+                      <input value={s.link} onChange={e => {
+                        const newStreams = [...streams];
+                        newStreams[idx].link = e.target.value;
+                        setStreams(newStreams);
+                      }} className="bg-black/40 border border-white/10 rounded px-3 py-2 text-xs" placeholder="Ссылка (URL)" />
+                    </div>
                   </div>
                 ))}
               </div>
-              <button className="btn btn-primary w-full py-3 uppercase font-black text-xs shadow-neon">Сохранить изменения</button>
+              <button className="btn btn-primary w-full py-3 uppercase font-black text-xs shadow-neon">Сохранить расписание</button>
             </form>
+          )}
+
+          {activeTab === "rewards" && (
+            <div className="space-y-6 max-w-xl">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-neon uppercase">Управление Наградами</h2>
+                <button onClick={() => setRewardsList([...rewardsList, { id: Date.now().toString(), name: "Новая награда", price: 0 }])} className="btn btn-primary px-4 py-2 text-[10px] font-black uppercase italic">Добавить Награду</button>
+              </div>
+              
+              <div className="grid gap-3">
+                {rewardsList.map((r, idx) => (
+                  <div key={r.id || idx} className="glass p-4 rounded-xl border border-white/5 space-y-3 relative group">
+                    <button onClick={() => setRewardsList(rewardsList.filter((_, i) => i !== idx))} className="absolute top-2 right-2 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">Удалить</button>
+                    <input value={r.name} onChange={e => {
+                      const newList = [...rewardsList];
+                      newList[idx].name = e.target.value;
+                      setRewardsList(newList);
+                    }} className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-sm font-bold" placeholder="Название награды" />
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1">
+                        <label className="text-[9px] text-white/20 uppercase font-black ml-1 mb-1 block">Стоимость (🪙)</label>
+                        <input type="number" value={r.price} onChange={e => {
+                          const newList = [...rewardsList];
+                          newList[idx].price = Number(e.target.value);
+                          setRewardsList(newList);
+                        }} className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-sm text-acid font-mono" />
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-[9px] text-white/20 uppercase font-black ml-1 mb-1 block">ID Награды</label>
+                        <input value={r.id} readOnly className="w-full bg-black/10 border border-white/5 rounded px-3 py-2 text-[10px] text-white/30 font-mono" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button onClick={handleSaveRewards} className="btn btn-primary w-full py-3 uppercase font-black text-xs shadow-neon">Сохранить все награды</button>
+            </div>
           )}
         </div>
       </div>

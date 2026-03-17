@@ -19,6 +19,7 @@ r.get("/me", authRequired, (req, res) => {
     role: u.role,
     promoCode: u.promoCode,
     avatarUrl: u.avatarUrl || "",
+    bannerUrl: u.bannerUrl || "",
     referralLevel: u.referralLevel || null,
     referralColor: u.referralColor || null,
     referralCount: typeof u.referralCount === "number" ? u.referralCount : null,
@@ -37,8 +38,36 @@ r.put("/trade-link", authRequired, (req, res) => {
   res.json({ ok: true })
 })
 
+r.get("/profile/:id", (req, res) => {
+  const data = db.get()
+  const u = data.users.find(x => x.id === req.params.id)
+  if (!u) return res.status(404).json({ error: "Пользователь не найден" })
+  
+  const level = data.levels.find(l => l.id === u.levelId) || null
+  const posts = data.posts.filter(p => p.userId === u.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  
+  res.json({
+    id: u.id,
+    username: u.username,
+    avatarUrl: u.avatarUrl || "",
+    bannerUrl: u.bannerUrl || "",
+    level,
+    role: u.role,
+    createdAt: u.createdAt,
+    posts: posts.map(p => ({
+      ...p,
+      author: {
+        id: u.id,
+        username: u.username,
+        avatar: u.avatarUrl,
+        role: u.role
+      }
+    }))
+  })
+})
+
 r.put("/me", authRequired, (req, res) => {
-  const { username, avatarUrl } = req.body || {}
+  const { username, avatarUrl, bannerUrl } = req.body || {}
   const data = db.get()
   const u = data.users.find(x => x.id === req.user.id)
   if (!u) return res.status(404).json({ error: "Не найдено" })
@@ -57,6 +86,14 @@ r.put("/me", authRequired, (req, res) => {
       return res.status(400).json({ error: "Аватарка должна быть ссылкой http(s)" })
     }
     u.avatarUrl = url
+  }
+
+  if (typeof bannerUrl === "string") {
+    const url = bannerUrl.trim()
+    if (url && !/^https?:\/\//i.test(url)) {
+      return res.status(400).json({ error: "Баннер должен быть ссылкой http(s)" })
+    }
+    u.bannerUrl = url
   }
 
   db.save(data)

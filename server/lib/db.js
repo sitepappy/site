@@ -24,7 +24,13 @@ export function ensureDataDir() {
           { id: "q3", name: "Сделать первую ставку", reward: 5, active: true }
         ],
         userQuests: [],
-        levels: [],
+        levels: [
+          { id: "lvl1", name: "Новичок", iconUrl: "https://cdn-icons-png.flaticon.com/512/2583/2583344.png" },
+          { id: "lvl2", name: "Игрок", iconUrl: "https://cdn-icons-png.flaticon.com/512/2583/2583319.png" },
+          { id: "lvl3", name: "Ветеран", iconUrl: "https://cdn-icons-png.flaticon.com/512/2583/2583434.png" },
+          { id: "lvl4", name: "Мастер", iconUrl: "https://cdn-icons-png.flaticon.com/512/2583/2583350.png" },
+          { id: "lvl5", name: "Легенда", iconUrl: "https://cdn-icons-png.flaticon.com/512/2583/2583386.png" }
+        ],
         matches: [],
         bets: [],
         rewards: [
@@ -41,9 +47,9 @@ export function ensureDataDir() {
           contentHtml: "<h1>О нас</h1><p>Киберпанк сообщество PAPPY</p>",
           links: { telegram: "", discord: "", twitter: "", steam: "", youtube: "" }
         },
-        coop: {
-          contentHtml: "<h1>Сотрудничество</h1><p>Свяжитесь с нами для сотрудничества.</p>",
-          links: { telegram: "", email: "" }
+        schedule: {
+          contentHtml: "<h1>Расписание стримов</h1><p>Следите за нашими трансляциями!</p>",
+          streams: []
         },
         emailVerifications: []
       };
