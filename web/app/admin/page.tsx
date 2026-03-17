@@ -243,7 +243,7 @@ export default function AdminPage() {
       await api("/admin/users/level", { method: "POST", body: JSON.stringify({ userId, levelId }) })
       loadData("users")
       // Обновляем выбранного пользователя вручную, чтобы увидеть изменения мгновенно
-      setSelectedUser(prev => prev ? {
+      setSelectedUser((prev: any) => prev ? {
         ...prev,
         user: { ...prev.user, levelId }
       } : null)
