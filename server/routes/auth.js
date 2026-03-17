@@ -38,7 +38,9 @@ r.post("/register", (req, res) => {
     deviceIds: deviceId ? [deviceId] : [],
     ips: [req.ip],
     emailVerified: true, // Сразу подтвержден
-    referralByPromo: null
+    referralByPromo: null,
+    usedReferralCode: null,
+    usedReferralOwnerId: null
   }
   
   data.users.push(user)
@@ -54,6 +56,7 @@ r.post("/register", (req, res) => {
 
     if (promoType === "referral") {
       if (promo.ownerUserId === user.id) return res.status(400).json({ error: "Нельзя активировать свой код" })
+      if (user.usedReferralCode || user.usedReferralOwnerId) return res.status(400).json({ error: "Реферальный промокод можно активировать только один раз" })
 
       if (!Array.isArray(promo.lastActivations)) promo.lastActivations = []
       if (!promo.dailyActivations || typeof promo.dailyActivations !== "object") promo.dailyActivations = {}
@@ -84,6 +87,8 @@ r.post("/register", (req, res) => {
       promo.dailyActivations[dayKey] += 1
       promo.lastActivations.push({ userId: user.id, deviceId: dev, ip, date: createdAt })
       data.transactions.push({ id: db.id(), userId: user.id, type: "referral_activate", amount: REFERRAL_REWARD, balanceAfter: user.balance, note: `Активация реферала: ${promo.code}`, createdAt })
+      user.usedReferralCode = promo.code
+      user.usedReferralOwnerId = promo.ownerUserId
     } else if (promoType === "event") {
       if (promo.maxActivations && (promo.totalActivations || 0) >= promo.maxActivations) {
         return res.status(400).json({ error: "Лимит активаций исчерпан" })

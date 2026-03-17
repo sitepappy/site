@@ -247,6 +247,27 @@ function read() {
         u.achievementProgress.lastDailyClaimAt = null;
         changed = true;
       }
+
+      if (typeof u.usedReferralCode === "undefined") {
+        u.usedReferralCode = null;
+        changed = true;
+      }
+      if (typeof u.usedReferralOwnerId === "undefined") {
+        u.usedReferralOwnerId = null;
+        changed = true;
+      }
+      if (!u.usedReferralCode && Array.isArray(u.activatedPromoCodes)) {
+        const first = u.activatedPromoCodes.find((c) => {
+          const p = data.promoCodes.find((pp) => pp.code && pp.code.toLowerCase() === String(c).toLowerCase())
+          return p && (p.type || "referral") === "referral" && p.ownerUserId !== u.id
+        })
+        if (first) {
+          const p = data.promoCodes.find((pp) => pp.code && pp.code.toLowerCase() === String(first).toLowerCase())
+          u.usedReferralCode = p?.code || first
+          u.usedReferralOwnerId = p?.ownerUserId || null
+          changed = true
+        }
+      }
     }
 
     if (changed) {

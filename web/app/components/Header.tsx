@@ -248,6 +248,17 @@ export default function Header() {
                   </button>
                 </div>
               )}
+              {!user && (
+                <div className="glass p-4 rounded-2xl border border-white/10 space-y-3">
+                  <div className="text-[10px] font-black text-white/40 uppercase tracking-widest">Авторизация</div>
+                  <Link href="/login" className="w-full block text-center p-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/70 bg-white/5 border border-white/10 active:bg-white/10">
+                    Войти
+                  </Link>
+                  <Link href="/register" className="w-full block text-center p-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-black bg-neon shadow-neon active:scale-95 transition-all">
+                    Регистрация
+                  </Link>
+                </div>
+              )}
             </div>
           </nav>
         </div>
@@ -355,15 +366,26 @@ export default function Header() {
                   <span className="text-[9px] font-black uppercase tracking-widest mt-1">Профиль</span>
                 </Link>
               ) : (
-                <Link
-                  href="/login"
-                  className={`snap-start min-w-[84px] flex flex-col items-center justify-center rounded-2xl py-2 px-2 transition-all ${
-                    pathname === "/login" ? "bg-neon text-black shadow-neon" : "bg-white/5 text-white/60 active:bg-white/10"
-                  }`}
-                >
-                  <span className="text-lg leading-none">🔑</span>
-                  <span className="text-[9px] font-black uppercase tracking-widest mt-1">Вход</span>
-                </Link>
+                <>
+                  <Link
+                    href="/login"
+                    className={`snap-start min-w-[84px] flex flex-col items-center justify-center rounded-2xl py-2 px-2 transition-all ${
+                      pathname === "/login" ? "bg-neon text-black shadow-neon" : "bg-white/5 text-white/60 active:bg-white/10"
+                    }`}
+                  >
+                    <span className="text-lg leading-none">🔑</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest mt-1">Вход</span>
+                  </Link>
+                  <Link
+                    href="/register"
+                    className={`snap-start min-w-[84px] flex flex-col items-center justify-center rounded-2xl py-2 px-2 transition-all ${
+                      pathname === "/register" ? "bg-neon text-black shadow-neon" : "bg-white/5 text-white/60 active:bg-white/10"
+                    }`}
+                  >
+                    <span className="text-lg leading-none">🧾</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest mt-1">Рег</span>
+                  </Link>
+                </>
               )}
 
               {isAdminOrModerator && (

@@ -55,6 +55,8 @@ r.post("/activate", authRequired, (req, res) => {
   // Если это реферальный код
   if (promoType === "referral") {
     if (promo.ownerUserId === u.id) return res.status(400).json({ error: "Нельзя активировать свой код" })
+    if (u.promoCode) return res.status(400).json({ error: "Реферальный промокод доступен только новым пользователям" })
+    if (u.usedReferralCode || u.usedReferralOwnerId) return res.status(400).json({ error: "Реферальный промокод можно активировать только один раз" })
     
     if (!Array.isArray(promo.lastActivations)) promo.lastActivations = []
     if (!promo.dailyActivations || typeof promo.dailyActivations !== "object") promo.dailyActivations = {}
@@ -87,6 +89,8 @@ r.post("/activate", authRequired, (req, res) => {
     promo.lastActivations.push({ userId: u.id, deviceId: deviceId || "", ip: ip || "", date: new Date().toISOString() })
     
     data.transactions.push({ id: db.id(), userId: u.id, type: "referral_activate", amount: REFERRAL_REWARD, balanceAfter: u.balance, note: `Активация реферала: ${promo.code}`, createdAt: new Date().toISOString() })
+    u.usedReferralCode = promo.code
+    u.usedReferralOwnerId = promo.ownerUserId
   } 
   // Если это ивент-код
   else if (promoType === "event") {
