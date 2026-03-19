@@ -27,12 +27,17 @@ r.post("/send-verification", async (req, res) => {
   const code = Math.floor(100000 + Math.random() * 900000).toString()
   verificationCodes.set(email.toLowerCase(), { code, exp: Date.now() + 15 * 60 * 1000 })
   
-  const ok = await sendVerificationEmail(email.toLowerCase(), code)
+  const result = await sendVerificationEmail(email.toLowerCase(), code)
   
-  if (ok) {
+  if (result.ok) {
     res.json({ ok: true, message: "Код подтверждения отправлен на почту" })
   } else {
-    res.json({ ok: true, message: "Код отправлен в консоль сервера (проверьте настройки SMTP)" })
+    // В случае ошибки возвращаем 500 и детали, чтобы пользователь мог понять причину
+    res.status(500).json({ 
+      error: "Ошибка отправки письма", 
+      details: result.error,
+      debug: "Проверьте логи сервера для деталей [EMAIL ERROR DETAILS]"
+    })
   }
 })
 
