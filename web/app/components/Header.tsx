@@ -110,16 +110,20 @@ export default function Header() {
           <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
             {[
               { href: "/", label: "Главная" },
+              { href: "/leaderboard", label: "Лидерборд" },
               { href: "/chat", label: "Чат" },
               { href: "/bets", label: "Ставки" },
               { href: "/rewards", label: "Награды" },
-              { href: "/quests", label: "Квесты" }
+              { href: "/referral", label: "Я реферал" },
+              { href: "/about", label: "О нас" },
+              { href: "/report", label: "Репорт" },
+              { href: "/profile", label: "Профиль" },
             ].map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`px-3 py-1 rounded-md text-[11px] font-black uppercase tracking-widest transition-all ${
-                  pathname === link.href ? "bg-neon text-black" : "text-white/50 hover:text-white hover:bg-white/5"
+                className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${
+                  pathname === link.href ? "bg-neon text-black shadow-neon" : "text-white/50 hover:text-white hover:bg-white/5"
                 }`}
               >
                 {link.label}
@@ -129,8 +133,8 @@ export default function Header() {
             {mounted && isAdminOrModerator && (
               <Link 
                 href="/admin"
-                className={`px-3 py-1 rounded-md text-[11px] font-black uppercase transition-all ${
-                  pathname.startsWith("/admin") ? "bg-acid text-black" : "text-acid/70 hover:text-acid border border-acid/20"
+                className={`ml-2 px-3 py-1.5 rounded-lg text-[11px] font-black uppercase transition-all border border-acid/30 ${
+                  pathname.startsWith("/admin") ? "bg-acid text-black shadow-acid" : "text-acid hover:bg-acid/10"
                 }`}
               >
                 Админ
