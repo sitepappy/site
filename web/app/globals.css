@@ -14,60 +14,17 @@ html, body, #__next {
   width: 100vw;
 }
 
-/* 
-  PWA CORE v4.0 
-  Full Reset for maximum reliability 
-*/
-:root {
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --header-h: 60px;
-  --nav-h: 70px;
-}
-
+/* PWA Specific Fixes */
 @media (display-mode: standalone) {
-  html, body {
-    height: 100% !important;
-    overflow: hidden !important;
-    position: fixed !important;
-    width: 100% !important;
-    background: #0a0a0f !important;
+  /* Изолируем только PWA, не трогая ПК версию */
+  header.pwa-top-bar {
+    padding-top: env(safe-area-inset-top, 0px) !important;
+    height: calc(56px + env(safe-area-inset-top, 0px)) !important;
   }
-
-  main {
-    height: calc(100% - var(--header-h) - var(--nav-h) - var(--safe-top) - var(--safe-bottom)) !important;
-    margin-top: calc(var(--header-h) + var(--safe-top)) !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    padding: 16px !important;
-  }
-
-  /* Шапка PWA сверху */
-  .pwa-top-bar {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    height: calc(var(--header-h) + var(--safe-top)) !important;
-    padding-top: var(--safe-top) !important;
-    z-index: 8000 !important;
-    background: rgba(10, 10, 15, 0.9) !important;
-    backdrop-filter: blur(20px) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
-  }
-
-  /* Навигация PWA снизу */
+  
   .pwa-bottom-nav {
-    position: fixed !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    height: calc(var(--nav-h) + var(--safe-bottom)) !important;
-    padding-bottom: var(--safe-bottom) !important;
-    z-index: 8000 !important;
-    background: rgba(10, 10, 15, 0.95) !important;
-    backdrop-filter: blur(20px) !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+    height: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
 

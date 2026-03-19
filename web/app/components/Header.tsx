@@ -98,21 +98,18 @@ export default function Header() {
 
   return (
     <>
-      {/* 1. ВЕРХНЯЯ ШАПКА (Header) */}
       <header 
-        className="fixed top-0 left-0 right-0 z-[8000] border-b border-white/5 bg-[#0a0a0f]/90 backdrop-blur-xl transition-all pwa-top-bar"
-        style={{ height: 'var(--header-h, 56px)' }}
+        className="fixed top-0 left-0 right-0 z-[1000] border-b border-white/5 bg-[#0a0a0f]/90 backdrop-blur-xl h-[56px] flex items-center transition-all pwa-top-bar"
       >
-        <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-lg bg-neon flex items-center justify-center shadow-neon group-hover:scale-105 transition-all">
-              <span className="text-black font-black text-xl italic">P</span>
-            </div>
-            <span className="font-black text-xl text-white tracking-tighter italic hidden sm:block">PAPPY</span>
+        <div className="max-w-7xl mx-auto px-4 w-full flex items-center justify-between gap-4">
+          <Link href="/" className="flex items-center gap-2 group relative">
+            <span className="text-2xl md:text-3xl font-black tracking-tighter italic text-white group-hover:text-neon transition-all duration-300 drop-shadow-[0_0_8px_rgba(57,255,20,0.5)]">
+              PAPPY
+            </span>
           </Link>
 
           {/* Десктопная навигация */}
-          <nav className="hidden lg:flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/5">
+          <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
             {[
               { href: "/", label: "Главная" },
               { href: "/chat", label: "Чат" },
@@ -123,57 +120,86 @@ export default function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`px-4 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${
-                  pathname === link.href ? "bg-neon text-black shadow-neon" : "text-white/40 hover:text-white hover:bg-white/5"
+                className={`px-3 py-1 rounded-md text-[11px] font-black uppercase tracking-widest transition-all ${
+                  pathname === link.href ? "bg-neon text-black" : "text-white/50 hover:text-white hover:bg-white/5"
                 }`}
               >
                 {link.label}
               </Link>
             ))}
+            
+            {mounted && isAdminOrModerator && (
+              <Link 
+                href="/admin"
+                className={`px-3 py-1 rounded-md text-[11px] font-black uppercase transition-all ${
+                  pathname.startsWith("/admin") ? "bg-acid text-black" : "text-acid/70 hover:text-acid border border-acid/20"
+                }`}
+              >
+                Админ
+              </Link>
+            )}
           </nav>
 
-          {/* Правая часть: Баланс и Уведомления */}
           <div className="flex items-center gap-3">
             {mounted && user ? (
-              <>
-                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10">
-                  <span className="text-xs font-black text-white italic">{user.balance}</span>
-                  <span className="text-xs">🪙</span>
+              <div className="flex items-center gap-3">
+                <div className="hidden sm:block text-right">
+                  <div className="text-[9px] font-black text-white uppercase leading-none">{user.username}</div>
+                  <div className="text-[9px] text-acid font-mono font-bold">{user.balance} 🪙</div>
                 </div>
-                
                 <button 
                   onClick={() => setNotificationsOpen(!notificationsOpen)}
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all ${
-                    notificationsOpen ? "bg-neon border-neon text-black" : "bg-white/5 border-white/5 text-white/60 hover:border-white/20"
-                  }`}
+                  className="relative p-2 text-white/40 hover:text-neon transition-colors"
                 >
                   <span className="text-xl">🔔</span>
                 </button>
-
-                <Link href="/profile" className="hidden sm:flex w-10 h-10 rounded-xl bg-neon items-center justify-center shadow-neon active:scale-95 transition-all">
-                  <span className="text-black font-black">👤</span>
-                </Link>
-              </>
-            ) : (
+                <button onClick={logout} className="p-2 text-white/40 hover:text-red-400 transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd" /></svg>
+                </button>
+              </div>
+            ) : mounted && (
               <div className="flex items-center gap-2">
-                <Link href="/login" className="hidden sm:block text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors">Войти</Link>
+                <Link href="/login" className="text-[10px] font-black uppercase text-white/60 hover:text-neon px-2">Войти</Link>
                 <Link href="/register" className="px-4 py-2 rounded-xl bg-neon text-black text-[10px] font-black uppercase tracking-widest shadow-neon active:scale-95 transition-all">Регистрация</Link>
               </div>
             )}
             
-            {/* Кнопка меню (только не в PWA) */}
-            <button 
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white/60 border border-white/5 pwa-hidden-btn"
-            >
-              {mobileMenuOpen ? "✕" : "☰"}
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="lg:hidden p-2 text-white/60 hover:text-neon">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                {mobileMenuOpen ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /> : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />}
+              </svg>
             </button>
           </div>
         </div>
       </header>
 
-      {/* 2. НИЖНЯЯ ПАНЕЛЬ (Только для PWA/Мобилок) */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[8000] pwa-bottom-nav bg-[#0a0a0f] border-t border-white/10">
+      {/* Мобильное меню (старое) */}
+      {mounted && mobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-[2000] bg-[#0a0a0f]/95 backdrop-blur-2xl animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setMobileMenuOpen(false)}></div>
+          <nav className="relative z-10 flex flex-col pt-[72px] px-6 pb-10 gap-2 h-full overflow-y-auto">
+            <div className="text-[11px] font-black text-white/60 uppercase tracking-[0.3em] mb-4 border-b border-white/10 pb-3">Навигация</div>
+            {[
+              { href: "/", label: "Главная", icon: "🏠" },
+              { href: "/chat", label: "Чат", icon: "💬" },
+              { href: "/bets", label: "Ставки", icon: "🎮" },
+              { href: "/rewards", label: "Награды", icon: "🎁" },
+              { href: "/leaderboard", label: "Топ", icon: "🏆" },
+              { href: "/referral", label: "Рефералы", icon: "🧬" },
+              { href: "/quests", label: "Квесты", icon: "🎯" },
+              { href: "/about", label: "О проекте", icon: "ℹ️" }
+            ].map((link) => (
+              <Link key={link.href} href={link.href} onClick={() => setMobileMenuOpen(false)} className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${pathname === link.href ? "bg-neon text-black border-neon" : "bg-white/5 border-white/5 text-white active:bg-white/10"}`}>
+                <span className="text-[11px] font-black uppercase tracking-widest">{link.label}</span>
+                <span className="text-xl">{link.icon}</span>
+              </Link>
+            ))}
+          </nav>
+        </div>
+      )}
+
+      {/* Нижняя панель (Только PWA) */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[1500] pwa-bottom-nav bg-[#0a0a0f]/95 backdrop-blur-xl border-t border-white/10 hidden standalone:block">
         <div className="grid grid-cols-5 h-full max-w-lg mx-auto">
           {[
             { href: "/", icon: "🏠", label: "Дом" },
@@ -192,96 +218,69 @@ export default function Header() {
                 (item.href && pathname === item.href) || (item.id === "more" && bottomMoreOpen) ? "text-neon" : "text-white/40"
               }`}
             >
-              <span className="text-2xl">{item.icon}</span>
+              <span className="text-xl">{item.icon}</span>
               <span className="text-[9px] font-black uppercase tracking-tighter">{item.label}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* 3. ОВЕРЛЕЙ МЕНЮ "ЕЩЁ" (v4.0) */}
+      {/* ПАНЕЛЬ "ЕЩЁ" (v5.0 - ФИКС) */}
       {mounted && bottomMoreOpen && (
-        <div className="fixed inset-0 z-[9999] bg-[#0a0a0f] animate-in fade-in slide-in-from-bottom-10 duration-300">
-          <div className="h-full flex flex-col pwa-safe-area-all">
-            {/* Заголовок меню */}
-            <div 
-              style={{ paddingTop: 'var(--safe-top, 20px)' }}
-              className="px-6 pb-6 flex items-center justify-between border-b border-white/5"
-            >
-              <div>
-                <div className="text-[10px] font-black text-neon uppercase tracking-[0.3em]">Система PAPPY</div>
-                <div className="text-2xl font-black text-white italic">МЕНЮ v4.0</div>
-              </div>
-              <button 
-                onClick={() => setBottomMoreOpen(false)}
-                className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white text-2xl"
-              >✕</button>
-            </div>
-
-            {/* Контент меню */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              {user && (
-                <div className="p-6 rounded-[32px] bg-white/5 border border-white/10 flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-neon flex items-center justify-center text-3xl">👤</div>
-                    <div>
-                      <div className="text-xl font-black text-white">{user.username}</div>
-                      <div className="text-acid font-mono font-bold">{user.balance} 🪙</div>
-                    </div>
-                  </div>
-                  <Link href="/profile" onClick={() => setBottomMoreOpen(false)} className="px-6 py-3 rounded-2xl bg-neon text-black font-black uppercase text-xs shadow-neon italic">Профиль</Link>
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { href: "/leaderboard", label: "Топ Игроков", icon: "🏆" },
-                  { href: "/referral", label: "Рефералы", icon: "🧬" },
-                  { href: "/about", label: "Инфо", icon: "ℹ️" },
-                  { href: "/quests", label: "Квесты", icon: "🎯" },
-                  { href: "/schedule", label: "События", icon: "📅" },
-                  { href: "/report", label: "Поддержка", icon: "🧾" }
-                ].map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setBottomMoreOpen(false)}
-                    className="flex flex-col items-center justify-center gap-3 p-6 rounded-[32px] bg-white/5 border border-white/5 active:bg-neon/10 active:border-neon transition-all"
-                  >
-                    <span className="text-4xl">{item.icon}</span>
-                    <span className="text-[11px] font-black uppercase tracking-widest text-center">{item.label}</span>
-                  </Link>
-                ))}
-              </div>
-
-              {isAdminOrModerator && (
-                <Link href="/admin" onClick={() => setBottomMoreOpen(false)} className="flex items-center justify-between p-6 rounded-[32px] bg-acid/10 border border-acid/30 text-acid active:bg-acid/20 transition-all">
-                  <span className="font-black uppercase tracking-widest italic">Панель Управления</span>
-                  <span className="text-2xl">🛠️</span>
-                </Link>
-              )}
-
-              {user && (
-                <button onClick={() => { logout(); setBottomMoreOpen(false); }} className="w-full p-6 rounded-[32px] bg-red-500/10 border border-red-500/20 text-red-500 font-black uppercase tracking-widest italic transition-all">Выйти из аккаунта</button>
-              )}
-            </div>
-
-            {/* Футер меню */}
-            <div 
-              style={{ paddingBottom: 'calc(var(--safe-bottom, 20px) + 20px)' }}
-              className="px-6 pt-4 border-t border-white/5 text-center"
-            >
-              <button 
-                onClick={() => {
-                  if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
-                  }
-                  window.location.reload();
-                }}
-                className="text-[10px] font-black uppercase tracking-widest text-white/20 hover:text-white transition-colors"
-              >Сбросить и обновить приложение</button>
-            </div>
+        <div className="fixed inset-0 z-[9999] bg-[#0a0a0f] flex flex-col animate-in fade-in duration-300">
+          <div 
+            style={{ paddingTop: 'env(safe-area-inset-top, 20px)' }}
+            className="px-6 py-4 flex items-center justify-between border-b border-white/10 shrink-0"
+          >
+            <div className="text-lg font-black text-white italic uppercase tracking-widest text-neon">МЕНЮ</div>
+            <button 
+              onClick={() => setBottomMoreOpen(false)}
+              className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white text-xl"
+            >✕</button>
           </div>
+
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { href: "/leaderboard", label: "Топ", icon: "🏆" },
+                { href: "/referral", label: "Рефералы", icon: "🧬" },
+                { href: "/about", label: "Инфо", icon: "ℹ️" },
+                { href: "/quests", label: "Квесты", icon: "🎯" },
+                { href: "/schedule", label: "События", icon: "📅" },
+                { href: "/report", label: "Репорт", icon: "🧾" },
+                { href: "/profile", label: "Профиль", icon: "👤" }
+              ].map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setBottomMoreOpen(false)}
+                  className="flex flex-col items-center justify-center gap-2 p-6 rounded-[24px] bg-white/5 border border-white/5 active:bg-neon/10 active:border-neon transition-all"
+                >
+                  <span className="text-3xl">{item.icon}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest">{item.label}</span>
+                </Link>
+              ))}
+            </div>
+            
+            {user && (
+              <button 
+                onClick={() => { logout(); setBottomMoreOpen(false); }} 
+                className="w-full p-5 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 font-black uppercase text-xs tracking-widest"
+              >Выйти из аккаунта</button>
+            )}
+
+            <button 
+              onClick={() => {
+                if ('serviceWorker' in navigator) {
+                  navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+                }
+                window.location.reload();
+              }}
+              className="w-full p-4 text-[9px] font-black uppercase text-white/20 tracking-tighter"
+            >Полный сброс приложения</button>
+          </div>
+          
+          <div style={{ height: 'env(safe-area-inset-bottom, 20px)' }} className="shrink-0"></div>
         </div>
       )}
     </>

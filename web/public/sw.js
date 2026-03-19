@@ -1,4 +1,4 @@
-const CACHE = "pappy-v7"
+const CACHE = "pappy-v8"
 
 self.addEventListener("install", (event) => {
   self.skipWaiting()
