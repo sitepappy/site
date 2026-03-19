@@ -366,85 +366,99 @@ export default function Header() {
       )}
 
       {mounted && bottomMoreOpen && (
-        <div className="fixed inset-0 z-[2300]">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setBottomMoreOpen(false)}></div>
+        <div className="fixed inset-0 z-[3000] flex items-end justify-center">
+          {/* Фон-затемнение */}
           <div 
-            style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
-            className="absolute bottom-0 left-0 right-0 p-4"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" 
+            onClick={() => setBottomMoreOpen(false)}
+          ></div>
+          
+          {/* Сама панель, которая выезжает СНИЗУ */}
+          <div 
+            style={{ 
+              paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)',
+              maxHeight: '85vh'
+            }}
+            className="relative w-full bg-[#0a0a0f] border-t border-white/10 rounded-t-[40px] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] animate-in slide-in-from-bottom-full duration-500 flex flex-col"
           >
-            <div className="glass rounded-[32px] border border-white/10 overflow-hidden shadow-2xl max-h-[85vh] flex flex-col">
-              <div className="p-4 border-b border-white/10 flex items-center justify-between shrink-0">
-                <div className="text-[11px] font-black uppercase tracking-widest text-white/60">Меню</div>
-                <button onClick={() => setBottomMoreOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors">
-                  Закрыть
-                </button>
-              </div>
-              <div className="p-4 space-y-4 overflow-y-auto custom-scrollbar">
-                {user ? (
-                  <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-                    <div className="text-[10px] font-black uppercase tracking-widest text-white/30">Аккаунт</div>
-                    <div className="flex items-center justify-between mt-2">
-                      <div className="text-sm font-black text-white">{user.username}</div>
-                      <div className="text-xs font-mono text-acid">{user.balance} 🪙</div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 mt-3">
-                      <Link href="/profile" onClick={() => setBottomMoreOpen(false)} className="text-center p-3 rounded-xl bg-neon text-black text-[10px] font-black uppercase tracking-widest shadow-neon">
-                        Профиль
-                      </Link>
-                      <button onClick={logout} className="p-3 rounded-xl bg-red-500/15 border border-red-500/25 text-red-300 text-[10px] font-black uppercase tracking-widest">
-                        Выход
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-                    <div className="text-[10px] font-black uppercase tracking-widest text-white/30">Аккаунт</div>
-                    <div className="grid grid-cols-2 gap-2 mt-3">
-                      <Link href="/login" onClick={() => setBottomMoreOpen(false)} className="text-center p-3 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/70">
-                        Войти
-                      </Link>
-                      <Link href="/register" onClick={() => setBottomMoreOpen(false)} className="text-center p-3 rounded-xl bg-neon text-black text-[10px] font-black uppercase tracking-widest shadow-neon">
-                        Регистрация
-                      </Link>
-                    </div>
-                  </div>
-                )}
+            {/* Полоска-индикатор для свайпа вниз (визуальная) */}
+            <div className="w-12 h-1.5 bg-white/10 rounded-full mx-auto my-4"></div>
+            
+            <div className="px-6 pb-4 flex items-center justify-between border-b border-white/5 shrink-0">
+              <div className="text-sm font-black uppercase tracking-widest text-white/40">Навигация</div>
+              <button 
+                onClick={() => setBottomMoreOpen(false)}
+                className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/60 active:scale-90 transition-all"
+              >
+                ✕
+              </button>
+            </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { href: "/leaderboard", label: "Топ", icon: "🏆" },
-                    { href: "/referral", label: "Рефералы", icon: "🧬" },
-                    { href: "/about", label: "О нас", icon: "ℹ️" },
-                    { href: "/schedule", label: "Расписание", icon: "📅" },
-                    { href: "/report", label: "Репорт", icon: "🧾" }
-                  ].map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setBottomMoreOpen(false)}
-                      className={`p-4 rounded-2xl border transition-all flex items-center justify-between ${
-                        pathname === item.href ? "bg-neon text-black border-neon shadow-neon" : "bg-white/5 border-white/10 text-white/70 active:bg-white/10"
-                      }`}
-                    >
-                      <span className="text-[11px] font-black uppercase tracking-widest">{item.label}</span>
-                      <span className="text-lg leading-none">{item.icon}</span>
+            <div className="p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1">
+              {user ? (
+                <div className="p-5 rounded-[28px] bg-white/5 border border-white/10">
+                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-3">Ваш Профиль</div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-lg font-black text-white">{user.username}</div>
+                    <div className="text-sm font-mono text-acid font-bold">{user.balance} 🪙</div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 mt-4">
+                    <Link href="/profile" onClick={() => setBottomMoreOpen(false)} className="flex items-center justify-center p-4 rounded-2xl bg-neon text-black text-[11px] font-black uppercase tracking-widest shadow-neon active:scale-95 transition-all">
+                      Личный кабинет
                     </Link>
-                  ))}
+                    <button onClick={logout} className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-[11px] font-black uppercase tracking-widest active:bg-red-500/20 transition-all">
+                      Выход
+                    </button>
+                  </div>
                 </div>
+              ) : (
+                <div className="p-5 rounded-[28px] bg-white/5 border border-white/10">
+                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-3">Авторизация</div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Link href="/login" onClick={() => setBottomMoreOpen(false)} className="flex items-center justify-center p-4 rounded-2xl bg-white/5 border border-white/10 text-[11px] font-black uppercase tracking-widest text-white active:bg-white/10 transition-all">
+                      Войти
+                    </Link>
+                    <Link href="/register" onClick={() => setBottomMoreOpen(false)} className="flex items-center justify-center p-4 rounded-2xl bg-neon text-black text-[11px] font-black uppercase tracking-widest shadow-neon active:scale-95 transition-all">
+                      Регистрация
+                    </Link>
+                  </div>
+                </div>
+              )}
 
-                {isAdminOrModerator && (
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { href: "/leaderboard", label: "Топ", icon: "🏆" },
+                  { href: "/referral", label: "Рефералы", icon: "🧬" },
+                  { href: "/about", label: "О нас", icon: "ℹ️" },
+                  { href: "/schedule", label: "Расписание", icon: "📅" },
+                  { href: "/report", label: "Репорт", icon: "🧾" }
+                ].map((item) => (
                   <Link
-                    href="/admin"
+                    key={item.href}
+                    href={item.href}
                     onClick={() => setBottomMoreOpen(false)}
-                    className={`p-4 rounded-2xl border transition-all flex items-center justify-between ${
-                      pathname.startsWith("/admin") ? "bg-acid text-black border-acid/20 shadow-acid" : "bg-acid/10 text-acid border-acid/20 active:bg-acid/15"
+                    className={`p-5 rounded-[28px] border transition-all flex flex-col items-center justify-center gap-2 ${
+                      pathname === item.href ? "bg-neon/10 border-neon text-neon shadow-[inset_0_0_20px_rgba(123,46,255,0.1)]" : "bg-white/5 border-white/5 text-white/70 active:bg-white/10"
                     }`}
                   >
-                    <span className="text-[11px] font-black uppercase tracking-widest">Админ</span>
-                    <span className="text-lg leading-none">🛠️</span>
+                    <span className="text-2xl">{item.icon}</span>
+                    <span className="text-[11px] font-black uppercase tracking-widest">{item.label}</span>
                   </Link>
-                )}
+                ))}
               </div>
+
+              {isAdminOrModerator && (
+                <Link
+                  href="/admin"
+                  onClick={() => setBottomMoreOpen(false)}
+                  className={`p-5 rounded-[28px] border border-acid/30 transition-all flex items-center justify-between ${
+                    pathname.startsWith("/admin") ? "bg-acid text-black" : "bg-acid/5 text-acid active:bg-acid/10"
+                  }`}
+                >
+                  <span className="text-[11px] font-black uppercase tracking-widest">Панель Управления</span>
+                  <span className="text-xl">🛠️</span>
+                </Link>
+              )}
             </div>
           </div>
         </div>

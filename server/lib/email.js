@@ -6,6 +6,18 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  pool: true,
+  maxConnections: 1,
+  maxMessages: 100,
+});
+
+// Проверка соединения при старте
+transporter.verify(function (error, success) {
+  if (error) {
+    console.error("[SMTP VERIFY ERROR]", error);
+  } else {
+    console.log("[SMTP VERIFY SUCCESS] Server is ready to take our messages");
+  }
 });
 
 export async function sendVerificationEmail(to, code) {
