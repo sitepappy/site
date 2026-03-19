@@ -360,15 +360,15 @@ export default function Header() {
       {mounted && bottomMoreOpen && (
         <div className="fixed inset-0 z-[2300]">
           <div className="absolute inset-0 bg-black/50" onClick={() => setBottomMoreOpen(false)}></div>
-          <div className="absolute bottom-0 left-0 right-0 p-4">
-            <div className="glass rounded-[32px] border border-white/10 overflow-hidden shadow-2xl">
-              <div className="p-4 border-b border-white/10 flex items-center justify-between">
+          <div className="absolute bottom-0 left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
+            <div className="glass rounded-[32px] border border-white/10 overflow-hidden shadow-2xl max-h-[85vh] flex flex-col">
+              <div className="p-4 border-b border-white/10 flex items-center justify-between shrink-0">
                 <div className="text-[11px] font-black uppercase tracking-widest text-white/60">Меню</div>
                 <button onClick={() => setBottomMoreOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors">
                   Закрыть
                 </button>
               </div>
-              <div className="p-4 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
+              <div className="p-4 space-y-4 overflow-y-auto custom-scrollbar">
                 {user ? (
                   <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
                     <div className="text-[10px] font-black uppercase tracking-widest text-white/30">Аккаунт</div>
