@@ -12,32 +12,42 @@ export default function Header() {
   const [notifications, setNotifications] = useState<any[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [bottomMoreOpen, setBottomMoreOpen] = useState(false)
+  const [userCount, setUserCount] = useState(55)
   const pathname = usePathname()
   const router = useRouter()
 
   useEffect(() => {
     setMounted(true)
-    const loadUser = async () => {
+    const loadData = async () => {
+      // Load user
       const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
-      if (!token) {
-        setUser(null)
-        return
-      }
-      try {
-        const data = await api("/users/me")
-        setUser(data)
-      } catch (e: any) {
-        if (e.message === "UNAUTHORIZED") {
-          localStorage.removeItem("token")
+      if (token) {
+        try {
+          const data = await api("/users/me")
+          setUser(data)
+        } catch (e: any) {
+          if (e.message === "UNAUTHORIZED") {
+            localStorage.removeItem("token")
+          }
+          setUser(null)
         }
+      } else {
         setUser(null)
+      }
+
+      // Load stats
+      try {
+        const stats = await api("/public/stats")
+        setUserCount(stats.userCount || 55)
+      } catch (e) {
+        console.error("Failed to load stats", e)
       }
     }
-    loadUser()
+    loadData()
 
     // Listen for balance updates from other components
-    window.addEventListener("balanceUpdate", loadUser)
-    return () => window.removeEventListener("balanceUpdate", loadUser)
+    window.addEventListener("balanceUpdate", loadData)
+    return () => window.removeEventListener("balanceUpdate", loadData)
   }, [pathname])
 
   // Закрываем меню при переходе по ссылке
@@ -49,13 +59,13 @@ export default function Header() {
 
   // Блокируем скролл при открытом меню
   useEffect(() => {
-    if (mobileMenuOpen || notificationsOpen || bottomMoreOpen) {
+    if (mobileMenuOpen || bottomMoreOpen) {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = 'unset'
     }
     return () => { document.body.style.overflow = 'unset' }
-  }, [mobileMenuOpen, notificationsOpen, bottomMoreOpen])
+  }, [mobileMenuOpen, bottomMoreOpen])
 
   const logout = () => {
     localStorage.removeItem("token")
@@ -100,11 +110,17 @@ export default function Header() {
     <>
       <header className="fixed top-0 left-0 right-0 z-[1000] border-b border-white/5 bg-[#0a0a0f]/90 backdrop-blur-xl h-[56px] flex items-center transition-all">
         <div className="max-w-7xl mx-auto px-4 w-full flex items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-2 group relative">
-            <span className="text-2xl md:text-3xl font-black tracking-tighter italic text-white group-hover:text-neon transition-all duration-300 drop-shadow-[0_0_8px_rgba(57,255,20,0.5)]">
-              PAPPY
-            </span>
-          </Link>
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col items-center leading-none">
+              <span className="text-[11px] md:text-[14px] font-black text-neon">{userCount}</span>
+              <span className="text-[6px] md:text-[7px] font-bold text-white/30 uppercase tracking-tighter">Юзеров</span>
+            </div>
+            <Link href="/" className="flex items-center gap-2 group relative">
+              <span className="text-2xl md:text-3xl font-black tracking-tighter italic text-white group-hover:text-neon transition-all duration-300 drop-shadow-[0_0_8px_rgba(57,255,20,0.5)]">
+                PAPPY
+              </span>
+            </Link>
+          </div>
 
           {/* Десктопная навигация */}
           <nav className="hidden md:flex items-center gap-1 xl:gap-2">
