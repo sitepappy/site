@@ -1,8 +1,10 @@
 "use client"
 import { useEffect, useState } from "react"
 import { api } from "../../lib/api"
+import { useRouter } from "next/navigation"
 
 export default function ReferralPage() {
+  const router = useRouter()
   const [my, setMy] = useState<any>(null)
   const [code, setCode] = useState("")
   const [err, setErr] = useState("")
@@ -10,6 +12,7 @@ export default function ReferralPage() {
   const [promoInput, setPromoInput] = useState("")
   const [stats, setStats] = useState<any>(null)
   const [loading, setLoading] = useState(false)
+  const [showProfileWarning, setShowProfileWarning] = useState(false)
 
   const load = async () => {
     try {
@@ -46,14 +49,56 @@ export default function ReferralPage() {
       window.dispatchEvent(new Event("balanceUpdate"))
       load()
     } catch (e: any) {
-      setErr(e.message)
+      if (e.error === "COMPLETE_PROFILE") {
+        setShowProfileWarning(true)
+      } else {
+        setErr(e.message)
+      }
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
+    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500 relative">
+      {/* Модальное окно предупреждения */}
+      {showProfileWarning && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="glass max-w-md w-full p-8 rounded-[32px] border border-red-500/20 shadow-2xl space-y-6 text-center relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-red-500/50"></div>
+            <div className="text-6xl">👤</div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-black uppercase italic tracking-tighter text-white">Профиль не заполнен</h2>
+              <p className="text-white/50 text-sm leading-relaxed">
+                Для активации промокодов необходимо полностью заполнить профиль:
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3 text-[10px] font-black uppercase tracking-widest text-white/40">
+              <div className="p-3 rounded-xl bg-white/5 border border-white/5">📸 Аватарка</div>
+              <div className="p-3 rounded-xl bg-white/5 border border-white/5">🖼️ Баннер</div>
+              <div className="p-3 rounded-xl bg-white/5 border border-white/5">🔗 Trade Link</div>
+              <div className="p-3 rounded-xl bg-white/5 border border-white/5">💬 Telegram</div>
+            </div>
+
+            <div className="flex flex-col gap-3 pt-4">
+              <button 
+                onClick={() => router.push("/profile")}
+                className="w-full py-4 rounded-2xl bg-white text-black text-xs font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-lg"
+              >
+                Перейти в профиль
+              </button>
+              <button 
+                onClick={() => setShowProfileWarning(false)}
+                className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-xs font-black uppercase tracking-widest text-white/40 hover:text-white transition-all"
+              >
+                Закрыть
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid md:grid-cols-2 gap-8">
         {/* Левая колонка: Ввод промокода */}
         <div className="space-y-6">
@@ -98,7 +143,10 @@ export default function ReferralPage() {
             <ul className="space-y-3">
               <li className="flex gap-3 text-xs text-white/60">
                 <span className="text-neon font-black">01</span>
-                Введите реферальный код друга и получите <span className="text-white font-bold">10 монет</span> сразу на баланс.
+                <div>
+                  Введите реферальный код друга и получите <span className="text-white font-bold">10 монет</span> сразу на баланс.
+                  <div className="mt-1 text-[10px] text-acid font-black uppercase tracking-widest bg-acid/10 px-2 py-0.5 rounded-md inline-block">Обязательно заполните профиль!</div>
+                </div>
               </li>
               <li className="flex gap-3 text-xs text-white/60">
                 <span className="text-neon font-black">02</span>

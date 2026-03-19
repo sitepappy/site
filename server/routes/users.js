@@ -24,6 +24,7 @@ r.get("/me", authRequired, (req, res) => {
     referralColor: u.referralColor || null,
     referralCount: typeof u.referralCount === "number" ? u.referralCount : null,
     steamTradeLink: u.steamTradeLink,
+    telegram: u.telegram || "",
     achievements: Array.isArray(u.achievements) ? u.achievements : [],
     achievementProgress: u.achievementProgress || null,
     createdAt: u.createdAt
@@ -31,11 +32,16 @@ r.get("/me", authRequired, (req, res) => {
 })
 
 r.put("/trade-link", authRequired, (req, res) => {
-  const { link } = req.body || {}
+  const { link, telegram } = req.body || {}
   const data = db.get()
   const u = data.users.find(x => x.id === req.user.id)
   if (!u) return res.status(404).json({ error: "Не найдено" })
-  u.steamTradeLink = String(link || "")
+  if (typeof link === "string") u.steamTradeLink = String(link).trim()
+  if (typeof telegram === "string") {
+    let tg = telegram.trim()
+    if (tg && tg.startsWith("@")) tg = tg.substring(1)
+    u.telegram = tg
+  }
   db.save(data)
   res.json({ ok: true })
 })

@@ -39,6 +39,17 @@ r.post("/activate", authRequired, (req, res) => {
   if (!code) return res.status(400).json({ error: "Введите промокод" })
   
   const data = db.get()
+  const u = data.users.find(x => x.id === req.user.id)
+  
+  // Проверка заполненности профиля
+  const isProfileComplete = u.avatarUrl && u.bannerUrl && u.steamTradeLink && u.telegram
+  if (!isProfileComplete) {
+    return res.status(400).json({ 
+      error: "COMPLETE_PROFILE", 
+      message: "Для активации промокода необходимо полностью заполнить профиль (аватарка, баннер, Trade Link, Telegram)" 
+    })
+  }
+
   const promo = data.promoCodes.find(p => p.code.toLowerCase() === code.toLowerCase())
   if (!promo) return res.status(404).json({ error: "Промокод не найден" })
   if (promo.disabled) return res.status(400).json({ error: "Промокод отключен" })

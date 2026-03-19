@@ -13,6 +13,7 @@ export default function ProfilePage() {
   const [orders, setOrders] = useState<any[]>([])
   
   const [link, setLink] = useState("")
+  const [telegram, setTelegram] = useState("")
   const [username, setUsername] = useState("")
   const [avatarUrl, setAvatarUrl] = useState("")
   const [bannerUrl, setBannerUrl] = useState("")
@@ -35,6 +36,7 @@ export default function ProfilePage() {
       const m = await api("/users/me")
       setMe(m)
       setLink(m.steamTradeLink || "")
+      setTelegram(m.telegram || "")
       setUsername(m.username || "")
       setAvatarUrl(m.avatarUrl || "")
       setBannerUrl(m.bannerUrl || "")
@@ -56,7 +58,7 @@ export default function ProfilePage() {
     setError("")
     try {
       await api("/users/me", { method: "PUT", body: JSON.stringify({ username, avatarUrl, bannerUrl }) })
-      await api("/users/trade-link", { method: "PUT", body: JSON.stringify({ link }) })
+      await api("/users/trade-link", { method: "PUT", body: JSON.stringify({ link, telegram }) })
       load()
     } catch (e: any) {
       setError(e.message)
@@ -174,6 +176,13 @@ export default function ProfilePage() {
                 <div className="group">
                   <label className="text-[10px] font-black text-white/20 uppercase ml-2 mb-1 block tracking-widest">Steam Trade Link</label>
                   <input className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-neon transition-all" value={link} onChange={e=>setLink(e.target.value)} />
+                </div>
+                <div className="group">
+                  <label className="text-[10px] font-black text-white/20 uppercase ml-2 mb-1 block tracking-widest">Telegram Username</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 text-sm">@</span>
+                    <input className="w-full bg-white/5 border border-white/10 rounded-xl px-4 pl-8 py-3 text-sm outline-none focus:border-neon transition-all" value={telegram} onChange={e=>setTelegram(e.target.value)} placeholder="username" />
+                  </div>
                 </div>
                 <div className="pt-5">
                   <button onClick={save} className="btn btn-primary w-full py-4 text-xs font-black uppercase italic tracking-widest shadow-[0_0_20px_rgba(57,255,20,0.2)] hover:shadow-neon transition-all">
