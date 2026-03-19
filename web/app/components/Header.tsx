@@ -437,9 +437,9 @@ export default function Header() {
                     navigator.serviceWorker.getRegistrations().then(registrations => {
                       for(let registration of registrations) { registration.unregister(); }
                       caches.keys().then(names => { for (let name of names) caches.delete(name); });
-                      window.location.reload(true);
+                      window.location.reload();
                     });
-                  } else { window.location.reload(true); }
+                  } else { window.location.reload(); }
                 }}
                 className="w-full p-4 rounded-2xl bg-white/5 border border-white/5 text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-white/60 transition-all mt-4"
               >
