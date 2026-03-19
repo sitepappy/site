@@ -9,44 +9,13 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [promo, setPromo] = useState("")
-  const [verificationCode, setVerificationCode] = useState("")
-  const [codeSent, setCodeSent] = useState(false)
-  const [sendingCode, setSendingCode] = useState(false)
   const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  const sendCode = async () => {
-    if (!email || !email.includes("@")) {
-      setError("Введите корректный email")
-      return
-    }
-    setError("")
-    setSuccess("")
-    setSendingCode(true)
-    try {
-      await api("/auth/send-verification", {
-        method: "POST",
-        body: JSON.stringify({ email })
-      })
-      setCodeSent(true)
-      setSuccess("Код подтверждения отправлен на вашу почту")
-    } catch (e: any) {
-      setError(e.message)
-    } finally {
-      setSendingCode(false)
-    }
-  }
-
   const onSubmit = async (e: any) => {
     e.preventDefault()
-    if (!codeSent) {
-      setError("Сначала получите код подтверждения")
-      return
-    }
     setError("")
-    setSuccess("")
     setLoading(true)
     try {
       const res = await api("/auth/register", { 
@@ -55,7 +24,6 @@ export default function RegisterPage() {
           username, 
           email, 
           password, 
-          verificationCode,
           promoCode: promo || undefined, 
           deviceId: getDeviceId() 
         }) 
@@ -85,18 +53,12 @@ export default function RegisterPage() {
         </div>
       )}
 
-      {success && (
-        <div className="bg-green-500/20 border border-green-500/50 text-green-400 p-3 rounded mb-4 text-sm">
-          {success}
-        </div>
-      )}
-
       <form onSubmit={onSubmit} className="space-y-4">
         <div>
           <label className="block text-xs text-white/50 mb-1 uppercase font-semibold">Никнейм</label>
           <input 
             className="w-full p-3 rounded bg-white/10 border border-white/5 focus:border-neon outline-none transition-all" 
-            placeholder="Ваше имя" 
+            placeholder="Ваш ник" 
             value={username} 
             onChange={e=>setUsername(e.target.value)} 
             required
@@ -105,49 +67,15 @@ export default function RegisterPage() {
 
         <div>
           <label className="block text-xs text-white/50 mb-1 uppercase font-semibold">Email</label>
-          <div className="flex gap-2">
-            <input 
-              className="flex-1 p-3 rounded bg-white/10 border border-white/5 focus:border-neon outline-none transition-all" 
-              placeholder="example@mail.com" 
-              type="email"
-              value={email} 
-              onChange={e=>setEmail(e.target.value)} 
-              required
-              disabled={codeSent}
-            />
-            {!codeSent && (
-              <button 
-                type="button"
-                onClick={sendCode}
-                disabled={sendingCode}
-                className="px-4 rounded bg-neon/20 border border-neon/50 text-neon text-xs font-bold uppercase hover:bg-neon/30 disabled:opacity-50"
-              >
-                {sendingCode ? "..." : "Код"}
-              </button>
-            )}
-          </div>
+          <input 
+            className="w-full p-3 rounded bg-white/10 border border-white/5 focus:border-neon outline-none transition-all" 
+            placeholder="example@mail.com" 
+            type="email"
+            value={email} 
+            onChange={e=>setEmail(e.target.value)} 
+            required
+          />
         </div>
-
-        {codeSent && (
-          <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-            <label className="block text-xs text-neon mb-1 uppercase font-black tracking-widest">Код подтверждения из письма</label>
-            <input 
-              autoFocus
-              className="w-full p-4 rounded-xl bg-neon/5 border-2 border-neon/50 focus:border-neon outline-none transition-all font-mono tracking-[0.5em] text-center text-2xl text-white shadow-[0_0_15px_rgba(123,46,255,0.2)]" 
-              placeholder="000000" 
-              value={verificationCode} 
-              onChange={e=>setVerificationCode(e.target.value)} 
-              required
-            />
-            <button 
-              type="button" 
-              onClick={() => setCodeSent(false)} 
-              className="text-[10px] text-white/30 hover:text-neon mt-2 underline uppercase font-bold tracking-tighter"
-            >
-              Ошиблись в почте? Изменить
-            </button>
-          </div>
-        )}
 
         <div>
           <label className="block text-xs text-white/50 mb-1 uppercase font-semibold">Пароль</label>

@@ -367,13 +367,8 @@ export default function Header() {
 
       {mounted && bottomMoreOpen && (
         <div className="fixed inset-0 z-[9999] flex items-end justify-center animate-in fade-in duration-300">
-          {/* Фон-затемнение */}
-          <div 
-            className="absolute inset-0 bg-black/80 backdrop-blur-md" 
-            onClick={() => setBottomMoreOpen(false)}
-          ></div>
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setBottomMoreOpen(false)}></div>
           
-          {/* Сама панель */}
           <div 
             style={{ 
               paddingBottom: 'calc(var(--safe-bottom) + 20px)',
@@ -381,17 +376,11 @@ export default function Header() {
             }}
             className="relative w-full bg-[#0a0a0f] border-t border-neon/30 rounded-t-[40px] shadow-[0_-20px_50px_rgba(0,0,0,0.8)] flex flex-col animate-in slide-in-from-bottom-full duration-500"
           >
-            {/* Полоска-индикатор */}
             <div className="w-16 h-1.5 bg-white/20 rounded-full mx-auto my-5"></div>
             
             <div className="px-8 pb-4 flex items-center justify-between border-b border-white/5 shrink-0">
-              <div className="text-xs font-black uppercase tracking-[0.3em] text-neon">Навигация Системы v3.0</div>
-              <button 
-                onClick={() => setBottomMoreOpen(false)}
-                className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60 active:scale-90 transition-all border border-white/10"
-              >
-                ✕
-              </button>
+              <div className="text-xs font-black uppercase tracking-[0.3em] text-neon">Навигация Системы v3.1</div>
+              <button onClick={() => setBottomMoreOpen(false)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60 active:scale-90 transition-all border border-white/10">✕</button>
             </div>
 
             <div className="p-8 space-y-5 overflow-y-auto custom-scrollbar flex-1">
@@ -403,24 +392,16 @@ export default function Header() {
                     <div className="text-base font-mono text-acid font-bold drop-shadow-[0_0_8px_#39FF14]">{user.balance} 🪙</div>
                   </div>
                   <div className="grid grid-cols-2 gap-4 mt-5">
-                    <Link href="/profile" onClick={() => setBottomMoreOpen(false)} className="flex items-center justify-center p-4 rounded-2xl bg-neon text-black text-[11px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(123,46,255,0.5)] active:scale-95 transition-all italic text-center">
-                      Профиль
-                    </Link>
-                    <button onClick={logout} className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 text-[11px] font-black uppercase tracking-widest active:bg-red-500/20 transition-all italic">
-                      Выход
-                    </button>
+                    <Link href="/profile" onClick={() => setBottomMoreOpen(false)} className="flex items-center justify-center p-4 rounded-2xl bg-neon text-black text-[11px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(123,46,255,0.5)] active:scale-95 transition-all italic text-center">Профиль</Link>
+                    <button onClick={logout} className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 text-[11px] font-black uppercase tracking-widest active:bg-red-500/20 transition-all italic">Выход</button>
                   </div>
                 </div>
               ) : (
                 <div className="p-6 rounded-[32px] bg-white/5 border border-white/10">
                   <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-4">Вход в систему</div>
                   <div className="grid grid-cols-2 gap-4">
-                    <Link href="/login" onClick={() => setBottomMoreOpen(false)} className="flex items-center justify-center p-4 rounded-2xl bg-white/5 border border-white/10 text-[11px] font-black uppercase tracking-widest text-white active:bg-white/10 transition-all">
-                      Войти
-                    </Link>
-                    <Link href="/register" onClick={() => setBottomMoreOpen(false)} className="flex items-center justify-center p-4 rounded-2xl bg-neon text-black text-[11px] font-black uppercase tracking-widest shadow-neon active:scale-95 transition-all">
-                      Регистрация
-                    </Link>
+                    <Link href="/login" onClick={() => setBottomMoreOpen(false)} className="flex items-center justify-center p-4 rounded-2xl bg-white/5 border border-white/10 text-[11px] font-black uppercase tracking-widest text-white active:bg-white/10 transition-all">Войти</Link>
+                    <Link href="/register" onClick={() => setBottomMoreOpen(false)} className="flex items-center justify-center p-4 rounded-2xl bg-neon text-black text-[11px] font-black uppercase tracking-widest shadow-neon active:scale-95 transition-all">Регистрация</Link>
                   </div>
                 </div>
               )}
@@ -433,14 +414,7 @@ export default function Header() {
                   { href: "/schedule", label: "Расписание", icon: "📅" },
                   { href: "/report", label: "Репорт", icon: "🧾" }
                 ].map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setBottomMoreOpen(false)}
-                    className={`p-6 rounded-[32px] border transition-all flex flex-col items-center justify-center gap-3 ${
-                      pathname === item.href ? "bg-neon/20 border-neon text-white shadow-[0_0_25px_rgba(123,46,255,0.2)]" : "bg-white/5 border-white/5 text-white/70 active:bg-white/10"
-                    }`}
-                  >
+                  <Link key={item.href} href={item.href} onClick={() => setBottomMoreOpen(false)} className={`p-6 rounded-[32px] border transition-all flex flex-col items-center justify-center gap-3 ${pathname === item.href ? "bg-neon/20 border-neon text-white shadow-[0_0_25px_rgba(123,46,255,0.2)]" : "bg-white/5 border-white/5 text-white/70 active:bg-white/10"}`}>
                     <span className="text-3xl">{item.icon}</span>
                     <span className="text-[11px] font-black uppercase tracking-widest text-center">{item.label}</span>
                   </Link>
@@ -448,13 +422,7 @@ export default function Header() {
               </div>
 
               {isAdminOrModerator && (
-                <Link
-                  href="/admin"
-                  onClick={() => setBottomMoreOpen(false)}
-                  className={`p-6 rounded-[32px] border border-acid/40 transition-all flex items-center justify-between ${
-                    pathname.startsWith("/admin") ? "bg-acid text-black shadow-[0_0_20px_rgba(57,255,20,0.3)]" : "bg-acid/10 text-acid active:bg-acid/20"
-                  }`}
-                >
+                <Link href="/admin" onClick={() => setBottomMoreOpen(false)} className={`p-6 rounded-[32px] border border-acid/40 transition-all flex items-center justify-between ${pathname.startsWith("/admin") ? "bg-acid text-black shadow-[0_0_20px_rgba(57,255,20,0.3)]" : "bg-acid/10 text-acid active:bg-acid/20"}`}>
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full bg-acid animate-pulse shadow-acid"></div>
                     <span className="text-[11px] font-black uppercase tracking-widest italic">Админ Панель</span>
@@ -467,18 +435,15 @@ export default function Header() {
                 onClick={() => {
                   if ('serviceWorker' in navigator) {
                     navigator.serviceWorker.getRegistrations().then(registrations => {
-                      for(let registration of registrations) {
-                        registration.unregister();
-                      }
-                      window.location.reload();
+                      for(let registration of registrations) { registration.unregister(); }
+                      caches.keys().then(names => { for (let name of names) caches.delete(name); });
+                      window.location.reload(true);
                     });
-                  } else {
-                    window.location.reload();
-                  }
+                  } else { window.location.reload(true); }
                 }}
                 className="w-full p-4 rounded-2xl bg-white/5 border border-white/5 text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-white/60 transition-all mt-4"
               >
-                Сбросить Кеш Приложения
+                ОЧИСТИТЬ ВСЁ И ОБНОВИТЬ
               </button>
             </div>
           </div>

@@ -15,52 +15,16 @@ r.get("/captcha", (req, res) => {
   res.json(createCaptcha())
 })
 
-r.post("/send-verification", async (req, res) => {
-  const { email } = req.body || {}
-  if (!email || !email.includes("@")) return res.status(400).json({ error: "Некорректный email" })
-  
-  const data = db.get()
-  if (data.users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
-    return res.status(400).json({ error: "Email уже зарегистрирован" })
-  }
-
-  const code = Math.floor(100000 + Math.random() * 900000).toString()
-  verificationCodes.set(email.toLowerCase(), { code, exp: Date.now() + 15 * 60 * 1000 })
-  
-  const result = await sendVerificationEmail(email.toLowerCase(), code)
-  
-  if (result.ok) {
-    res.json({ ok: true, message: "Код подтверждения отправлен на почту" })
-  } else {
-    // Детальная ошибка прямо в поле error, чтобы фронт её вывел
-    res.status(500).json({ 
-      error: `Ошибка почты: ${result.error || 'Unknown'}. Убедитесь, что SMTP_USER и SMTP_PASS вписаны в Railway Variables!`
-    })
-  }
-})
-
 r.post("/register", (req, res) => {
-  const { username, email, password, deviceId, promoCode, verificationCode } = req.body || {}
+  const { username, email, password, deviceId, promoCode } = req.body || {}
   
-  if (!username || !email || !password || !verificationCode) {
+  if (!username || !email || !password) {
     return res.status(400).json({ error: "Заполните все поля" })
   }
-
-  const v = verificationCodes.get(email.toLowerCase())
-  if (!v || v.code !== String(verificationCode)) {
-    return res.status(400).json({ error: "Неверный код подтверждения" })
-  }
-  if (Date.now() > v.exp) {
-    verificationCodes.delete(email.toLowerCase())
-    return res.status(400).json({ error: "Код подтверждения истек" })
-  }
   
   const data = db.get()
-  const exists = data.users.find(u => u.email.toLowerCase() === email.toLowerCase())
-  
-  if (exists) {
-    return res.status(400).json({ error: "Email уже зарегистрирован" })
-  }
+  if (data.users.find(u => u.username.toLowerCase() === username.toLowerCase())) return res.status(400).json({ error: "Никнейм занят" })
+  if (data.users.find(u => u.email.toLowerCase() === email.toLowerCase())) return res.status(400).json({ error: "Email занят" })
   
   const id = db.id()
   const createdAt = new Date().toISOString()
