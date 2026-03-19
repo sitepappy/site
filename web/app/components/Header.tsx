@@ -72,8 +72,8 @@ export default function Header() {
     { name: "Ставки", href: "/bets" },
     { name: "Награды", href: "/rewards" },
     { name: "Я реферал", href: "/referral" },
+    { name: "Квесты", href: "/quests" },
     { name: "О нас", href: "/about" },
-    { name: "Расписание", href: "/schedule" },
     { name: "Репорт", href: "/report" },
     { name: "Профиль", href: "/profile" },
   ]
@@ -107,33 +107,23 @@ export default function Header() {
           </Link>
 
           {/* Десктопная навигация */}
-          <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
-            {[
-              { href: "/", label: "Главная" },
-              { href: "/leaderboard", label: "Лидерборд" },
-              { href: "/chat", label: "Чат" },
-              { href: "/bets", label: "Ставки" },
-              { href: "/rewards", label: "Награды" },
-              { href: "/referral", label: "Я реферал" },
-              { href: "/about", label: "О нас" },
-              { href: "/report", label: "Репорт" },
-              { href: "/profile", label: "Профиль" },
-            ].map((link) => (
+          <nav className="hidden md:flex items-center gap-1 xl:gap-2">
+            {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${
+                className={`px-2 py-1.5 rounded-lg text-[10px] xl:text-[11px] font-black uppercase tracking-widest transition-all ${
                   pathname === link.href ? "bg-neon text-black shadow-neon" : "text-white/50 hover:text-white hover:bg-white/5"
                 }`}
               >
-                {link.label}
+                {link.name}
               </Link>
             ))}
             
             {mounted && isAdminOrModerator && (
               <Link 
                 href="/admin"
-                className={`ml-2 px-3 py-1.5 rounded-lg text-[11px] font-black uppercase transition-all border border-acid/30 ${
+                className={`ml-1 px-2 py-1.5 rounded-lg text-[10px] xl:text-[11px] font-black uppercase transition-all border border-acid/30 ${
                   pathname.startsWith("/admin") ? "bg-acid text-black shadow-acid" : "text-acid hover:bg-acid/10"
                 }`}
               >
@@ -166,7 +156,7 @@ export default function Header() {
               </div>
             )}
             
-            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="lg:hidden p-2 text-white/60 hover:text-neon">
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-2 text-white/60 hover:text-neon">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 {mobileMenuOpen ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /> : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />}
               </svg>
@@ -177,7 +167,7 @@ export default function Header() {
 
       {/* Мобильное меню (старое) */}
       {mounted && mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-[2000] bg-[#0a0a0f]/95 backdrop-blur-2xl animate-in fade-in slide-in-from-top-4 duration-300">
+        <div className="md:hidden fixed inset-0 z-[2000] bg-[#0a0a0f]/95 backdrop-blur-2xl animate-in fade-in slide-in-from-top-4 duration-300">
           <div className="absolute inset-0 bg-black/40" onClick={() => setMobileMenuOpen(false)}></div>
           <nav className="relative z-10 flex flex-col pt-[72px] px-6 pb-10 gap-2 h-full overflow-y-auto">
             <div className="text-[11px] font-black text-white/60 uppercase tracking-[0.3em] mb-4 border-b border-white/10 pb-3">Навигация</div>
@@ -201,7 +191,7 @@ export default function Header() {
       )}
 
       {/* Нижняя панель (Только для мобильных устройств) */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[1500] pwa-bottom-nav bg-[#0a0a0f]/95 backdrop-blur-xl border-t border-white/10">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[1500] pwa-bottom-nav bg-[#0a0a0f]/95 backdrop-blur-xl border-t border-white/10">
         <div className="grid grid-cols-5 h-[64px] max-w-lg mx-auto">
           {[
             { href: "/", icon: "🏠", label: "Дом" },
