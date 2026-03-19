@@ -35,7 +35,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="min-h-screen bg-base bg-cyber overflow-x-hidden">
           <Header />
           <PwaRegister />
-          <div className="pwa-spacer"></div>
           <main className="max-w-7xl mx-auto px-4 py-6 pb-24 lg:pb-6">{children}</main>
         </div>
       </body>
