@@ -11,6 +11,52 @@ const REFERRAL_REWARD = 10
 // Модераторы и Админы могут заходить в панель в целом
 r.use(authRequired, moderatorOrAdmin)
 
+r.get("/stats", (req, res) => {
+  const data = db.get()
+  const usersCount = data.users.length
+  const activeBetsCount = data.bets.filter(b => b.status === "open").length
+  const totalBalance = data.users.reduce((sum, u) => sum + (u.balance || 0), 0)
+  const pendingReports = (data.reports || []).filter(r => r.status === "pending").length
+
+  res.json({
+    usersCount,
+    activeBetsCount,
+    totalBalance,
+    pendingReports
+  })
+})
+
+r.get("/logs", (req, res) => {
+  const data = db.get()
+  const logs = [...(data.transactions || [])]
+    .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))
+    .slice(0, 50)
+    .map(l => {
+      const u = data.users.find(x => x.id === l.userId)
+      return { ...l, username: u?.username || "System" }
+    })
+  res.json(logs)
+})
+
+r.post("/broadcast", adminOnly, (req, res) => {
+  const { title, body } = req.body || {}
+  if (!title || !body) return res.status(400).json({ error: "Пустые данные" })
+  
+  const data = db.get()
+  data.users.forEach(u => {
+    pushNotification(data, { userId: u.id, type: "system", title, body })
+  })
+  db.save(data)
+  res.json({ ok: true })
+})
+
+r.post("/logs/clear", adminOnly, (req, res) => {
+  const data = db.get()
+  data.transactions = []
+  db.save(data)
+  res.json({ ok: true })
+})
+
 r.get("/users", (req, res) => {
   const q = String(req.query.q || "").toLowerCase()
   const data = db.get()
@@ -148,13 +194,56 @@ r.get("/users/:id", (req, res) => {
   const u = data.users.find(x => x.id === req.params.id)
   if (!u) return res.status(404).json({ error: "Пользователь не найден" })
   
-  const logs = data.transactions.filter(t => t.userId === u.id).sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))
+  const transactions = data.transactions.filter(t => t.userId === u.id).sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))
   const bets = data.bets.filter(b => b.userId === u.id).sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))
   
+  // Connections
+  const sameIps = data.users.filter(other => 
+    other.id !== u.id && 
+    Array.isArray(other.ips) && 
+    Array.isArray(u.ips) && 
+    other.ips.some(ip => u.ips.includes(ip))
+  ).map(other => ({ id: other.id, username: other.username, commonIps: other.ips.filter(ip => u.ips.includes(ip)) }))
+
+  const sameDevices = data.users.filter(other => 
+    other.id !== u.id && 
+    Array.isArray(other.deviceIds) && 
+    Array.isArray(u.deviceIds) && 
+    other.deviceIds.some(did => u.deviceIds.includes(did))
+  ).map(other => ({ id: other.id, username: other.username, commonDevices: other.deviceIds.filter(did => u.deviceIds.includes(did)) }))
+
+  // Risk Score calculation (simple version)
+  let riskScore = 0
+  if (sameIps.length > 0) riskScore += 30 + (sameIps.length * 5)
+  if (sameDevices.length > 0) riskScore += 40 + (sameDevices.length * 10)
+  if (u.isBanned) riskScore = 100
+  riskScore = Math.min(riskScore, 100)
+
+  // Timeline
+  const timeline = [
+    ...transactions.map(t => ({ type: "transaction", ...t })),
+    ...bets.map(b => ({ type: "bet", ...b })),
+    { type: "registration", createdAt: u.createdAt, note: "Регистрация в системе" }
+  ].sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))
+
   res.json({ 
-    user: { id: u.id, username: u.username, email: u.email, balance: u.balance, role: u.role, levelId: u.levelId, isBanned: u.isBanned, createdAt: u.createdAt },
-    logs,
-    bets
+    user: { 
+      id: u.id, 
+      username: u.username, 
+      email: u.email, 
+      balance: u.balance, 
+      role: u.role, 
+      levelId: u.levelId, 
+      isBanned: u.isBanned, 
+      createdAt: u.createdAt,
+      ips: u.ips || [],
+      deviceIds: u.deviceIds || []
+    },
+    logs: transactions,
+    bets,
+    connections: { sameIps, sameDevices },
+    riskScore,
+    timeline
   })
 })
 

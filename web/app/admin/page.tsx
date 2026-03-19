@@ -7,7 +7,11 @@ import Link from "next/link"
 export default function AdminPage() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState("posts")
+  const [activeTab, setActiveTab] = useState("dashboard")
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [stats, setStats] = useState<any>(null)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [logs, setLogs] = useState<any[]>([])
   const router = useRouter()
 
   // Состояния для форм
@@ -87,7 +91,14 @@ export default function AdminPage() {
 
   const loadData = async (tab: string) => {
     try {
-      if (tab === "users") {
+      if (tab === "dashboard") {
+        const [statsData, logsData] = await Promise.all([
+          api("/admin/stats"),
+          api("/admin/logs")
+        ])
+        setStats(statsData)
+        setLogs(logsData)
+      } else if (tab === "users") {
         const usersData = await api("/admin/users")
         setUsersList(usersData)
       } else if (tab === "posts") {
@@ -400,61 +411,254 @@ export default function AdminPage() {
   const isOnlyModerator = user?.role === "moderator"
 
   const sidebarLinks = [
-    { id: "posts", name: "Лента (Посты)" },
-    { id: "matches", name: "Матчи (Ставки)" },
-    { id: "users", name: "Пользователи" },
-    { id: "quests", name: "Квесты" },
-    { id: "reports", name: "Репорты / Тикеты" },
-    { id: "chat", name: "Админ-чат 💬" },
-    { id: "about", name: "О нас" },
-    { id: "schedule", name: "РАСПИСАНИЕ" },
-    { id: "rewards", name: "Награды" },
-    { id: "orders", name: "Заказы" },
-    { id: "promos", name: "Промокоды 🎁" },
+    { id: "dashboard", name: "Дашборд", icon: "📊" },
+    { id: "posts", name: "Лента", icon: "📝" },
+    { id: "matches", name: "Матчи", icon: "🎮" },
+    { id: "users", name: "Пользователи", icon: "👥" },
+    { id: "reports", name: "Тикеты", icon: "🎫" },
+    { id: "chat", name: "Админ-чат", icon: "💬" },
+    { id: "orders", name: "Заказы", icon: "🛒" },
+    { id: "promos", name: "Промокоды", icon: "🎁" },
+    { id: "quests", name: "Квесты", icon: "🎯" },
+    { id: "rewards", name: "Награды", icon: "🏆" },
+    { id: "about", name: "О нас", icon: "ℹ️" },
+    { id: "schedule", name: "Расписание", icon: "📅" },
   ]
 
   return (
-    <div className="glass rounded-lg border border-white/5 overflow-hidden max-w-6xl mx-auto">
-      <div className="bg-white/5 border-b border-white/10 p-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-acid tracking-tighter uppercase">Панель управления</h1>
-        <div className="flex items-center gap-4">
-          {msg && <span className="text-neon text-xs font-bold animate-bounce">{msg}</span>}
-          <div className="text-[10px] px-2 py-1 rounded border border-acid/50 text-acid font-mono uppercase">
-            Доступ: {user?.role}
-          </div>
-        </div>
+    <div className="min-h-screen bg-black/40 text-white font-sans selection:bg-neon/30 selection:text-neon">
+      {/* Mobile Header */}
+      <div className="md:hidden flex items-center justify-between p-4 glass sticky top-0 z-50 border-b border-white/10">
+        <h1 className="text-lg font-black text-acid uppercase tracking-tighter">ADMIN PANEL</h1>
+        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 bg-white/5 rounded-lg">
+          {mobileMenuOpen ? "✕" : "☰"}
+        </button>
       </div>
 
-      <div className="flex flex-col md:flex-row min-h-[700px]">
-        <div className="w-full md:w-64 bg-black/20 border-r border-white/5 p-2">
-          <div className="md:hidden">
-            <select
-              value={activeTab}
-              onChange={(e) => setActiveTab(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[11px] font-black uppercase tracking-widest outline-none focus:border-neon"
-            >
-              {sidebarLinks.map((l) => (
-                <option key={l.id} value={l.id}>{l.name}</option>
-              ))}
-            </select>
+      <div className="flex flex-col md:flex-row max-w-[1600px] mx-auto min-h-screen relative">
+        {/* Sidebar */}
+        <aside className={`
+          fixed md:sticky top-0 left-0 z-40
+          w-[280px] h-screen
+          bg-black/90 md:bg-black/20 
+          border-r border-white/5
+          transition-transform duration-300 ease-in-out
+          ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+          flex flex-col
+        `}>
+          <div className="p-6 border-b border-white/5 hidden md:block">
+            <h1 className="text-xl font-black text-acid uppercase tracking-tighter">ADMIN CORE</h1>
+            <div className="mt-1 text-[10px] text-white/30 uppercase font-bold tracking-widest">v2.0 Beta</div>
           </div>
 
-          <div className="hidden md:flex md:flex-col gap-1">
+          <nav className="flex-1 p-4 space-y-1 overflow-y-auto custom-scrollbar">
             {sidebarLinks.map((link) => (
               <button
                 key={link.id}
-                onClick={() => setActiveTab(link.id)}
-                className={`whitespace-nowrap md:whitespace-normal text-left p-3 rounded text-xs md:text-sm transition-all ${activeTab === link.id ? "bg-neon text-black font-bold shadow-neon" : "hover:bg-white/5 text-white/60"}`}
+                onClick={() => {
+                  setActiveTab(link.id)
+                  setMobileMenuOpen(false)
+                }}
+                className={`
+                  w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200 group
+                  ${activeTab === link.id 
+                    ? "bg-neon text-black shadow-lg shadow-neon/20 translate-x-1" 
+                    : "text-white/60 hover:text-white hover:bg-white/5"}
+                `}
               >
-                {link.name}
+                <span className="text-lg group-hover:scale-110 transition-transform">{link.icon}</span>
+                <span className="flex-1 text-left">{link.name}</span>
+                {activeTab === link.id && <div className="w-1.5 h-1.5 rounded-full bg-black"></div>}
               </button>
             ))}
-          </div>
-        </div>
+          </nav>
 
-        {/* Content Area */}
-        <div className="flex-1 p-4 md:p-6 overflow-y-auto max-h-[1000px] md:max-h-[800px]">
-          {activeTab === "posts" && (
+          <div className="p-4 mt-auto border-t border-white/5">
+            <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5">
+              <div className="w-10 h-10 rounded-xl bg-acid/20 flex items-center justify-center text-acid font-black border border-acid/20">
+                {user?.username?.[0]?.toUpperCase()}
+              </div>
+              <div className="flex-1 overflow-hidden text-left">
+                <div className="text-xs font-black text-white truncate uppercase">{user?.username}</div>
+                <div className="text-[9px] text-acid font-mono uppercase tracking-widest">{user?.role}</div>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <main className="flex-1 min-w-0 p-4 md:p-8">
+          <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-500">
+            <div>
+              <div className="text-[10px] text-white/30 font-black uppercase tracking-widest mb-1">Системный раздел</div>
+              <h2 className="text-3xl font-black text-white uppercase tracking-tighter">
+                {sidebarLinks.find(l => l.id === activeTab)?.name}
+              </h2>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="relative group">
+                <input
+                  type="text"
+                  placeholder="Поиск по системе..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full md:w-64 bg-white/5 border border-white/10 rounded-2xl px-4 py-2.5 pl-10 text-xs outline-none focus:border-neon focus:ring-1 focus:ring-neon/20 transition-all"
+                />
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-neon">🔍</span>
+              </div>
+              
+              <button onClick={() => loadData(activeTab)} className="p-2.5 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all" title="Обновить данные">
+                🔄
+              </button>
+              
+              {msg && (
+                <div className="fixed bottom-8 right-8 z-[100] bg-neon text-black px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-neon/40 animate-in fade-in slide-in-from-bottom-4">
+                  {msg}
+                </div>
+              )}
+            </div>
+          </header>
+
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {activeTab === "dashboard" && (
+              <div className="space-y-8">
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {[
+                    { label: "Всего пользователей", value: stats?.usersCount || 0, icon: "👥", trend: "+12%" },
+                    { label: "Активные ставки", value: stats?.activeBetsCount || 0, icon: "🎮", trend: "+5%" },
+                    { label: "Баланс системы", value: stats?.totalBalance || 0, icon: "🪙", trend: "-2%" },
+                    { label: "Новые тикеты", value: stats?.pendingReports || 0, icon: "🎫", color: "text-yellow-400" },
+                  ].map((s, idx) => (
+                    <div key={idx} className="glass p-6 rounded-3xl border border-white/5 hover:border-white/10 transition-all group">
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-2xl">{s.icon}</span>
+                        {s.trend && (
+                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${s.trend.startsWith('+') ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
+                            {s.trend}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[10px] text-white/30 uppercase font-black tracking-widest mb-1">{s.label}</div>
+                      <div className={`text-2xl font-black ${s.color || 'text-white'}`}>{s.value.toLocaleString()}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="grid lg:grid-cols-3 gap-8">
+                  {/* Recent Logs */}
+                  <div className="lg:col-span-2 space-y-4">
+                    <div className="flex items-center justify-between px-2">
+                      <h3 className="text-sm font-black text-white/40 uppercase tracking-widest">Последние действия</h3>
+                      <button className="text-[10px] text-neon font-black uppercase tracking-widest hover:underline">Все логи</button>
+                    </div>
+                    <div className="glass rounded-3xl border border-white/5 overflow-hidden">
+                      <div className="max-h-[500px] overflow-y-auto custom-scrollbar">
+                        {logs.length > 0 ? logs.map((log: any, idx: number) => (
+                          <div key={idx} className="flex items-center gap-4 p-4 border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                            <div className={`w-1.5 h-1.5 rounded-full ${
+                              log.type === 'error' ? 'bg-red-500' : 
+                              log.type === 'admin' ? 'bg-neon' : 'bg-acid'
+                            }`}></div>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs font-bold text-white/90 truncate">{log.message || log.note}</div>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-[9px] text-white/30 font-mono uppercase">{log.username || 'System'}</span>
+                                <span className="text-[9px] text-white/20">•</span>
+                                <span className="text-[9px] text-white/30 font-mono">{new Date(log.createdAt).toLocaleString()}</span>
+                              </div>
+                            </div>
+                            {log.amount && (
+                              <div className={`text-[10px] font-black font-mono ${log.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                {log.amount > 0 ? '+' : ''}{log.amount} 🪙
+                              </div>
+                            )}
+                          </div>
+                        )) : (
+                          <div className="p-12 text-center text-white/10 uppercase font-black italic tracking-widest text-xs">
+                            Логов пока нет
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-black text-white/40 uppercase tracking-widest px-2">Быстрые действия</h3>
+                    <div className="grid grid-cols-1 gap-3">
+                      {[
+                        { 
+                          label: "Разослать уведомление", 
+                          icon: "🔔", 
+                          action: async () => {
+                            const title = prompt("Заголовок уведомления:")
+                            const body = prompt("Текст уведомления:")
+                            if (!title || !body) return
+                            try {
+                              await api("/admin/broadcast", { method: "POST", body: JSON.stringify({ title, body }) })
+                              setMsg("Уведомление отправлено всем!")
+                              setTimeout(() => setMsg(""), 3000)
+                            } catch (e: any) { alert(e.message) }
+                          } 
+                        },
+                        { 
+                          label: "Экспорт пользователей (CSV)", 
+                          icon: "📥", 
+                          action: () => {
+                            const headers = ["ID", "Username", "Email", "Balance", "Role", "Banned"]
+                            const csv = [
+                              headers.join(","),
+                              ...usersList.map(u => [u.id, u.username, u.email, u.balance, u.role, u.isBanned].join(","))
+                            ].join("\n")
+                            const blob = new Blob([csv], { type: 'text/csv' })
+                            const url = window.URL.createObjectURL(blob)
+                            const a = document.createElement('a')
+                            a.setAttribute('hidden', '')
+                            a.setAttribute('href', url)
+                            a.setAttribute('download', 'users.csv')
+                            document.body.appendChild(a)
+                            a.click()
+                            document.body.removeChild(a)
+                          } 
+                        },
+                        { 
+                          label: "Очистить логи транзакций", 
+                          icon: "🗑️", 
+                          action: async () => {
+                            if (!confirm("ВНИМАНИЕ! Это удалит ВСЕ логи транзакций. Продолжить?")) return
+                            try {
+                              await api("/admin/logs/clear", { method: "POST" })
+                              loadData("dashboard")
+                              setMsg("Логи очищены")
+                              setTimeout(() => setMsg(""), 3000)
+                            } catch (e: any) { alert(e.message) }
+                          } 
+                        },
+                      ].map((a, idx) => (
+                        <button key={idx} onClick={a.action} className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-neon/30 hover:bg-neon/5 transition-all text-left group">
+                          <span className="text-xl group-hover:scale-110 transition-transform">{a.icon}</span>
+                          <span className="text-xs font-black uppercase tracking-widest text-white/80 group-hover:text-neon">{a.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                    
+                    {/* Activity Preview */}
+                    <div className="glass p-6 rounded-3xl border border-white/5 mt-8">
+                      <div className="text-[10px] text-white/30 uppercase font-black tracking-widest mb-4">Активность (24ч)</div>
+                      <div className="flex items-end justify-between h-24 gap-1">
+                        {[40, 70, 45, 90, 65, 80, 50, 60, 85, 40, 75, 95].map((h, i) => (
+                          <div key={i} className="flex-1 bg-neon/20 hover:bg-neon transition-all rounded-t-sm" style={{ height: `${h}%` }}></div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {activeTab === "posts" && (
             <div className="space-y-8">
               <form onSubmit={handleCreatePost} className="space-y-4 max-w-xl glass p-4 rounded-lg">
                 <h2 className="text-lg font-bold text-neon uppercase">Новый пост</h2>
@@ -566,164 +770,271 @@ export default function AdminPage() {
           )}
 
           {activeTab === "users" && (
-            <div className="grid lg:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <h2 className="text-lg font-bold text-neon uppercase">Пользователи</h2>
-                <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2">
-                  {usersList.map(u => (
-                    <div key={u.id} onClick={() => viewUser(u.id)} className={`flex items-center justify-between p-3 rounded border transition-colors cursor-pointer ${selectedUser?.user?.id === u.id ? "bg-neon/10 border-neon" : "bg-white/5 border-white/10 hover:border-white/20"}`}>
-                      <div className="text-sm">
-                        <div className="font-bold flex items-center gap-2">
-                          {u.username} 
-                          {u.role === 'admin' && <span className="text-[8px] bg-acid text-black px-1 rounded">ADM</span>}
-                          {u.role === 'moderator' && <span className="text-[8px] bg-neon text-black px-1 rounded">MOD</span>}
-                          {u.isBanned && <span className="text-[8px] bg-red-500 text-white px-1 rounded">BAN</span>}
+            <div className="grid lg:grid-cols-12 gap-8">
+              {/* User List Sidebar */}
+              <div className="lg:col-span-4 space-y-4">
+                <div className="flex items-center justify-between px-2">
+                  <h3 className="text-xs font-black text-white/40 uppercase tracking-widest">База пользователей</h3>
+                  <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded-full text-white/40">{usersList.length}</span>
+                </div>
+                
+                <div className="glass rounded-3xl border border-white/5 overflow-hidden">
+                  <div className="max-h-[700px] overflow-y-auto custom-scrollbar">
+                    {usersList
+                      .filter(u => !searchTerm || u.username.toLowerCase().includes(searchTerm.toLowerCase()) || u.email.toLowerCase().includes(searchTerm.toLowerCase()))
+                      .map(u => (
+                      <div key={u.id} onClick={() => viewUser(u.id)} className={`
+                        flex items-center gap-4 p-4 cursor-pointer transition-all border-b border-white/5
+                        ${selectedUser?.user?.id === u.id ? "bg-neon/10 border-l-4 border-l-neon" : "hover:bg-white/[0.02]"}
+                      `}>
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs ${u.isBanned ? 'bg-red-500/20 text-red-500' : 'bg-white/5 text-white/40'}`}>
+                          {u.username[0].toUpperCase()}
                         </div>
-                        <div className="text-[10px] text-white/40 truncate max-w-[150px]">{u.email}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-white truncate">{u.username}</span>
+                            {u.role !== 'user' && <span className="text-[8px] px-1 rounded bg-acid text-black font-black uppercase">{u.role}</span>}
+                          </div>
+                          <div className="text-[10px] text-white/30 truncate">{u.email}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs font-black text-acid font-mono">{u.balance} 🪙</div>
+                          {u.isBanned && <div className="text-[8px] text-red-500 font-black uppercase">BANNED</div>}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="text-xs font-mono text-acid">{u.balance} 🪙</div>
-                        <Link
-                          href={`/profile/${u.id}`}
-                          onClick={(e) => e.stopPropagation()}
-                          className="px-2 py-1 rounded bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest text-white/50 hover:text-white hover:border-neon/30 transition-all"
-                        >
-                          Профиль
-                        </Link>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              <div className="glass p-4 rounded-lg min-h-[400px]">
+              {/* User Dossier View */}
+              <div className="lg:col-span-8 min-h-[600px]">
                 {selectedUser ? (
-                  <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-                    <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-                      <div>
-                        <h3 className="text-xl font-bold text-neon">{selectedUser.user.username}</h3>
-                        <div className="text-[10px] text-white/40 font-mono">ID: {selectedUser.user.id}</div>
-                      </div>
-                      <button onClick={() => handleBanUser(selectedUser.user.id, !selectedUser.user.isBanned)} 
-                        className={`w-full md:w-auto px-4 py-2 rounded text-[10px] font-bold uppercase transition-all ${selectedUser.user.isBanned ? "bg-green-500 text-black hover:bg-green-400" : "bg-red-500 text-white hover:bg-red-400"}`}>
-                        {selectedUser.user.isBanned ? "Разбанить" : "Забанить пользователя"}
-                      </button>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="p-3 bg-black/20 rounded border border-white/5 text-center">
-                        <div className="text-[10px] text-white/40 uppercase">Баланс</div>
-                        <div className="text-lg font-black text-acid">{selectedUser.user.balance}</div>
-                      </div>
-                      <div className="p-3 bg-black/20 rounded border border-white/5 text-center">
-                        <div className="text-[10px] text-white/40 uppercase">Роль</div>
-                        <div className="text-lg font-black uppercase text-white">{selectedUser.user.role}</div>
-                      </div>
-                    </div>
+                  <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500">
+                    {/* Header Card */}
+                    <div className="glass p-8 rounded-[40px] border border-white/5 relative overflow-hidden">
+                      {/* Background Risk Indicator */}
+                      <div className={`absolute top-0 right-0 w-64 h-64 blur-[100px] opacity-20 transition-all ${
+                        selectedUser.riskScore > 60 ? 'bg-red-500' : selectedUser.riskScore > 30 ? 'bg-yellow-500' : 'bg-green-500'
+                      }`}></div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <h4 className="text-xs font-bold text-white/40 uppercase mb-2">Ставки пользователя</h4>
-                        <div className="space-y-1 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-                          {selectedUser.bets.map((b:any) => (
-                            <div key={b.id} className="text-[10px] p-2 rounded bg-white/5 flex justify-between items-center border-l-2 border-blue-500/30">
-                              <div>
-                                <div className="text-white/80">{b.matchName || "Ставка"}</div>
-                                <div className="text-white/40 italic">{b.optionName} x{b.odds}</div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-acid">{b.amount} 🪙</span>
-                                <button onClick={() => handleDeleteBet(b.id)} className="text-red-400 hover:text-red-300 ml-2" title="Удалить ставку">
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                                  </svg>
-                                </button>
-                              </div>
+                      <div className="relative flex flex-col md:flex-row justify-between items-start gap-8">
+                        <div className="flex gap-6">
+                          <div className="w-24 h-24 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center text-4xl font-black shadow-2xl">
+                            {selectedUser.user.username[0].toUpperCase()}
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-3">
+                              <h2 className="text-3xl font-black text-white uppercase tracking-tighter">{selectedUser.user.username}</h2>
+                              {selectedUser.user.isBanned && <span className="px-3 py-1 bg-red-500 text-black text-[10px] font-black rounded-full uppercase">Terminated</span>}
                             </div>
-                          ))}
-                          {selectedUser.bets.length === 0 && <div className="text-[10px] text-white/20 italic">Ставок нет</div>}
+                            <div className="flex flex-wrap items-center gap-3">
+                              <div className="text-xs text-white/40 font-mono">ID: {selectedUser.user.id}</div>
+                              <div className="w-1 h-1 rounded-full bg-white/10"></div>
+                              <div className="text-xs text-white/40">Joined {new Date(selectedUser.user.createdAt).toLocaleDateString()}</div>
+                            </div>
+                            <div className="flex gap-2 pt-2">
+                              <span className="px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-[9px] font-black uppercase text-white/60 tracking-widest">{selectedUser.user.role}</span>
+                              <span className="px-2 py-1 bg-acid/10 border border-acid/20 rounded-lg text-[9px] font-black uppercase text-acid tracking-widest">Level {selectedUser.user.levelId || 1}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col items-center md:items-end gap-2">
+                          <div className="text-[10px] text-white/30 uppercase font-black tracking-widest">Risk Analysis</div>
+                          <div className="flex items-center gap-4">
+                             <div className="text-4xl font-black text-white">{selectedUser.riskScore}%</div>
+                             <div className="w-12 h-12 relative">
+                               <svg className="w-full h-full transform -rotate-90">
+                                 <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" strokeWidth="4" className="text-white/5" />
+                                 <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" strokeWidth="4" 
+                                   strokeDasharray={125.6} 
+                                   strokeDashoffset={125.6 - (125.6 * selectedUser.riskScore / 100)}
+                                   className={`${selectedUser.riskScore > 60 ? 'text-red-500' : selectedUser.riskScore > 30 ? 'text-yellow-500' : 'text-green-500'}`}
+                                 />
+                               </svg>
+                             </div>
+                          </div>
                         </div>
                       </div>
 
-                      <div>
-                        <h4 className="text-xs font-bold text-white/40 uppercase mb-2">Логи транзакций</h4>
-                        <div className="space-y-1 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-                          {selectedUser.logs.map((l:any) => (
-                            <div key={l.id} className="text-[10px] p-2 rounded bg-white/5 flex justify-between border-l-2 border-neon/30">
-                              <span className="text-white/60 truncate mr-2">{l.note}</span>
-                              <span className={l.amount > 0 ? "text-green-400 font-bold" : "text-red-400 font-bold"}>
-                                {l.amount > 0 ? "+" : ""}{l.amount}
-                              </span>
-                            </div>
-                          ))}
-                          {selectedUser.logs.length === 0 && <div className="text-[10px] text-white/20 italic">Логов нет</div>}
+                      {/* Stats Quick Grid */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10">
+                        <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                          <div className="text-[9px] text-white/30 uppercase font-black tracking-widest mb-1">Balance</div>
+                          <div className="text-xl font-black text-acid font-mono">{selectedUser.user.balance} 🪙</div>
+                        </div>
+                        <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                          <div className="text-[9px] text-white/30 uppercase font-black tracking-widest mb-1">Total Bets</div>
+                          <div className="text-xl font-black text-white">{selectedUser.bets.length}</div>
+                        </div>
+                        <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                          <div className="text-[9px] text-white/30 uppercase font-black tracking-widest mb-1">Devices</div>
+                          <div className="text-xl font-black text-white">{selectedUser.user.deviceIds.length}</div>
+                        </div>
+                        <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                          <div className="text-[9px] text-white/30 uppercase font-black tracking-widest mb-1">IP Addresses</div>
+                          <div className="text-xl font-black text-white">{selectedUser.user.ips.length}</div>
                         </div>
                       </div>
                     </div>
 
-                    {!isOnlyModerator && (
-                      <div className="pt-4 border-t border-white/10 space-y-4">
-                         <h4 className="text-xs font-bold text-white/40 uppercase mb-2">Админ-действия</h4>
-                         
-                         <div className="space-y-2">
-                           <label className="text-[9px] text-white/30 uppercase font-black">Выдать Уровень</label>
-                           <div className="flex flex-wrap gap-1">
-                             {levelsList.map((lvl: any) => (
-                               <button 
-                                 key={lvl.id}
-                                 onClick={() => handleUpdateLevel(selectedUser.user.id, lvl.id)}
-                                 className={`px-2 py-1 rounded text-[9px] font-black uppercase transition-all ${selectedUser.user.levelId === lvl.id ? "bg-acid text-black" : "bg-white/5 text-white/40 hover:bg-white/10"}`}
-                               >
-                                 {lvl.name}
-                               </button>
-                             ))}
-                             {levelsList.length === 0 && <span className="text-[9px] text-red-400">Уровни не загружены. Обновите страницу.</span>}
+                    <div className="grid md:grid-cols-2 gap-8">
+                      {/* Connections (Graph-like view) */}
+                      <div className="space-y-4">
+                        <h3 className="text-xs font-black text-white/40 uppercase tracking-widest px-2">Связи и Мультиаккаунты</h3>
+                        <div className="glass p-6 rounded-[32px] border border-white/5 space-y-6 overflow-hidden">
+                          {/* Visual Graph Area */}
+                          <div className="h-48 relative flex items-center justify-center bg-black/40 rounded-2xl border border-white/5">
+                            {/* Central User */}
+                            <div className="relative z-10 w-16 h-16 rounded-2xl bg-neon text-black flex items-center justify-center font-black shadow-[0_0_30px_rgba(0,255,255,0.3)]">
+                              YOU
+                            </div>
+                            
+                            {/* Connection Lines & Other Users */}
+                            {selectedUser.connections.sameIps.concat(selectedUser.connections.sameDevices).slice(0, 4).map((c: any, i: number) => {
+                              const angle = (i * (360 / Math.min(4, selectedUser.connections.sameIps.length + selectedUser.connections.sameDevices.length))) * (Math.PI / 180)
+                              const x = Math.cos(angle) * 80
+                              const y = Math.sin(angle) * 60
+                              return (
+                                <div key={i} className="absolute transition-all duration-700 animate-in zoom-in fade-in" style={{ transform: `translate(${x}px, ${y}px)` }}>
+                                  <div className="w-1 h-px bg-red-500/20 absolute top-1/2 left-1/2 -translate-x-full origin-right" style={{ width: '60px', transform: `rotate(${angle * 180 / Math.PI}deg)` }}></div>
+                                  <div className="w-10 h-10 rounded-xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-[8px] font-black text-red-500 uppercase text-center p-1 leading-tight backdrop-blur-sm">
+                                    {c.username.slice(0, 6)}
+                                  </div>
+                                </div>
+                              )
+                            })}
+                            
+                            {selectedUser.connections.sameIps.length === 0 && selectedUser.connections.sameDevices.length === 0 && (
+                              <div className="text-[10px] text-white/10 uppercase font-black tracking-widest">No connections found</div>
+                            )}
+                          </div>
+
+                          <div className="space-y-4">
+                            <div>
+                              <div className="text-[10px] text-white/30 uppercase font-black mb-3">Совпадения по IP ({selectedUser.connections.sameIps.length})</div>
+                              <div className="space-y-2">
+                                {selectedUser.connections.sameIps.map((c: any) => (
+                                  <div key={c.id} className="flex items-center justify-between p-3 rounded-xl bg-red-500/5 border border-red-500/10 hover:bg-red-500/10 transition-colors">
+                                    <div className="text-xs font-bold text-white">{c.username}</div>
+                                    <div className="text-[9px] text-red-400 font-mono">{c.commonIps[0]}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div>
+                              <div className="text-[10px] text-white/30 uppercase font-black mb-3">Совпадения по Устройствам ({selectedUser.connections.sameDevices.length})</div>
+                              <div className="space-y-2">
+                                {selectedUser.connections.sameDevices.map((c: any) => (
+                                  <div key={c.id} className="flex items-center justify-between p-3 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition-colors">
+                                    <div className="text-xs font-bold text-white">{c.username}</div>
+                                    <div className="text-[9px] text-red-500 font-black uppercase tracking-tighter">DUPLICATE DEVICE</div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Playbooks */}
+                        <h3 className="text-xs font-black text-white/40 uppercase tracking-widest px-2 pt-4">Сценарии (Playbooks)</h3>
+                        <div className="grid grid-cols-1 gap-2">
+                          {[
+                            { 
+                              name: "Подозрительный пользователь", 
+                              desc: "Проверка IP, логов и временная блокировка",
+                              action: async () => {
+                                if (!confirm("Запустить сценарий 'Подозрительный пользователь'?")) return
+                                setMsg("Запуск сценария...")
+                                await handleBanUser(selectedUser.user.id, true)
+                                await handleUpdateRole(selectedUser.user.id, "user")
+                                setMsg("Сценарий выполнен: пользователь заблокирован для проверки")
+                              }
+                            },
+                            { 
+                              name: "Амнистия", 
+                              desc: "Разблокировка и сброс риск-скора",
+                              action: async () => {
+                                await handleBanUser(selectedUser.user.id, false)
+                                setMsg("Амнистия применена")
+                              }
+                            }
+                          ].map((p, idx) => (
+                            <button key={idx} onClick={p.action} className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-acid/30 hover:bg-acid/5 transition-all text-left group">
+                              <div className="text-[10px] font-black uppercase tracking-widest text-acid mb-1">{p.name}</div>
+                              <div className="text-[9px] text-white/40">{p.desc}</div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Timeline */}
+                      <div className="space-y-4">
+                        <h3 className="text-xs font-black text-white/40 uppercase tracking-widest px-2">Timeline Событий</h3>
+                        <div className="glass p-6 rounded-[32px] border border-white/5 relative">
+                          <div className="absolute left-8 top-10 bottom-10 w-px bg-white/5"></div>
+                          <div className="space-y-8 max-h-[600px] overflow-y-auto custom-scrollbar pr-2">
+                            {selectedUser.timeline.map((item: any, idx: number) => (
+                              <div key={idx} className="relative flex gap-6 group">
+                                <div className={`w-4 h-4 rounded-full border-4 border-black z-10 mt-1 transition-all group-hover:scale-125 ${
+                                  item.type === 'registration' ? 'bg-acid' : 
+                                  item.type === 'bet' ? 'bg-blue-500' : 
+                                  item.amount > 0 ? 'bg-green-500' : 'bg-red-500'
+                                }`}></div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-[10px] text-white/30 font-mono mb-1">{new Date(item.createdAt).toLocaleString()}</div>
+                                  <div className="text-xs font-bold text-white/90">{item.note || (item.type === 'bet' ? `Ставка на ${item.matchName}` : "Транзакция")}</div>
+                                  {item.amount && (
+                                    <div className={`text-[10px] font-black mt-1 ${item.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                      {item.amount > 0 ? '+' : ''}{item.amount} 🪙
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Quick Balance Actions */}
+                        <div className="glass p-6 rounded-[32px] border border-white/5 space-y-4">
+                           <div className="text-[10px] text-white/30 uppercase font-black tracking-widest">Коррекция баланса</div>
+                           <div className="flex gap-2">
+                              <input 
+                                type="number" 
+                                value={balanceDelta}
+                                onChange={(e) => setBalanceDelta(e.target.value)}
+                                className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm outline-none focus:border-neon"
+                                placeholder="Сумма..."
+                              />
+                              <button 
+                                onClick={() => {
+                                  const val = Number(balanceDelta)
+                                  if (val) handleUpdateBalance(selectedUser.user.id, val)
+                                }}
+                                className="px-6 py-2 bg-neon text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-neon/20"
+                              >
+                                Применить
+                              </button>
                            </div>
-                         </div>
-
-                         <div className="grid grid-cols-2 gap-2">
-                          <input
-                            value={balanceDelta}
-                            onChange={(e) => setBalanceDelta(e.target.value)}
-                            className="py-2 px-3 rounded bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest outline-none focus:border-neon"
-                            placeholder="+50 / -25"
-                          />
-                          <button
-                            onClick={() => {
-                              const value = Number(balanceDelta)
-                              if (!Number.isFinite(value) || value === 0) return alert("Введите число (например 50 или -25)")
-                              handleUpdateBalance(selectedUser.user.id, value)
-                              setBalanceDelta("")
-                              setMsg("Баланс обновлен!")
-                              setTimeout(() => setMsg(""), 3000)
-                            }}
-                            className="py-2 rounded bg-neon text-black text-[10px] uppercase font-black hover:scale-[1.02] active:scale-95 transition-all shadow-neon"
-                          >
-                            Применить
-                          </button>
-                         </div>
-                         <div className="grid grid-cols-2 gap-2">
-                           <button onClick={()=>handleUpdateRole(selectedUser.user.id, selectedUser.user.role === 'admin' ? 'user' : 'admin')} className={`py-2 rounded border text-[10px] uppercase font-bold transition-all ${selectedUser.user.role === 'admin' ? 'bg-red-500/20 border-red-500/30 text-red-400' : 'bg-acid/20 border-acid/30 text-acid hover:bg-acid hover:text-black'}`}>
-                             {selectedUser.user.role === 'admin' ? 'Снять админ' : 'Дать админ'}
-                           </button>
-                           <button onClick={()=>handleUpdateRole(selectedUser.user.id, selectedUser.user.role === 'moderator' ? 'user' : 'moderator')} className={`py-2 rounded border text-[10px] uppercase font-bold transition-all ${selectedUser.user.role === 'moderator' ? 'bg-red-500/20 border-red-500/30 text-red-400' : 'bg-neon/20 border-neon/30 text-neon hover:bg-neon hover:text-black'}`}>
-                             {selectedUser.user.role === 'moderator' ? 'Снять модер' : 'Дать модер'}
-                           </button>
-                         </div>
+                        </div>
                       </div>
-                    )}
+                    </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center h-full text-white/20 text-sm italic space-y-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 opacity-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    <span>Выберите пользователя для управления</span>
+                  <div className="flex flex-col items-center justify-center h-full text-white/10 space-y-6">
+                    <div className="text-8xl">📁</div>
+                    <div className="text-sm font-black uppercase tracking-[0.2em] animate-pulse text-center">
+                      Выберите объект для анализа данных<br/>
+                      <span className="text-[10px] opacity-30">Ожидание входящих запросов...</span>
+                    </div>
                   </div>
                 )}
               </div>
             </div>
           )}
+
 
           {activeTab === "reports" && (
             <div className="space-y-4">
