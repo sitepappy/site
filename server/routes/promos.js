@@ -80,7 +80,6 @@ r.post("/activate", authRequired, (req, res) => {
 
     u.balance += REFERRAL_REWARD
     
-    const owner = data.users.find(x => x.id === promo.ownerUserId)
     if (owner) {
       owner.balance += REFERRAL_REWARD
       owner.referralCount = (owner.referralCount || 0) + 1
