@@ -55,7 +55,6 @@ r.post("/activate", authRequired, (req, res) => {
   if (promo.disabled) return res.status(400).json({ error: "Промокод отключен" })
   const promoType = promo.type || "referral"
   
-  const u = data.users.find(x => x.id === req.user.id)
   if (!u) return res.status(404).json({ error: "Пользователь не найден" })
   if (!Array.isArray(u.activatedPromoCodes)) u.activatedPromoCodes = []
   
