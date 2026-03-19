@@ -2,20 +2,27 @@ import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 465,
-  secure: true, // Использование SSL (порт 465) надежнее для Railway/VPS
+  port: 587,
+  secure: false, // Использование STARTTLS (порт 587) часто лучше работает на облачных хостингах
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
-  pool: true,
-  maxConnections: 1,
+  connectionTimeout: 10000, // 10 секунд на подключение
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
 });
 
 export async function sendVerificationEmail(to, code) {
+  // Логируем наличие переменных (скрывая пароль частично)
+  console.log(`[EMAIL ATTEMPT] Sending to: ${to}`);
+  console.log(`[EMAIL CONFIG] USER: ${process.env.SMTP_USER ? 'SET' : 'MISSING'}, PASS: ${process.env.SMTP_PASS ? 'SET' : 'MISSING'}`);
+
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    const msg = "SMTP credentials (USER/PASS) are missing in .env!";
-    console.error(`[EMAIL CONFIG ERROR] ${msg}`);
+    const msg = "Данные почты (USER/PASS) не найдены в переменных окружения Railway!";
+    console.error(`[EMAIL ERROR] ${msg}`);
+    // Если переменных нет, пишем код в консоль, чтобы вы могли зарегаться
+    console.log(`\n!!! ВНИМАНИЕ: КОД ДЛЯ ${to} -> ${code} !!!\n`);
     return { ok: false, error: msg };
   }
 
@@ -40,6 +47,8 @@ export async function sendVerificationEmail(to, code) {
     return { ok: true };
   } catch (error) {
     console.error("[EMAIL ERROR DETAILS]", error);
+    // В случае ошибки соединения, всё равно пишем код в консоль сервера, чтобы не стопорить вас
+    console.log(`\n!!! ОШИБКА ПОЧТЫ, КОД ДЛЯ ${to} -> ${code} !!!\n`);
     return { ok: false, error: error.message };
   }
 }

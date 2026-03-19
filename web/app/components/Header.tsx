@@ -366,30 +366,26 @@ export default function Header() {
       )}
 
       {mounted && bottomMoreOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-end justify-center">
+        <div className="fixed inset-0 z-[9999] flex items-end justify-center animate-in fade-in duration-300">
           {/* Фон-затемнение */}
           <div 
             className="absolute inset-0 bg-black/80 backdrop-blur-md" 
             onClick={() => setBottomMoreOpen(false)}
           ></div>
           
-          {/* Сама панель, которая выезжает СНИЗУ */}
+          {/* Сама панель */}
           <div 
             style={{ 
-              paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)',
-              maxHeight: '90vh',
-              bottom: 0,
-              position: 'fixed',
-              left: 0,
-              right: 0
+              paddingBottom: 'calc(var(--safe-bottom) + 20px)',
+              maxHeight: '90vh'
             }}
-            className="w-full bg-[#0a0a0f] border-t border-neon/30 rounded-t-[40px] shadow-[0_-20px_50px_rgba(0,0,0,0.8)] flex flex-col"
+            className="relative w-full bg-[#0a0a0f] border-t border-neon/30 rounded-t-[40px] shadow-[0_-20px_50px_rgba(0,0,0,0.8)] flex flex-col animate-in slide-in-from-bottom-full duration-500"
           >
             {/* Полоска-индикатор */}
             <div className="w-16 h-1.5 bg-white/20 rounded-full mx-auto my-5"></div>
             
             <div className="px-8 pb-4 flex items-center justify-between border-b border-white/5 shrink-0">
-              <div className="text-xs font-black uppercase tracking-[0.3em] text-neon">Навигация Системы v2.1</div>
+              <div className="text-xs font-black uppercase tracking-[0.3em] text-neon">Навигация Системы v3.0</div>
               <button 
                 onClick={() => setBottomMoreOpen(false)}
                 className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60 active:scale-90 transition-all border border-white/10"
@@ -407,7 +403,7 @@ export default function Header() {
                     <div className="text-base font-mono text-acid font-bold drop-shadow-[0_0_8px_#39FF14]">{user.balance} 🪙</div>
                   </div>
                   <div className="grid grid-cols-2 gap-4 mt-5">
-                    <Link href="/profile" onClick={() => setBottomMoreOpen(false)} className="flex items-center justify-center p-4 rounded-2xl bg-neon text-black text-[11px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(123,46,255,0.5)] active:scale-95 transition-all italic">
+                    <Link href="/profile" onClick={() => setBottomMoreOpen(false)} className="flex items-center justify-center p-4 rounded-2xl bg-neon text-black text-[11px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(123,46,255,0.5)] active:scale-95 transition-all italic text-center">
                       Профиль
                     </Link>
                     <button onClick={logout} className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 text-[11px] font-black uppercase tracking-widest active:bg-red-500/20 transition-all italic">
@@ -446,7 +442,7 @@ export default function Header() {
                     }`}
                   >
                     <span className="text-3xl">{item.icon}</span>
-                    <span className="text-[11px] font-black uppercase tracking-widest">{item.label}</span>
+                    <span className="text-[11px] font-black uppercase tracking-widest text-center">{item.label}</span>
                   </Link>
                 ))}
               </div>
@@ -467,12 +463,22 @@ export default function Header() {
                 </Link>
               )}
 
-              {/* Кнопка принудительного обновления для PWA */}
               <button
-                onClick={() => window.location.reload()}
+                onClick={() => {
+                  if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then(registrations => {
+                      for(let registration of registrations) {
+                        registration.unregister();
+                      }
+                      window.location.reload();
+                    });
+                  } else {
+                    window.location.reload();
+                  }
+                }}
                 className="w-full p-4 rounded-2xl bg-white/5 border border-white/5 text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-white/60 transition-all mt-4"
               >
-                Обновить Интерфейс
+                Сбросить Кеш Приложения
               </button>
             </div>
           </div>
