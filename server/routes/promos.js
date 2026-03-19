@@ -58,6 +58,12 @@ r.post("/activate", authRequired, (req, res) => {
     if (u.promoCode) return res.status(400).json({ error: "Реферальный промокод доступен только новым пользователям" })
     if (u.usedReferralCode || u.usedReferralOwnerId) return res.status(400).json({ error: "Реферальный промокод можно активировать только один раз" })
     
+    // Проверка на взаимное использование реферальных кодов (абуз)
+    const owner = data.users.find(x => x.id === promo.ownerUserId)
+    if (owner && owner.usedReferralOwnerId === u.id) {
+      return res.status(400).json({ error: "Взаимное использование реферальных кодов запрещено" })
+    }
+
     if (!Array.isArray(promo.lastActivations)) promo.lastActivations = []
     if (!promo.dailyActivations || typeof promo.dailyActivations !== "object") promo.dailyActivations = {}
     if (typeof promo.totalActivations !== "number") promo.totalActivations = 0

@@ -8,15 +8,43 @@ const r = Router()
 const REFERRAL_REWARD = 10
 const DAILY_LIMIT = 50
 
+const verificationCodes = new Map()
+
 r.get("/captcha", (req, res) => {
   res.json(createCaptcha())
 })
 
-r.post("/register", (req, res) => {
-  const { username, email, password, deviceId, promoCode } = req.body || {}
+r.post("/send-verification", (req, res) => {
+  const { email } = req.body || {}
+  if (!email || !email.includes("@")) return res.status(400).json({ error: "Некорректный email" })
   
-  if (!username || !email || !password) {
+  const data = db.get()
+  if (data.users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
+    return res.status(400).json({ error: "Email уже зарегистрирован" })
+  }
+
+  const code = Math.floor(100000 + Math.random() * 900000).toString()
+  verificationCodes.set(email.toLowerCase(), { code, exp: Date.now() + 15 * 60 * 1000 })
+  
+  console.log(`[EMAIL VERIFICATION] To: ${email}, Code: ${code}`)
+  
+  res.json({ ok: true, message: "Код подтверждения отправлен на почту" })
+})
+
+r.post("/register", (req, res) => {
+  const { username, email, password, deviceId, promoCode, verificationCode } = req.body || {}
+  
+  if (!username || !email || !password || !verificationCode) {
     return res.status(400).json({ error: "Заполните все поля" })
+  }
+
+  const v = verificationCodes.get(email.toLowerCase())
+  if (!v || v.code !== String(verificationCode)) {
+    return res.status(400).json({ error: "Неверный код подтверждения" })
+  }
+  if (Date.now() > v.exp) {
+    verificationCodes.delete(email.toLowerCase())
+    return res.status(400).json({ error: "Код подтверждения истек" })
   }
   
   const data = db.get()
@@ -57,6 +85,11 @@ r.post("/register", (req, res) => {
     if (promoType === "referral") {
       if (promo.ownerUserId === user.id) return res.status(400).json({ error: "Нельзя активировать свой код" })
       if (user.usedReferralCode || user.usedReferralOwnerId) return res.status(400).json({ error: "Реферальный промокод можно активировать только один раз" })
+
+      const owner = data.users.find(x => x.id === promo.ownerUserId)
+      if (owner && owner.usedReferralOwnerId === user.id) {
+        return res.status(400).json({ error: "Взаимное использование реферальных кодов запрещено" })
+      }
 
       if (!Array.isArray(promo.lastActivations)) promo.lastActivations = []
       if (!promo.dailyActivations || typeof promo.dailyActivations !== "object") promo.dailyActivations = {}
@@ -103,6 +136,7 @@ r.post("/register", (req, res) => {
   }
 
   db.save(data)
+  verificationCodes.delete(email.toLowerCase())
   
   // Сразу логиним после регистрации
   const token = signToken({ id: user.id, role: user.role })

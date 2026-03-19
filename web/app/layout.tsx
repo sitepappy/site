@@ -35,7 +35,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="min-h-screen bg-base bg-cyber overflow-x-hidden">
           <Header />
           <PwaRegister />
-          <main className="max-w-7xl mx-auto px-4 py-6 pb-24 lg:pb-6 pt-[calc(56px+env(safe-area-inset-top,0px))]">{children}</main>
+          <div className="h-[56px]"></div>
+          <main className="max-w-7xl mx-auto px-4 py-6 pb-24 lg:pb-6">{children}</main>
         </div>
       </body>
     </html>

@@ -12,15 +12,35 @@ html, body, #__next {
   height: 100%;
   overflow-x: hidden;
   width: 100vw;
-  background: var(--bg);
 }
 
-.safe-top {
-  padding-top: env(safe-area-inset-top, 0px);
-}
+/* PWA Specific Fixes */
+@media (display-mode: standalone) {
+  header {
+    height: calc(56px + env(safe-area-inset-top, 0px)) !important;
+    padding-top: env(safe-area-inset-top, 0px) !important;
+  }
+  
+  /* Spacer in layout.tsx */
+  .h-\[56px\] {
+    height: calc(56px + env(safe-area-inset-top, 0px)) !important;
+  }
 
-.safe-bottom {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  /* Bottom Navigation */
+  .fixed.bottom-0 {
+    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+    background: #0a0a0f !important; /* Ensure background covers safe area */
+  }
+
+  /* Mobile Menu & Notifications */
+  nav.relative.z-10 {
+    padding-top: calc(72px + env(safe-area-inset-top, 0px)) !important;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  
+  .absolute.top-\[56px\] {
+    top: calc(56px + env(safe-area-inset-top, 0px)) !important;
+  }
 }
 
 body {
