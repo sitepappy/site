@@ -12,6 +12,15 @@ html, body, #__next {
   height: 100%;
   overflow-x: hidden;
   width: 100vw;
+  background: var(--bg);
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 body {

@@ -97,7 +97,7 @@ export default function Header() {
   }, [mounted, user?.id])
 
   return (
-    <header className="border-b border-white/5 fixed top-0 left-0 right-0 z-[1000] bg-[#0a0a0f]/90 backdrop-blur-xl h-[56px] flex items-center transition-all duration-300">
+    <header className="border-b border-white/5 fixed top-0 left-0 right-0 z-[1000] bg-[#0a0a0f]/90 backdrop-blur-xl h-[calc(56px+env(safe-area-inset-top,0px))] pt-[env(safe-area-inset-top,0px)] flex items-center transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 w-full flex items-center justify-between gap-4">
         {/* Логотип */}
         <Link href="/" className="flex items-center group relative">
@@ -206,7 +206,7 @@ export default function Header() {
         <div className="lg:hidden fixed inset-0 z-[2000] bg-[#0a0a0f]/95 backdrop-blur-2xl animate-in fade-in slide-in-from-top-4 duration-300">
           <div className="absolute inset-0 bg-black/40" onClick={() => setMobileMenuOpen(false)}></div>
           <div className="absolute inset-0 bg-cyber opacity-20 pointer-events-none"></div>
-          <nav className="relative z-10 flex flex-col pt-[72px] px-6 pb-10 gap-2 h-full overflow-y-auto custom-scrollbar">
+          <nav className="relative z-10 flex flex-col pt-[calc(72px+env(safe-area-inset-top,0px))] px-6 pb-[calc(10px+env(safe-area-inset-bottom,0px))] gap-2 h-full overflow-y-auto custom-scrollbar">
             <div className="text-[11px] font-black text-white/60 uppercase tracking-[0.3em] mb-4 border-b border-white/10 pb-3">
               Протоколы Навигации
             </div>
@@ -269,7 +269,7 @@ export default function Header() {
       {mounted && user && notificationsOpen && (
         <div className="fixed inset-0 z-[2200]">
           <div className="absolute inset-0 bg-black/40" onClick={() => setNotificationsOpen(false)}></div>
-          <div className="absolute top-[56px] right-0 left-0 lg:left-auto lg:right-4 lg:top-[64px] lg:w-[420px] p-4">
+          <div className="absolute top-[calc(56px+env(safe-area-inset-top,0px))] right-0 left-0 lg:left-auto lg:right-4 lg:top-[calc(64px+env(safe-area-inset-top,0px))] lg:w-[420px] p-4">
             <div className="glass rounded-3xl border border-white/10 overflow-hidden shadow-2xl">
               <div className="p-4 border-b border-white/10 flex items-center justify-between">
                 <div className="text-[11px] font-black uppercase tracking-widest text-white/60">Уведомления</div>
@@ -328,8 +328,7 @@ export default function Header() {
       )}
 
       {mounted && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[1500]">
-          <div className="absolute inset-0 bg-[#0a0a0f]/95 backdrop-blur-xl border-t border-white/10"></div>
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[1500] pb-[env(safe-area-inset-bottom,0px)] bg-[#0a0a0f]/95 backdrop-blur-xl border-t border-white/10">
           <div className="relative max-w-7xl mx-auto px-2 py-2">
             <div className="grid grid-cols-5 gap-2">
               <Link href="/" className={`flex flex-col items-center justify-center rounded-2xl py-2 transition-all ${pathname === "/" ? "bg-neon text-black shadow-neon" : "bg-white/5 text-white/60 active:bg-white/10"}`}>
@@ -360,7 +359,7 @@ export default function Header() {
       {mounted && bottomMoreOpen && (
         <div className="fixed inset-0 z-[2300]">
           <div className="absolute inset-0 bg-black/50" onClick={() => setBottomMoreOpen(false)}></div>
-          <div className="absolute bottom-0 left-0 right-0 p-4">
+          <div className="absolute bottom-0 left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
             <div className="glass rounded-[32px] border border-white/10 overflow-hidden shadow-2xl">
               <div className="p-4 border-b border-white/10 flex items-center justify-between">
                 <div className="text-[11px] font-black uppercase tracking-widest text-white/60">Меню</div>
