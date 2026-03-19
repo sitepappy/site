@@ -97,7 +97,7 @@ export default function Header() {
   }, [mounted, user?.id])
 
   return (
-    <header className="border-b border-white/5 fixed top-0 left-0 right-0 z-[1000] bg-[#0a0a0f]/90 backdrop-blur-xl h-[56px] flex items-center transition-all duration-300">
+    <header className="border-b border-white/5 fixed top-0 left-0 right-0 z-[1000] bg-[#0a0a0f]/90 backdrop-blur-xl h-[56px] flex items-center transition-all duration-300 pwa-header">
       <div className="max-w-7xl mx-auto px-4 w-full flex items-center justify-between gap-4">
         {/* Логотип */}
         <Link href="/" className="flex items-center group relative">

@@ -15,31 +15,42 @@ html, body, #__next {
 }
 
 /* PWA Specific Fixes */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.pwa-header {
+  padding-top: var(--safe-top) !important;
+  height: calc(56px + var(--safe-top)) !important;
+}
+
+.pwa-spacer {
+  height: calc(56px + var(--safe-top)) !important;
+}
+
 @media (display-mode: standalone) {
-  header {
-    height: calc(56px + env(safe-area-inset-top, 0px)) !important;
-    padding-top: env(safe-area-inset-top, 0px) !important;
-  }
-  
-  /* Spacer in layout.tsx */
-  .h-\[56px\] {
-    height: calc(56px + env(safe-area-inset-top, 0px)) !important;
+  body {
+    overscroll-behavior-y: none; /* Prevent pull-to-refresh in PWA */
   }
 
   /* Bottom Navigation */
   .fixed.bottom-0 {
-    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
-    background: #0a0a0f !important; /* Ensure background covers safe area */
+    padding-bottom: var(--safe-bottom) !important;
+    background: #0a0a0f !important;
   }
 
-  /* Mobile Menu & Notifications */
-  nav.relative.z-10 {
-    padding-top: calc(72px + env(safe-area-inset-top, 0px)) !important;
-    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+  /* Панель "Еще" - принудительная фиксация внизу */
+  .fixed.inset-0.z-\[2300\] > .absolute.bottom-0 {
+    bottom: 0 !important;
+    padding-bottom: calc(1rem + var(--safe-bottom)) !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
   }
-  
-  .absolute.top-\[56px\] {
-    top: calc(56px + env(safe-area-inset-top, 0px)) !important;
+
+  .fixed.inset-0.z-\[2300\] .glass {
+    max-height: 80vh !important;
   }
 }
 

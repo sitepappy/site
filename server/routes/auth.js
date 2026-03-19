@@ -3,6 +3,7 @@ import { db } from "../lib/db.js"
 import { hashPassword, verifyPassword, createCaptcha, verifyCaptcha } from "../lib/utils.js"
 import { signToken } from "../lib/auth.js"
 import { calculateReferralLevel } from "./quests.js"
+import { sendVerificationEmail } from "../lib/email.js"
 
 const r = Router()
 const REFERRAL_REWARD = 10
@@ -14,7 +15,7 @@ r.get("/captcha", (req, res) => {
   res.json(createCaptcha())
 })
 
-r.post("/send-verification", (req, res) => {
+r.post("/send-verification", async (req, res) => {
   const { email } = req.body || {}
   if (!email || !email.includes("@")) return res.status(400).json({ error: "Некорректный email" })
   
@@ -26,9 +27,13 @@ r.post("/send-verification", (req, res) => {
   const code = Math.floor(100000 + Math.random() * 900000).toString()
   verificationCodes.set(email.toLowerCase(), { code, exp: Date.now() + 15 * 60 * 1000 })
   
-  console.log(`[EMAIL VERIFICATION] To: ${email}, Code: ${code}`)
+  const ok = await sendVerificationEmail(email.toLowerCase(), code)
   
-  res.json({ ok: true, message: "Код подтверждения отправлен на почту" })
+  if (ok) {
+    res.json({ ok: true, message: "Код подтверждения отправлен на почту" })
+  } else {
+    res.json({ ok: true, message: "Код отправлен в консоль сервера (проверьте настройки SMTP)" })
+  }
 })
 
 r.post("/register", (req, res) => {
