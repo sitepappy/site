@@ -97,7 +97,13 @@ export default function Header() {
   }, [mounted, user?.id])
 
   return (
-    <header className="border-b border-white/5 fixed top-0 left-0 right-0 z-[1000] bg-[#0a0a0f]/90 backdrop-blur-xl h-[56px] flex items-center transition-all duration-300 pwa-header">
+    <header 
+      style={{ 
+        paddingTop: 'env(safe-area-inset-top, 0px)',
+        height: 'calc(56px + env(safe-area-inset-top, 0px))'
+      }}
+      className="border-b border-white/5 fixed top-0 left-0 right-0 z-[1000] bg-[#0a0a0f]/90 backdrop-blur-xl flex items-center transition-all duration-300"
+    >
       <div className="max-w-7xl mx-auto px-4 w-full flex items-center justify-between gap-4">
         {/* Логотип */}
         <Link href="/" className="flex items-center group relative">
@@ -328,8 +334,10 @@ export default function Header() {
       )}
 
       {mounted && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[1500]">
-          <div className="absolute inset-0 bg-[#0a0a0f]/95 backdrop-blur-xl border-t border-white/10"></div>
+        <div 
+          style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+          className="lg:hidden fixed bottom-0 left-0 right-0 z-[1500] bg-[#0a0a0f]/95 backdrop-blur-xl border-t border-white/10"
+        >
           <div className="relative max-w-7xl mx-auto px-2 py-2">
             <div className="grid grid-cols-5 gap-2">
               <Link href="/" className={`flex flex-col items-center justify-center rounded-2xl py-2 transition-all ${pathname === "/" ? "bg-neon text-black shadow-neon" : "bg-white/5 text-white/60 active:bg-white/10"}`}>
@@ -360,7 +368,10 @@ export default function Header() {
       {mounted && bottomMoreOpen && (
         <div className="fixed inset-0 z-[2300]">
           <div className="absolute inset-0 bg-black/50" onClick={() => setBottomMoreOpen(false)}></div>
-          <div className="absolute bottom-0 left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
+          <div 
+            style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
+            className="absolute bottom-0 left-0 right-0 p-4"
+          >
             <div className="glass rounded-[32px] border border-white/10 overflow-hidden shadow-2xl max-h-[85vh] flex flex-col">
               <div className="p-4 border-b border-white/10 flex items-center justify-between shrink-0">
                 <div className="text-[11px] font-black uppercase tracking-widest text-white/60">Меню</div>
