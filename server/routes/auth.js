@@ -32,11 +32,9 @@ r.post("/send-verification", async (req, res) => {
   if (result.ok) {
     res.json({ ok: true, message: "Код подтверждения отправлен на почту" })
   } else {
-    // В случае ошибки возвращаем 500 и детали, чтобы пользователь мог понять причину
+    // Детальная ошибка прямо в поле error, чтобы фронт её вывел
     res.status(500).json({ 
-      error: "Ошибка отправки письма", 
-      details: result.error,
-      debug: "Проверьте логи сервера для деталей [EMAIL ERROR DETAILS]"
+      error: `Ошибка почты: ${result.error || 'Unknown'}. Убедитесь, что SMTP_USER и SMTP_PASS вписаны в Railway Variables!`
     })
   }
 })

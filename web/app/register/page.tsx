@@ -129,10 +129,11 @@ export default function RegisterPage() {
         </div>
 
         {codeSent && (
-          <div>
-            <label className="block text-xs text-white/50 mb-1 uppercase font-semibold">Код подтверждения</label>
+          <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+            <label className="block text-xs text-neon mb-1 uppercase font-black tracking-widest">Код подтверждения из письма</label>
             <input 
-              className="w-full p-3 rounded bg-white/10 border border-neon/50 focus:border-neon outline-none transition-all font-mono tracking-[0.5em] text-center text-lg" 
+              autoFocus
+              className="w-full p-4 rounded-xl bg-neon/5 border-2 border-neon/50 focus:border-neon outline-none transition-all font-mono tracking-[0.5em] text-center text-2xl text-white shadow-[0_0_15px_rgba(123,46,255,0.2)]" 
               placeholder="000000" 
               value={verificationCode} 
               onChange={e=>setVerificationCode(e.target.value)} 
@@ -141,9 +142,9 @@ export default function RegisterPage() {
             <button 
               type="button" 
               onClick={() => setCodeSent(false)} 
-              className="text-[10px] text-white/30 hover:text-white mt-1 underline uppercase"
+              className="text-[10px] text-white/30 hover:text-neon mt-2 underline uppercase font-bold tracking-tighter"
             >
-              Изменить почту
+              Ошиблись в почте? Изменить
             </button>
           </div>
         )}

@@ -389,7 +389,7 @@ export default function Header() {
             <div className="w-16 h-1.5 bg-white/20 rounded-full mx-auto my-5"></div>
             
             <div className="px-8 pb-4 flex items-center justify-between border-b border-white/5 shrink-0">
-              <div className="text-xs font-black uppercase tracking-[0.3em] text-neon">Навигация Системы</div>
+              <div className="text-xs font-black uppercase tracking-[0.3em] text-neon">Навигация Системы v2.1</div>
               <button 
                 onClick={() => setBottomMoreOpen(false)}
                 className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60 active:scale-90 transition-all border border-white/10"
