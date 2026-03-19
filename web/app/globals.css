@@ -16,12 +16,16 @@ html, body, #__next {
 
 /* PWA Specific Fixes */
 @media (display-mode: standalone) {
-  /* Изолируем только PWA, не трогая ПК версию */
-  header.pwa-top-bar {
+  header {
     padding-top: env(safe-area-inset-top, 0px) !important;
     height: calc(56px + env(safe-area-inset-top, 0px)) !important;
   }
   
+  /* Spacer in layout.tsx */
+  div.h-\[56px\] {
+    height: calc(56px + env(safe-area-inset-top, 0px)) !important;
+  }
+
   .pwa-bottom-nav {
     padding-bottom: env(safe-area-inset-bottom, 0px) !important;
     height: calc(64px + env(safe-area-inset-bottom, 0px)) !important;

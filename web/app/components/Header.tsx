@@ -98,9 +98,7 @@ export default function Header() {
 
   return (
     <>
-      <header 
-        className="fixed top-0 left-0 right-0 z-[1000] border-b border-white/5 bg-[#0a0a0f]/90 backdrop-blur-xl h-[56px] flex items-center transition-all pwa-top-bar"
-      >
+      <header className="fixed top-0 left-0 right-0 z-[1000] border-b border-white/5 bg-[#0a0a0f]/90 backdrop-blur-xl h-[56px] flex items-center transition-all">
         <div className="max-w-7xl mx-auto px-4 w-full flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-2 group relative">
             <span className="text-2xl md:text-3xl font-black tracking-tighter italic text-white group-hover:text-neon transition-all duration-300 drop-shadow-[0_0_8px_rgba(57,255,20,0.5)]">
@@ -198,9 +196,9 @@ export default function Header() {
         </div>
       )}
 
-      {/* Нижняя панель (Только PWA) */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[1500] pwa-bottom-nav bg-[#0a0a0f]/95 backdrop-blur-xl border-t border-white/10 hidden standalone:block">
-        <div className="grid grid-cols-5 h-full max-w-lg mx-auto">
+      {/* Нижняя панель (Только для мобильных устройств) */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[1500] pwa-bottom-nav bg-[#0a0a0f]/95 backdrop-blur-xl border-t border-white/10">
+        <div className="grid grid-cols-5 h-[64px] max-w-lg mx-auto">
           {[
             { href: "/", icon: "🏠", label: "Дом" },
             { href: "/chat", icon: "💬", label: "Чат" },
@@ -225,28 +223,27 @@ export default function Header() {
         </div>
       </div>
 
-      {/* ПАНЕЛЬ "ЕЩЁ" (v5.0 - ФИКС) */}
+      {/* ПАНЕЛЬ "ЕЩЁ" (v6.0 - Гарантированный фикс) */}
       {mounted && bottomMoreOpen && (
-        <div className="fixed inset-0 z-[9999] bg-[#0a0a0f] flex flex-col animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-end animate-in fade-in duration-300">
+          <div className="absolute inset-0" onClick={() => setBottomMoreOpen(false)}></div>
           <div 
-            style={{ paddingTop: 'env(safe-area-inset-top, 20px)' }}
-            className="px-6 py-4 flex items-center justify-between border-b border-white/10 shrink-0"
+            className="relative w-full bg-[#0a0a0f] border-t border-white/10 rounded-t-[32px] p-6 space-y-4 animate-in slide-in-from-bottom-full duration-500 max-h-[90vh] overflow-y-auto"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)' }}
           >
-            <div className="text-lg font-black text-white italic uppercase tracking-widest text-neon">МЕНЮ</div>
-            <button 
-              onClick={() => setBottomMoreOpen(false)}
-              className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white text-xl"
-            >✕</button>
-          </div>
+            <div className="w-12 h-1.5 bg-white/10 rounded-full mx-auto mb-4"></div>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm font-black uppercase tracking-widest text-white/40">Меню</div>
+              <button onClick={() => setBottomMoreOpen(false)} className="text-white/40 text-xl">✕</button>
+            </div>
 
-          <div className="flex-1 overflow-y-auto p-6 space-y-4">
             <div className="grid grid-cols-2 gap-3">
               {[
                 { href: "/leaderboard", label: "Топ", icon: "🏆" },
                 { href: "/referral", label: "Рефералы", icon: "🧬" },
-                { href: "/about", label: "Инфо", icon: "ℹ️" },
+                { href: "/about", label: "О нас", icon: "ℹ️" },
                 { href: "/quests", label: "Квесты", icon: "🎯" },
-                { href: "/schedule", label: "События", icon: "📅" },
+                { href: "/schedule", label: "Расписание", icon: "📅" },
                 { href: "/report", label: "Репорт", icon: "🧾" },
                 { href: "/profile", label: "Профиль", icon: "👤" }
               ].map((item) => (
@@ -254,18 +251,18 @@ export default function Header() {
                   key={item.href}
                   href={item.href}
                   onClick={() => setBottomMoreOpen(false)}
-                  className="flex flex-col items-center justify-center gap-2 p-6 rounded-[24px] bg-white/5 border border-white/5 active:bg-neon/10 active:border-neon transition-all"
+                  className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl bg-white/5 border border-white/5 active:bg-white/10 transition-all"
                 >
-                  <span className="text-3xl">{item.icon}</span>
+                  <span className="text-2xl">{item.icon}</span>
                   <span className="text-[10px] font-black uppercase tracking-widest">{item.label}</span>
                 </Link>
               ))}
             </div>
-            
+
             {user && (
               <button 
                 onClick={() => { logout(); setBottomMoreOpen(false); }} 
-                className="w-full p-5 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 font-black uppercase text-xs tracking-widest"
+                className="w-full p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 font-black uppercase text-[10px] tracking-widest"
               >Выйти из аккаунта</button>
             )}
 
@@ -276,11 +273,9 @@ export default function Header() {
                 }
                 window.location.reload();
               }}
-              className="w-full p-4 text-[9px] font-black uppercase text-white/20 tracking-tighter"
-            >Полный сброс приложения</button>
+              className="w-full p-2 text-[8px] font-black uppercase text-white/10 tracking-widest text-center"
+            >Сбросить кеш</button>
           </div>
-          
-          <div style={{ height: 'env(safe-area-inset-bottom, 20px)' }} className="shrink-0"></div>
         </div>
       )}
     </>
