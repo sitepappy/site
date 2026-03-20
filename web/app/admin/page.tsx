@@ -102,6 +102,8 @@ export default function AdminPage() {
       } else if (tab === "users") {
         const usersData = await api("/admin/users")
         setUsersList(usersData)
+        const levelsData = await api("/levels")
+        setLevelsList(levelsData)
       } else if (tab === "posts") {
         const data = await api("/posts")
         setPostsList(data)
@@ -868,6 +870,17 @@ export default function AdminPage() {
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-bold text-white truncate">{u.username}</span>
                             {u.role !== 'user' && <span className="text-[8px] px-1 rounded bg-acid text-black font-black uppercase">{u.role}</span>}
+                            <Link 
+                              href={`/profile/${u.id}`} 
+                              target="_blank"
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-white/20 hover:text-neon transition-colors"
+                              title="Открыть публичный профиль"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                            </Link>
                           </div>
                           <div className="text-[10px] text-white/30 truncate">{u.email}</div>
                         </div>
@@ -1082,7 +1095,22 @@ export default function AdminPage() {
                         </div>
 
                         {/* Quick Balance Actions */}
-                        <div className="glass p-6 rounded-[32px] border border-white/5 space-y-4">
+                        <div className="space-y-4">
+                           <label className="text-[9px] text-white/30 uppercase font-black">Выдать Уровень</label>
+                           <div className="flex flex-wrap gap-1">
+                             {levelsList.map((lvl: any) => (
+                               <button 
+                                 key={lvl.id}
+                                 onClick={() => handleUpdateLevel(selectedUser.user.id, lvl.id)}
+                                 className={`px-2 py-1 rounded text-[9px] font-black uppercase transition-all ${selectedUser.user.levelId === lvl.id ? "bg-acid text-black" : "bg-white/5 text-white/40 hover:bg-white/10"}`}
+                               >
+                                 {lvl.name}
+                               </button>
+                             ))}
+                           </div>
+                         </div>
+
+                         <div className="glass p-6 rounded-[32px] border border-white/5 space-y-4">
                            <div className="text-[10px] text-white/30 uppercase font-black tracking-widest">Коррекция баланса</div>
                            <div className="flex gap-2">
                               <input 

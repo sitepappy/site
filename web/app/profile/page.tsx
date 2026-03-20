@@ -192,6 +192,40 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
+
+          {/* Достижения и Реферальный уровень */}
+          <div className="mt-12 grid md:grid-cols-2 gap-8 pt-12 border-t border-white/5">
+            <div className="space-y-6">
+              <AchievementsPanel achievements={me.achievements || []} />
+            </div>
+
+            <div className="space-y-6">
+              <h3 className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-acid"></span>
+                Реферальный статус
+              </h3>
+              <div className="glass p-6 rounded-[32px] border border-white/5 bg-gradient-to-br from-white/[0.02] to-transparent relative overflow-hidden">
+                <div className="relative z-10 flex items-center gap-6">
+                  <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-3xl shadow-2xl">
+                    {me.referralLevel ? "🏆" : "🥚"}
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-white/30 font-black uppercase tracking-widest mb-1">Ваш статус</div>
+                    <div className="text-2xl font-black italic uppercase tracking-tighter" style={{ color: me.referralColor || '#ffffff' }}>
+                      {me.referralLevel || "Новичок"}
+                    </div>
+                    <div className="text-[10px] text-white/40 mt-1 font-mono">
+                      Рефералов: {me.referralCount || 0}
+                    </div>
+                  </div>
+                </div>
+                {/* Progress bar to next level? (Optional) */}
+                <div className="mt-6 h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                   <div className="h-full bg-neon shadow-[0_0_10px_rgba(57,255,20,0.5)]" style={{ width: `${Math.min(((me.referralCount || 0) / 60) * 100, 100)}%` }}></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       

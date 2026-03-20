@@ -1,6 +1,6 @@
 import { Router } from "express"
 import { db } from "../lib/db.js"
-import { hashPassword, verifyPassword, createCaptcha, verifyCaptcha } from "../lib/utils.js"
+import { hashPassword, verifyPassword, createCaptcha, verifyCaptcha, nowIso } from "../lib/utils.js"
 import { signToken } from "../lib/auth.js"
 import { calculateReferralLevel } from "./quests.js"
 import { sendVerificationEmail } from "../lib/email.js"
@@ -182,9 +182,16 @@ r.post("/login", (req, res) => {
               owner.referralCount = (owner.referralCount || 0) + 1
               const lvlObj = calculateReferralLevel(owner.referralCount)
               owner.referralLevel = lvlObj?.name || null
-              owner.referralColor = lvlObj?.color || null
-              data.transactions.push({ id: db.id(), userId: owner.id, type: "referral_reward", amount: REFERRAL_REWARD, balanceAfter: owner.balance, note: `Реферальный бонус: ${user.username}`, createdAt: new Date().toISOString() })
-            }
+            owner.referralColor = lvlObj?.color || null
+
+            // Автоматический апгрейд стандартного уровня за рефералов
+            if (owner.referralCount >= 50) owner.levelId = "lvl5"
+            else if (owner.referralCount >= 30) owner.levelId = "lvl4"
+            else if (owner.referralCount >= 15) owner.levelId = "lvl3"
+            else if (owner.referralCount >= 5) owner.levelId = "lvl2"
+
+            data.transactions.push({ id: db.id(), userId: owner.id, type: "referral_reward", amount: REFERRAL_REWARD, balanceAfter: owner.balance, note: `Реферальный бонус: ${user.username}`, createdAt: new Date().toISOString() })
+          }
 
             promo.totalActivations = (promo.totalActivations || 0) + 1
             promo.dailyActivations[dayKey] += 1

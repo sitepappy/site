@@ -96,6 +96,13 @@ r.post("/activate", authRequired, (req, res) => {
       const lvlObj = calculateReferralLevel(owner.referralCount)
       owner.referralLevel = lvlObj?.name || null
       owner.referralColor = lvlObj?.color || null
+      
+      // Автоматический апгрейд стандартного уровня за рефералов
+      if (owner.referralCount >= 50) owner.levelId = "lvl5"
+      else if (owner.referralCount >= 30) owner.levelId = "lvl4"
+      else if (owner.referralCount >= 15) owner.levelId = "lvl3"
+      else if (owner.referralCount >= 5) owner.levelId = "lvl2"
+      
       data.transactions.push({ id: db.id(), userId: owner.id, type: "referral_reward", amount: REFERRAL_REWARD, balanceAfter: owner.balance, note: `Реферальный бонус: ${u.username}`, createdAt: new Date().toISOString() })
     }
     
