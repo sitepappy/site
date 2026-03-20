@@ -209,6 +209,32 @@ r.post("/login", (req, res) => {
     }
   }
 
+  // АНТИФРОД ПРОВЕРКА
+  if (!user.isBanned) {
+    const isMultiAcc = data.users.some(other => 
+      other.id !== user.id && 
+      ((Array.isArray(other.deviceIds) && Array.isArray(user.deviceIds) && other.deviceIds.some(d => user.deviceIds.includes(d))) ||
+       (Array.isArray(other.ips) && Array.isArray(user.ips) && other.ips.some(ip => user.ips.includes(ip))))
+    )
+
+    if (isMultiAcc) {
+      if (!data.antifraud) data.antifraud = []
+      const existingAlert = data.antifraud.find(a => a.userId === user.id && a.status === "pending")
+      if (!existingAlert) {
+        data.antifraud.push({
+          id: db.id(),
+          userId: user.id,
+          username: user.username,
+          type: "multi_account",
+          reason: "Обнаружены совпадающие IP или Device ID с другими аккаунтами",
+          status: "pending",
+          createdAt: new Date().toISOString()
+        })
+        db.save(data)
+      }
+    }
+  }
+
   // Генерируем токен с актуальной ролью
   const token = signToken({ id: user.id, role: user.role })
   res.json({ token })

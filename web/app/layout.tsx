@@ -1,42 +1,107 @@
+"use client"
 import "./globals.css"
 import "./coinflip.css"
-import type { Metadata, Viewport } from "next"
+import { useEffect, useState } from "react"
 import Header from "./components/Header"
 import PwaRegister from "./components/PwaRegister"
-
-export const viewport: Viewport = {
-  themeColor: "#0a0a0f",
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  viewportFit: "cover",
-}
-
-export const metadata: Metadata = {
-  title: "PAPPY",
-  description: "Киберпанк сообщество PAPPY",
-  manifest: "/manifest.webmanifest",
-  appleWebApp: {
-    capable: true,
-    title: "PAPPY",
-    statusBarStyle: "black-translucent"
-  },
-  icons: {
-    icon: [{ url: "/pwa-icon.svg" }],
-    apple: [{ url: "/pwa-icon.svg" }]
-  }
-}
+import { api } from "../lib/api"
+import { usePathname } from "next/navigation"
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const [isBanned, setIsBanned] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const pathname = usePathname()
+
+  useEffect(() => {
+    setMounted(true)
+    const checkBan = async () => {
+      const token = localStorage.getItem("token")
+      if (!token) {
+        setIsBanned(false)
+        return
+      }
+      try {
+        const user = await api("/users/me")
+        setIsBanned(!!user.isBanned)
+      } catch (e: any) {
+        if (e.message === "FORBIDDEN" || (e.status === 403)) {
+          setIsBanned(true)
+        } else {
+          setIsBanned(false)
+        }
+      }
+    }
+    checkBan()
+    
+    // Перепроверяем при смене пути, но не на странице логина/регистрации
+    if (pathname !== "/login" && pathname !== "/register") {
+      checkBan()
+    }
+  }, [pathname])
+
+  if (!mounted) return null
+
   return (
     <html lang="ru">
+      <head>
+        <title>PAPPY</title>
+        <meta name="description" content="Киберпанк сообщество PAPPY" />
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <meta name="theme-color" content="#0a0a0f" />
+      </head>
       <body>
         <div className="min-h-screen bg-base bg-cyber overflow-x-hidden">
-          <Header />
-          <PwaRegister />
-          <div className="h-[56px]"></div>
-          <main className="max-w-7xl mx-auto px-4 py-6 pb-24 lg:pb-6">{children}</main>
+          {isBanned ? (
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6 bg-black">
+              <div className="max-w-md w-full glass p-10 rounded-[40px] border-2 border-red-500 shadow-[0_0_50px_rgba(239,68,68,0.3)] text-center space-y-8 animate-in zoom-in duration-500 relative overflow-hidden">
+                {/* Анимированный фон */}
+                <div className="absolute inset-0 bg-red-500/5 animate-pulse"></div>
+                <div className="absolute -top-24 -left-24 w-48 h-48 bg-red-500/20 blur-[80px] rounded-full"></div>
+                <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-red-500/20 blur-[80px] rounded-full"></div>
+
+                <div className="relative">
+                  <div className="w-24 h-24 bg-red-500/10 border-2 border-red-500/30 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(239,68,68,0.2)]">
+                    <span className="text-5xl">🚫</span>
+                  </div>
+                  
+                  <h1 className="text-4xl font-black text-white uppercase tracking-tighter italic mb-2 drop-shadow-lg">
+                    ДОСТУП <span className="text-red-500">ОГРАНИЧЕН</span>
+                  </h1>
+                  
+                  <div className="h-px w-20 bg-red-500 mx-auto mb-6"></div>
+                  
+                  <div className="space-y-4">
+                    <p className="text-xl font-bold text-red-400 uppercase tracking-widest">
+                      Ваш аккаунт временно заблокирован
+                    </p>
+                    <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                      <p className="text-sm text-white/60 leading-relaxed">
+                        Администрация проверяет ваш аккаунт.<br/>
+                        Пожалуйста, дождитесь завершения проверки.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => {
+                    localStorage.removeItem("token");
+                    window.location.href = "/login";
+                  }}
+                  className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-[0.2em] text-white/40 hover:text-white hover:bg-white/10 transition-all relative z-10"
+                >
+                  Выйти из системы
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <Header />
+              <PwaRegister />
+              <div className="h-[56px]"></div>
+              <main className="max-w-7xl mx-auto px-4 py-6 pb-24 lg:pb-6">{children}</main>
+            </>
+          )}
         </div>
       </body>
     </html>

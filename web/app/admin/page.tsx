@@ -52,6 +52,7 @@ export default function AdminPage() {
   const [levelsList, setLevelsList] = useState<any[]>([])
   const [promosList, setPromosList] = useState<any[]>([])
   const [ordersList, setOrdersList] = useState<any[]>([])
+  const [antifraudList, setAntifraudList] = useState<any[]>([])
   const [orderMessages, setOrderMessages] = useState<Record<string, string>>({})
   const [orderStatusDraft, setOrderStatusDraft] = useState<Record<string, string>>({})
 
@@ -136,6 +137,9 @@ export default function AdminPage() {
       } else if (tab === "orders") {
         const data = await api("/orders")
         setOrdersList(data)
+      } else if (tab === "antifraud") {
+        const data = await api("/admin/antifraud")
+        setAntifraudList(data)
       }
     } catch (e) { console.error(e) }
   }
@@ -398,6 +402,15 @@ export default function AdminPage() {
     } catch (e: any) { alert(e.message) }
   }
 
+  const handleResolveAntifraud = async (alertId: string, action: "ban" | "ignore") => {
+    try {
+      await api(`/admin/antifraud/${alertId}/resolve`, { method: "POST", body: JSON.stringify({ action }) })
+      loadData("antifraud")
+      setMsg(action === "ban" ? "Пользователь заблокирован" : "Алерт проигнорирован")
+      setTimeout(() => setMsg(""), 3000)
+    } catch (e: any) { alert(e.message) }
+  }
+
   const handleUpdateBalance = async (userId: string, delta: number) => {
     try {
       await api("/admin/users/balance", { method: "POST", body: JSON.stringify({ userId, delta }) })
@@ -414,6 +427,7 @@ export default function AdminPage() {
 
   const sidebarLinks = [
     { id: "dashboard", name: "Дашборд", icon: "📊" },
+    { id: "antifraud", name: "АНТИФРОД", icon: "🛡️" },
     { id: "posts", name: "Лента", icon: "📝" },
     { id: "matches", name: "Матчи", icon: "🎮" },
     { id: "users", name: "Пользователи", icon: "👥" },
@@ -522,6 +536,65 @@ export default function AdminPage() {
           </header>
 
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {activeTab === "antifraud" && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {antifraudList.length > 0 ? antifraudList.sort((a,b) => b.createdAt.localeCompare(a.createdAt)).map((alert: any) => (
+                    <div key={alert.id} className={`glass p-6 rounded-[32px] border transition-all ${alert.status === 'pending' ? 'border-red-500/30 bg-red-500/5' : 'border-white/5 opacity-50'}`}>
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="w-12 h-12 rounded-2xl bg-red-500/20 flex items-center justify-center text-2xl">🛡️</div>
+                        <span className={`text-[8px] px-2 py-1 rounded-full font-black uppercase tracking-widest ${
+                          alert.status === 'pending' ? 'bg-red-500 text-white' : 
+                          alert.status === 'banned' ? 'bg-black text-red-500 border border-red-500/30' : 'bg-white/10 text-white/40'
+                        }`}>
+                          {alert.status === 'pending' ? 'Внимание' : alert.status === 'banned' ? 'Забанен' : 'Проигнорировано'}
+                        </span>
+                      </div>
+                      
+                      <div className="space-y-1 mb-6">
+                        <div className="text-xl font-black text-white uppercase tracking-tighter">{alert.username}</div>
+                        <div className="text-[10px] text-white/30 font-mono">{new Date(alert.createdAt).toLocaleString()}</div>
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-black/40 border border-white/5 mb-6">
+                        <div className="text-[9px] text-red-400 font-black uppercase tracking-widest mb-1">Причина срабатывания</div>
+                        <div className="text-xs text-white/70 leading-relaxed">{alert.reason}</div>
+                      </div>
+
+                      {alert.status === 'pending' && (
+                        <div className="grid grid-cols-2 gap-3">
+                          <button 
+                            onClick={() => handleResolveAntifraud(alert.id, "ban")}
+                            className="py-3 rounded-xl bg-red-500 text-white text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-red-500/20"
+                          >
+                            Заблокировать
+                          </button>
+                          <button 
+                            onClick={() => handleResolveAntifraud(alert.id, "ignore")}
+                            className="py-3 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all"
+                          >
+                            Игнорировать
+                          </button>
+                        </div>
+                      )}
+                      
+                      <button 
+                        onClick={() => { setActiveTab("users"); viewUser(alert.userId); }}
+                        className="w-full mt-3 py-2 text-[9px] font-black uppercase tracking-widest text-white/20 hover:text-neon transition-colors"
+                      >
+                        Проверить логи и связи →
+                      </button>
+                    </div>
+                  )) : (
+                    <div className="col-span-full py-20 text-center glass rounded-[40px] border border-white/5">
+                      <div className="text-6xl mb-4 opacity-10">🛡️</div>
+                      <div className="text-sm font-black text-white/20 uppercase tracking-[0.3em]">Угроз не обнаружено</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {activeTab === "dashboard" && (
               <div className="space-y-8">
                 {/* Stats Grid */}

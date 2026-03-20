@@ -396,4 +396,28 @@ r.get("/analytics", (req, res) => {
   res.json({ totalUsers, coinsInCirculation: coins, referralActivations: referrals, bets })
 })
 
+// ANTIFRAUD
+r.get("/antifraud", (req, res) => {
+  const data = db.get()
+  res.json(data.antifraud || [])
+})
+
+r.post("/antifraud/:id/resolve", (req, res) => {
+  const { action } = req.body || {}
+  const data = db.get()
+  const alert = (data.antifraud || []).find(a => a.id === req.params.id)
+  if (!alert) return res.status(404).json({ error: "Алерт не найден" })
+  
+  alert.status = action === "ban" ? "banned" : "ignored"
+  alert.resolvedAt = new Date().toISOString()
+  
+  if (action === "ban") {
+    const u = data.users.find(x => x.id === alert.userId)
+    if (u) u.isBanned = true
+  }
+  
+  db.save(data)
+  res.json({ ok: true })
+})
+
 export default r
