@@ -236,6 +236,7 @@ r.get("/users/:id", (req, res) => {
       levelId: u.levelId, 
       isBanned: u.isBanned, 
       createdAt: u.createdAt,
+      telegram: u.telegram || "",
       ips: u.ips || [],
       deviceIds: u.deviceIds || []
     },

@@ -917,6 +917,14 @@ export default function AdminPage() {
                             </div>
                             <div className="flex flex-wrap items-center gap-3">
                               <div className="text-xs text-white/40 font-mono">ID: {selectedUser.user.id}</div>
+                              {selectedUser.user.telegram && (
+                                <>
+                                  <div className="w-1 h-1 rounded-full bg-white/10"></div>
+                                  <div className="text-xs text-neon font-bold flex items-center gap-1">
+                                    <span className="opacity-50 text-[10px]">TG:</span> @{selectedUser.user.telegram}
+                                  </div>
+                                </>
+                              )}
                               <div className="w-1 h-1 rounded-full bg-white/10"></div>
                               <div className="text-xs text-white/40">Joined {new Date(selectedUser.user.createdAt).toLocaleDateString()}</div>
                             </div>
