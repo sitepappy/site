@@ -961,6 +961,16 @@ export default function AdminPage() {
                                 await handleBanUser(selectedUser.user.id, false)
                                 setMsg("Амнистия применена")
                               }
+                            },
+                            { 
+                              name: "PERMANENT BAN", 
+                              desc: "Полная блокировка доступа к системе без возможности разблокировки пользователем",
+                              action: async () => {
+                                if (!confirm("ВНИМАНИЕ! Применить ПЕРМАНЕНТНУЮ блокировку для этого пользователя? Он потеряет доступ ко всем функциям сайта.")) return
+                                setMsg("Блокировка...")
+                                await handleBanUser(selectedUser.user.id, true)
+                                setMsg("Пользователь заблокирован перманентно")
+                              }
                             }
                           ].map((p, idx) => (
                             <button key={idx} onClick={p.action} className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-acid/30 hover:bg-acid/5 transition-all text-left group">
