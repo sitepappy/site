@@ -85,6 +85,7 @@ export default function Header() {
     { name: "Квесты", href: "/quests" },
     { name: "О нас", href: "/about" },
     { name: "Репорт", href: "/report" },
+    { name: "Заявки", href: "/apply" },
     { name: "Профиль", href: "/profile" },
   ]
 
@@ -255,7 +256,9 @@ export default function Header() {
                 { href: "/quests", label: "Квесты", icon: "🎯" },
                 { href: "/schedule", label: "Расписание", icon: "📅" },
                 { href: "/report", label: "Репорт", icon: "🧾" },
-                { href: "/profile", label: "Профиль", icon: "👤" }
+                { href: "/apply", label: "Заявки", icon: "📄" },
+                { href: "/profile", label: "Профиль", icon: "👤" },
+                ...(isAdminOrModerator ? [{ href: "/admin", label: "Админ", icon: "⚡" }] : [])
               ].map((item) => (
                 <Link
                   key={item.href}

@@ -53,6 +53,8 @@ export default function AdminPage() {
   const [promosList, setPromosList] = useState<any[]>([])
   const [ordersList, setOrdersList] = useState<any[]>([])
   const [antifraudList, setAntifraudList] = useState<any[]>([])
+  const [applicationForms, setApplicationForms] = useState<any[]>([])
+  const [applications, setApplications] = useState<any[]>([])
   const [orderMessages, setOrderMessages] = useState<Record<string, string>>({})
   const [orderStatusDraft, setOrderStatusDraft] = useState<Record<string, string>>({})
 
@@ -142,6 +144,13 @@ export default function AdminPage() {
       } else if (tab === "antifraud") {
         const data = await api("/admin/antifraud")
         setAntifraudList(data)
+      } else if (tab === "applications") {
+        const [formsData, appsData] = await Promise.all([
+          api("/admin/forms"),
+          api("/admin/applications")
+        ])
+        setApplicationForms(formsData)
+        setApplications(appsData)
       }
     } catch (e) { console.error(e) }
   }
@@ -307,6 +316,21 @@ export default function AdminPage() {
     } catch (e: any) { alert(e.message) }
   }
 
+  const handleUpdateRole = async (userId: string, role: string) => {
+    try {
+      await api("/admin/users/role", { method: "POST", body: JSON.stringify({ userId, role }) })
+      loadData("users")
+      if (selectedUser?.user?.id === userId) {
+        setSelectedUser((prev: any) => ({
+          ...prev,
+          user: { ...prev.user, role }
+        }))
+      }
+      setMsg(`Роль изменена на ${role}`)
+      setTimeout(() => setMsg(""), 3000)
+    } catch (e: any) { alert(e.message) }
+  }
+
   const handleResolveReport = async (id: string) => {
     try {
       await api(`/admin/reports/${id}/resolve`, { method: "POST" })
@@ -430,6 +454,7 @@ export default function AdminPage() {
   const sidebarLinks = [
     { id: "dashboard", name: "Дашборд", icon: "📊" },
     { id: "antifraud", name: "АНТИФРОД", icon: "🛡️" },
+    { id: "applications", name: "ЗАЯВКИ", icon: "📄" },
     { id: "posts", name: "Лента", icon: "📝" },
     { id: "matches", name: "Матчи", icon: "🎮" },
     { id: "users", name: "Пользователи", icon: "👥" },
@@ -1104,6 +1129,29 @@ export default function AdminPage() {
 
                         {/* Quick Balance Actions */}
                         <div className="space-y-4">
+                           <label className="text-[9px] text-white/30 uppercase font-black">Управление Правами</label>
+                           <div className="grid grid-cols-3 gap-2">
+                             {[
+                               { id: "admin", name: "Админ", color: "bg-acid" },
+                               { id: "moderator", name: "Модер", color: "bg-blue-500" },
+                               { id: "user", name: "Юзер", color: "bg-white/10" }
+                             ].map((role) => (
+                               <button 
+                                 key={role.id}
+                                 onClick={() => handleUpdateRole(selectedUser.user.id, role.id)}
+                                 className={`px-2 py-3 rounded-xl text-[9px] font-black uppercase transition-all border ${
+                                   selectedUser.user.role === role.id 
+                                     ? `${role.color} text-black border-transparent shadow-lg` 
+                                     : "bg-white/5 text-white/40 border-white/5 hover:bg-white/10"
+                                 }`}
+                               >
+                                 {role.name}
+                               </button>
+                             ))}
+                           </div>
+                         </div>
+
+                         <div className="space-y-4">
                            <label className="text-[9px] text-white/30 uppercase font-black">Выдать Уровень</label>
                            <div className="flex flex-wrap gap-1">
                              {levelsList.map((lvl: any) => (
@@ -1156,6 +1204,150 @@ export default function AdminPage() {
           )}
 
 
+          {activeTab === "applications" && (
+            <div className="space-y-8 animate-in fade-in duration-500">
+              <div className="grid lg:grid-cols-3 gap-8">
+                {/* Создание Формы */}
+                <div className="lg:col-span-1 space-y-6">
+                  <h2 className="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-3 px-2">
+                    <span className="text-2xl">📝</span> Конструктор Форм
+                  </h2>
+                  <div className="glass p-6 rounded-[32px] border border-white/5 space-y-4">
+                    <div className="space-y-4">
+                      <div className="group">
+                        <label className="text-[10px] font-black text-white/20 uppercase ml-2 mb-1 block tracking-widest">Название формы</label>
+                        <input 
+                          id="form-title"
+                          className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm outline-none focus:border-neon transition-all" 
+                          placeholder="Например: Заявка на модератора" 
+                        />
+                      </div>
+                      <div className="group">
+                        <label className="text-[10px] font-black text-white/20 uppercase ml-2 mb-1 block tracking-widest">Описание</label>
+                        <textarea 
+                          id="form-desc"
+                          rows={3}
+                          className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm outline-none focus:border-neon transition-all" 
+                          placeholder="Опишите требования или условия..." 
+                        />
+                      </div>
+                    </div>
+                    <button 
+                      onClick={async () => {
+                        const title = (document.getElementById('form-title') as HTMLInputElement).value;
+                        const description = (document.getElementById('form-desc') as HTMLTextAreaElement).value;
+                        if (!title) return alert("Введите заголовок");
+                        try {
+                          await api("/admin/forms", { method: "POST", body: JSON.stringify({ title, description, fields: [{ label: "Ваш Discord/TG", type: "text" }, { label: "Почему мы должны выбрать вас?", type: "textarea" }] }) });
+                          (document.getElementById('form-title') as HTMLInputElement).value = "";
+                          (document.getElementById('form-desc') as HTMLTextAreaElement).value = "";
+                          loadData("applications");
+                          setMsg("Форма создана!");
+                        } catch (e: any) { alert(e.message); }
+                      }}
+                      className="w-full py-4 rounded-2xl bg-neon text-black text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-neon"
+                    >
+                      Создать форму
+                    </button>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="text-[10px] font-black text-white/30 uppercase tracking-widest px-2">Активные формы</h3>
+                    {applicationForms.map(f => (
+                      <div key={f.id} className="glass p-4 rounded-2xl border border-white/5 flex items-center justify-between group">
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold text-white truncate">{f.title}</div>
+                          <div className="text-[9px] text-white/30 font-mono">ID: {f.id.slice(0,8)}</div>
+                        </div>
+                        <button 
+                          onClick={async () => {
+                            if (!confirm("Удалить форму? Все заявки по ней останутся, но новые подать будет нельзя.")) return;
+                            await api(`/admin/forms/${f.id}`, { method: "DELETE" });
+                            loadData("applications");
+                          }}
+                          className="p-2 text-white/20 hover:text-red-500 transition-colors"
+                        >✕</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Список Заявок */}
+                <div className="lg:col-span-2 space-y-6">
+                  <h2 className="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-3 px-2">
+                    <span className="text-2xl">📩</span> Поступившие Заявки
+                  </h2>
+                  <div className="grid gap-4">
+                    {applications.length > 0 ? applications.sort((a,b) => b.createdAt.localeCompare(a.createdAt)).map(app => (
+                      <div key={app.id} className={`glass p-6 rounded-[32px] border transition-all ${
+                        app.status === 'pending' ? 'border-neon/30 bg-neon/5' : 'border-white/5 opacity-80'
+                      }`}>
+                        <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-6">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-3">
+                              <span className="text-lg font-black text-white uppercase">{app.username}</span>
+                              <span className={`text-[8px] px-2 py-1 rounded-full font-black uppercase ${
+                                app.status === 'pending' ? 'bg-neon text-black' : 
+                                app.status === 'approved' ? 'bg-acid text-black' : 'bg-red-500 text-white'
+                              }`}>
+                                {app.status === 'pending' ? 'На рассмотрении' : app.status === 'approved' ? 'Принято' : 'Отклонено'}
+                              </span>
+                            </div>
+                            <div className="text-[10px] text-white/30 font-mono">
+                              Форма: <span className="text-white/60">{app.formTitle}</span> • {new Date(app.createdAt).toLocaleString()}
+                            </div>
+                          </div>
+                          
+                          {app.status === 'pending' && (
+                            <div className="flex gap-2 w-full md:w-auto">
+                              <button 
+                                onClick={async () => {
+                                  await api(`/admin/applications/${app.id}/status`, { method: "POST", body: JSON.stringify({ status: 'approved', adminComment: 'Заявка одобрена администратором' }) });
+                                  loadData("applications");
+                                  setMsg("Заявка одобрена!");
+                                }}
+                                className="flex-1 md:flex-none px-4 py-2 rounded-xl bg-acid text-black text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-all"
+                              >Принять</button>
+                              <button 
+                                onClick={async () => {
+                                  const reason = prompt("Причина отказа:");
+                                  await api(`/admin/applications/${app.id}/status`, { method: "POST", body: JSON.stringify({ status: 'rejected', adminComment: reason || 'Отклонено без комментария' }) });
+                                  loadData("applications");
+                                  setMsg("Заявка отклонена");
+                                }}
+                                className="flex-1 md:flex-none px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white/40 text-[9px] font-black uppercase tracking-widest hover:bg-red-500/20 hover:text-red-400 transition-all"
+                              >Отказать</button>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="grid gap-3">
+                          {Object.entries(app.answers || {}).map(([label, val]: [string, any]) => (
+                            <div key={label} className="p-4 rounded-2xl bg-black/40 border border-white/5">
+                              <div className="text-[9px] text-white/30 uppercase font-black mb-1">{label}</div>
+                              <div className="text-sm text-white/80">{String(val)}</div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {app.adminComment && (
+                          <div className="mt-4 p-4 rounded-2xl bg-white/5 border border-white/10 italic text-xs text-white/40">
+                            Коммент админа: {app.adminComment}
+                          </div>
+                        )}
+                      </div>
+                    )) : (
+                      <div className="py-20 text-center glass rounded-[40px] border border-white/5">
+                        <div className="text-6xl mb-4 opacity-10">📂</div>
+                        <div className="text-sm font-black text-white/20 uppercase tracking-[0.3em]">Заявок пока нет</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {activeTab === "reports" && (
             <div className="space-y-4">
               <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">

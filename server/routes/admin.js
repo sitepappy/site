@@ -91,6 +91,64 @@ r.post("/users/level", adminOnly, (req, res) => {
   res.json({ ok: true, levelId })
 })
 
+// APPLICATIONS (ЗАЯВКИ)
+r.get("/forms", (req, res) => {
+  const data = db.get()
+  res.json(data.applicationForms || [])
+})
+
+r.post("/forms", adminOnly, (req, res) => {
+  const { title, description, fields } = req.body || {}
+  if (!title) return res.status(400).json({ error: "Заголовок обязателен" })
+  
+  const data = db.get()
+  if (!data.applicationForms) data.applicationForms = []
+  
+  const form = {
+    id: db.id(),
+    title,
+    description,
+    fields: fields || [], // [{ label: string, type: 'text'|'textarea'|'select', options?: string[] }]
+    active: true,
+    createdAt: nowIso()
+  }
+  
+  data.applicationForms.push(form)
+  db.save(data)
+  res.json(form)
+})
+
+r.delete("/forms/:id", adminOnly, (req, res) => {
+  const data = db.get()
+  data.applicationForms = (data.applicationForms || []).filter(f => f.id !== req.params.id)
+  db.save(data)
+  res.json({ ok: true })
+})
+
+r.get("/applications", (req, res) => {
+  const data = db.get()
+  const apps = (data.applications || []).map(a => {
+    const user = data.users.find(u => u.id === a.userId)
+    const form = (data.applicationForms || []).find(f => f.id === a.formId)
+    return { ...a, username: user?.username || "Unknown", formTitle: form?.title || "Deleted Form" }
+  })
+  res.json(apps)
+})
+
+r.post("/applications/:id/status", adminOnly, (req, res) => {
+  const { status, adminComment } = req.body || {}
+  const data = db.get()
+  const app = (data.applications || []).find(a => a.id === req.params.id)
+  if (!app) return res.status(404).json({ error: "Заявка не найдена" })
+  
+  app.status = status // 'pending' | 'approved' | 'rejected'
+  app.adminComment = adminComment
+  app.updatedAt = nowIso()
+  
+  db.save(data)
+  res.json({ ok: true })
+})
+
 r.get("/reports", (req, res) => {
   const data = db.get()
   res.json(data.reports || [])
