@@ -420,14 +420,6 @@ export default function AdminPage() {
     } catch (e: any) { alert(e.message) }
   }
 
-  const handleUpdateRole = async (userId: string, role: string) => {
-    try {
-      await api("/admin/users/role", { method: "POST", body: JSON.stringify({ userId, role }) })
-      loadData("users")
-      if (selectedUser?.user?.id === userId) viewUser(userId)
-    } catch (e: any) { alert(e.message) }
-  }
-
   const handleResolveAntifraud = async (alertId: string, action: "ban" | "ignore") => {
     try {
       await api(`/admin/antifraud/${alertId}/resolve`, { method: "POST", body: JSON.stringify({ action }) })
