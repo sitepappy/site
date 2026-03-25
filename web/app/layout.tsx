@@ -67,41 +67,49 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="manifest" href="/manifest.webmanifest" />
         <meta name="theme-color" content="#0a0a0f" />
       </head>
-      <body className={`${activeTheme ? `theme-${activeTheme.name.toLowerCase()} ${activeTheme.bg}` : "bg-[#0a0a0f]"} text-white min-h-screen transition-all duration-700`}>
+      <body className={`${activeTheme ? `theme-${activeTheme.name.toLowerCase()}` : ""} bg-[#050505] text-white min-h-screen transition-all duration-700`}>
         {!mounted ? (
-          <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
+          <div className="min-h-screen bg-[#050505] flex items-center justify-center">
              <div className="w-12 h-12 border-4 border-[#7B2EFF] border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : (
           <div className="min-h-screen overflow-x-hidden relative">
             {activeTheme && (
               <>
+                {/* Global Background Image */}
+                <div 
+                  className={`fixed inset-0 z-0 pointer-events-none transition-opacity duration-1000 ${activeTheme.bg}`}
+                  style={{ opacity: 0.8 }}
+                ></div>
+
                 {/* Side Slices - Immersive HUD Effect */}
-                <div className="fixed left-0 top-0 bottom-0 w-[20%] pointer-events-none z-[1] opacity-40 bg-gradient-to-r from-black/80 to-transparent">
+                <div className="fixed left-0 top-0 bottom-0 w-[15%] pointer-events-none z-[1] opacity-60 bg-gradient-to-r from-black via-black/40 to-transparent">
                    <div className="absolute inset-0 map-slice-left"></div>
                 </div>
-                <div className="fixed right-0 top-0 bottom-0 w-[20%] pointer-events-none z-[1] opacity-40 bg-gradient-to-l from-black/80 to-transparent">
+                <div className="fixed right-0 top-0 bottom-0 w-[15%] pointer-events-none z-[1] opacity-60 bg-gradient-to-l from-black via-black/40 to-transparent">
                    <div className="absolute inset-0 map-slice-right"></div>
                 </div>
 
                 <div className="map-slice-top"></div>
+                
+                {/* HUD Overlays */}
                 <div className="fixed inset-0 pointer-events-none z-[2]">
-                  <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/90"></div>
-                  <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/90"></div>
+                  <div className="absolute inset-0 opacity-[0.05] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
                   
                   {/* Map Info HUD */}
-                  <div className="absolute top-24 right-8 opacity-40 flex flex-col items-end pointer-events-none select-none font-mono group">
-                    <div className="text-5xl font-black text-white italic tracking-tighter drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">{activeTheme.name}</div>
-                    <div className="text-[10px] text-white/70 uppercase tracking-[0.5em] mt-2 flex items-center gap-2">
-                       <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                       Active Environment
+                  <div className="absolute top-24 right-12 opacity-80 flex flex-col items-end pointer-events-none select-none font-mono">
+                    <div className="text-6xl font-black text-white italic tracking-tighter drop-shadow-[0_0_20px_rgba(255,255,255,0.5)] leading-none">{activeTheme.name}</div>
+                    <div className="text-[10px] text-white/80 uppercase tracking-[0.6em] mt-3 flex items-center gap-2 font-bold">
+                       <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse shadow-[0_0_10px_rgba(220,38,38,0.8)]"></span>
+                       ACTIVE ENVIRONMENT
                     </div>
-                    <div className="w-48 h-[2px] bg-gradient-to-r from-transparent via-white/50 to-transparent mt-4"></div>
+                    <div className="w-64 h-[2px] bg-gradient-to-r from-transparent via-white/40 to-transparent mt-4"></div>
                   </div>
                 </div>
               </>
             )}
-            <div className="relative z-10">
+            <div className="relative z-10 min-h-screen">
               {isBanned ? (
               <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6 bg-black">
                 <div className="max-w-md w-full glass p-10 rounded-[40px] border-2 border-red-500 shadow-[0_0_50px_rgba(239,68,68,0.3)] text-center space-y-8 animate-in zoom-in duration-500 relative overflow-hidden">

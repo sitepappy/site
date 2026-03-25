@@ -33,7 +33,7 @@ html, body, #__next {
 }
 
 body {
-  background: var(--bg);
+  background: #050505;
   color: white;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -52,7 +52,7 @@ body {
 }
 
 .glass {
-  background: rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.03);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255,255,255,0.05);
@@ -78,52 +78,59 @@ body {
 
 /* CS2 Themes - Hyper Immersive Styling */
 .bg-mirage { 
-  background: 
-    linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.7)),
-    url('https://wallpapercave.com/wp/wp12811434.jpg') center/cover no-repeat fixed !important; 
+  background-image: url('https://wallpapercave.com/wp/wp12811434.jpg') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-attachment: fixed !important;
 }
 .bg-ancient { 
-  background: 
-    linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.7)),
-    url('https://wallpapercave.com/wp/wp12811454.jpg') center/cover no-repeat fixed !important; 
+  background-image: url('https://wallpapercave.com/wp/wp12811454.jpg') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-attachment: fixed !important;
 }
 .bg-train { 
-  background: 
-    linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.7)),
-    url('https://wallpapercave.com/wp/wp12811462.jpg') center/cover no-repeat fixed !important; 
+  background-image: url('https://wallpapercave.com/wp/wp12811462.jpg') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-attachment: fixed !important;
 }
 .bg-overpass { 
-  background: 
-    linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.7)),
-    url('https://wallpapercave.com/wp/wp12811458.jpg') center/cover no-repeat fixed !important; 
+  background-image: url('https://wallpapercave.com/wp/wp12811458.jpg') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-attachment: fixed !important;
 }
 .bg-nuke { 
-  background: 
-    linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.7)),
-    url('https://wallpapercave.com/wp/wp12811460.jpg') center/cover no-repeat fixed !important; 
+  background-image: url('https://wallpapercave.com/wp/wp12811460.jpg') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-attachment: fixed !important;
 }
 .bg-inferno { 
-  background: 
-    linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.7)),
-    url('https://wallpapercave.com/wp/wp12811456.jpg') center/cover no-repeat fixed !important; 
+  background-image: url('https://wallpapercave.com/wp/wp12811456.jpg') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-attachment: fixed !important;
 }
 .bg-vertigo { 
-  background: 
-    linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.7)),
-    url('https://wallpapercave.com/wp/wp12811464.jpg') center/cover no-repeat fixed !important; 
+  background-image: url('https://wallpapercave.com/wp/wp12811464.jpg') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-attachment: fixed !important;
 }
 
 /* Map Slice Decorations */
 .map-slice-top {
-  height: 400px;
+  height: 450px;
   width: 100%;
   mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
   -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
-  opacity: 0.6;
+  opacity: 0.5;
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 0;
+  z-index: 1;
   pointer-events: none;
   background-size: cover !important;
   background-position: center 20% !important;
@@ -132,24 +139,24 @@ body {
 .map-slice-left, .map-slice-right {
   background-size: cover !important;
   background-position: center !important;
-  filter: blur(2px) brightness(0.5);
+  filter: brightness(0.4) contrast(1.2);
 }
 
-.theme-mirage .map-slice-top, .theme-mirage .map-slice-left, .theme-mirage .map-slice-right { background: url('https://wallpapercave.com/wp/wp12811434.jpg') no-repeat; }
-.theme-ancient .map-slice-top, .theme-ancient .map-slice-left, .theme-ancient .map-slice-right { background: url('https://wallpapercave.com/wp/wp12811454.jpg') no-repeat; }
-.theme-inferno .map-slice-top, .theme-inferno .map-slice-left, .theme-inferno .map-slice-right { background: url('https://wallpapercave.com/wp/wp12811456.jpg') no-repeat; }
-.theme-nuke .map-slice-top, .theme-nuke .map-slice-left, .theme-nuke .map-slice-right { background: url('https://wallpapercave.com/wp/wp12811460.jpg') no-repeat; }
-.theme-overpass .map-slice-top, .theme-overpass .map-slice-left, .theme-overpass .map-slice-right { background: url('https://wallpapercave.com/wp/wp12811458.jpg') no-repeat; }
-.theme-train .map-slice-top, .theme-train .map-slice-left, .theme-train .map-slice-right { background: url('https://wallpapercave.com/wp/wp12811462.jpg') no-repeat; }
-.theme-vertigo .map-slice-top, .theme-vertigo .map-slice-left, .theme-vertigo .map-slice-right { background: url('https://wallpapercave.com/wp/wp12811464.jpg') no-repeat; }
+.theme-mirage .map-slice-top, .theme-mirage .map-slice-left, .theme-mirage .map-slice-right { background-image: url('https://wallpapercave.com/wp/wp12811434.jpg') !important; }
+.theme-ancient .map-slice-top, .theme-ancient .map-slice-left, .theme-ancient .map-slice-right { background-image: url('https://wallpapercave.com/wp/wp12811454.jpg') !important; }
+.theme-inferno .map-slice-top, .theme-inferno .map-slice-left, .theme-inferno .map-slice-right { background-image: url('https://wallpapercave.com/wp/wp12811456.jpg') !important; }
+.theme-nuke .map-slice-top, .theme-nuke .map-slice-left, .theme-nuke .map-slice-right { background-image: url('https://wallpapercave.com/wp/wp12811460.jpg') !important; }
+.theme-overpass .map-slice-top, .theme-overpass .map-slice-left, .theme-overpass .map-slice-right { background-image: url('https://wallpapercave.com/wp/wp12811458.jpg') !important; }
+.theme-train .map-slice-top, .theme-train .map-slice-left, .theme-train .map-slice-right { background-image: url('https://wallpapercave.com/wp/wp12811462.jpg') !important; }
+.theme-vertigo .map-slice-top, .theme-vertigo .map-slice-left, .theme-vertigo .map-slice-right { background-image: url('https://wallpapercave.com/wp/wp12811464.jpg') !important; }
 
 .map-slice-left {
-  mask-image: linear-gradient(to right, black, transparent);
-  -webkit-mask-image: linear-gradient(to right, black, transparent);
+  mask-image: linear-gradient(to right, black 20%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black 20%, transparent 100%);
 }
 .map-slice-right {
-  mask-image: linear-gradient(to left, black, transparent);
-  -webkit-mask-image: linear-gradient(to left, black, transparent);
+  mask-image: linear-gradient(to left, black 20%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to left, black 20%, transparent 100%);
 }
 
 /* Theme High Contrast - Official CS2 Vibes */
@@ -162,12 +169,12 @@ body {
 .theme-vertigo { --acid: #ffcc00; --neon: #665500; --theme-glow: rgba(255, 204, 0, 0.4); }
 
 [class*="theme-"] .glass {
-  background: rgba(10, 10, 15, 0.45);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-left: 4px solid var(--acid); /* CS2 Sidebar style */
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  background: rgba(10, 10, 15, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 4px solid var(--acid);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.5);
 }
 
 [class*="theme-"] .btn-primary {
