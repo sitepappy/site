@@ -76,94 +76,86 @@ body {
   box-shadow: 0 0 10px #39FF14, 0 0 20px #7B2EFF;
 }
 
-/* CS2 Themes - Aggressive Styling */
+/* CS2 Themes - Hyper Immersive Styling */
 .bg-mirage { 
   background: 
-    linear-gradient(rgba(10, 10, 15, 0.7), rgba(10, 10, 15, 0.7)),
+    linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.9)),
     url('https://files.faceit.com/static/730/maps/mirage.jpg') center/cover no-repeat fixed; 
 }
 .bg-ancient { 
   background: 
-    linear-gradient(rgba(10, 15, 10, 0.7), rgba(10, 10, 15, 0.8)),
+    linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.9)),
     url('https://files.faceit.com/static/730/maps/ancient.jpg') center/cover no-repeat fixed; 
 }
 .bg-train { 
   background: 
-    linear-gradient(rgba(15, 20, 25, 0.7), rgba(10, 10, 15, 0.8)),
+    linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.9)),
     url('https://files.faceit.com/static/730/maps/train.jpg') center/cover no-repeat fixed; 
 }
 .bg-overpass { 
   background: 
-    linear-gradient(rgba(15, 25, 20, 0.7), rgba(10, 10, 15, 0.8)),
+    linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.9)),
     url('https://files.faceit.com/static/730/maps/overpass.jpg') center/cover no-repeat fixed; 
 }
 .bg-nuke { 
   background: 
-    linear-gradient(rgba(20, 25, 35, 0.7), rgba(10, 10, 15, 0.8)),
+    linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.9)),
     url('https://files.faceit.com/static/730/maps/nuke.jpg') center/cover no-repeat fixed; 
 }
 .bg-inferno { 
   background: 
-    linear-gradient(rgba(35, 15, 10, 0.7), rgba(10, 10, 15, 0.8)),
+    linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.9)),
     url('https://files.faceit.com/static/730/maps/inferno.jpg') center/cover no-repeat fixed; 
 }
 .bg-vertigo { 
   background: 
-    linear-gradient(rgba(25, 25, 30, 0.7), rgba(10, 10, 15, 0.8)),
+    linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.9)),
     url('https://files.faceit.com/static/730/maps/vertigo.jpg') center/cover no-repeat fixed; 
 }
 
-/* Theme Overrides - High Contrast Accents */
-.theme-mirage { 
-  --acid: #FFD700; /* Gold Dust */
-  --neon: #DAA520; 
-  --theme-glow: rgba(218, 165, 32, 0.3);
-}
-.theme-ancient { 
-  --acid: #48bb78; /* Jungle Green */
-  --neon: #276749; 
-  --theme-glow: rgba(72, 187, 120, 0.3);
-}
-.theme-inferno { 
-  --acid: #FF4500; /* Brick Red */
-  --neon: #8B0000; 
-  --theme-glow: rgba(255, 69, 0, 0.3);
-}
-.theme-overpass { 
-  --acid: #00BFFF; /* Concrete Blue */
-  --neon: #1E90FF; 
-  --theme-glow: rgba(0, 191, 255, 0.3);
-}
-.theme-nuke { 
-  --acid: #ADFF2F; /* Radioactive Green */
-  --neon: #32CD32; 
-  --theme-glow: rgba(173, 255, 47, 0.3);
-}
-.theme-train { 
-  --acid: #A9A9A9; /* Industrial Steel */
-  --neon: #708090; 
-  --theme-glow: rgba(169, 169, 169, 0.3);
-}
-.theme-vertigo { 
-  --acid: #F0E68C; /* Construction Yellow */
-  --neon: #BDB76B; 
-  --theme-glow: rgba(240, 230, 140, 0.3);
+/* Map Slice Decorations */
+.map-slice-top {
+  height: 250px;
+  width: 100%;
+  mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
+  opacity: 0.6;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  pointer-events: none;
 }
 
-/* Global enhancements when theme is active */
+.theme-mirage .map-slice-top { background: url('https://files.faceit.com/static/730/maps/mirage.jpg') center/30% no-repeat; }
+.theme-ancient .map-slice-top { background: url('https://files.faceit.com/static/730/maps/ancient.jpg') center/30% no-repeat; }
+.theme-inferno .map-slice-top { background: url('https://files.faceit.com/static/730/maps/inferno.jpg') center/30% no-repeat; }
+.theme-nuke .map-slice-top { background: url('https://files.faceit.com/static/730/maps/nuke.jpg') center/30% no-repeat; }
+.theme-overpass .map-slice-top { background: url('https://files.faceit.com/static/730/maps/overpass.jpg') center/30% no-repeat; }
+.theme-train .map-slice-top { background: url('https://files.faceit.com/static/730/maps/train.jpg') center/30% no-repeat; }
+.theme-vertigo .map-slice-top { background: url('https://files.faceit.com/static/730/maps/vertigo.jpg') center/30% no-repeat; }
+
+/* Theme High Contrast - Official CS2 Vibes */
+.theme-mirage { --acid: #f3ad4b; --neon: #8b572a; --theme-glow: rgba(243, 173, 75, 0.4); }
+.theme-ancient { --acid: #52b147; --neon: #1e4d19; --theme-glow: rgba(82, 177, 71, 0.4); }
+.theme-inferno { --acid: #e35132; --neon: #5a1a0d; --theme-glow: rgba(227, 81, 50, 0.4); }
+.theme-overpass { --acid: #4ca3e2; --neon: #1a3d5a; --theme-glow: rgba(76, 163, 226, 0.4); }
+.theme-nuke { --acid: #9fb3be; --neon: #2c3e50; --theme-glow: rgba(159, 179, 190, 0.4); }
+.theme-train { --acid: #a5aeb3; --neon: #34495e; --theme-glow: rgba(165, 174, 179, 0.4); }
+.theme-vertigo { --acid: #ffcc00; --neon: #665500; --theme-glow: rgba(255, 204, 0, 0.4); }
+
 [class*="theme-"] .glass {
-  background: rgba(0, 0, 0, 0.4);
-  border-color: var(--neon);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  background: rgba(10, 10, 15, 0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-left: 4px solid var(--acid); /* CS2 Sidebar style */
 }
 
 [class*="theme-"] .btn-primary {
   background: var(--acid);
+  clip-path: polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%); /* CS2 button shape */
+  font-family: 'Black Ops One', sans-serif;
   color: black;
-  box-shadow: 0 0 15px var(--theme-glow);
-}
-
-[class*="theme-"] h1, [class*="theme-"] h2 {
-  text-shadow: 0 0 20px var(--theme-glow);
+  font-weight: 900;
+  text-transform: uppercase;
 }
 

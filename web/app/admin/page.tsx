@@ -771,12 +771,15 @@ export default function AdminPage() {
                     </div>
                     
                     {/* Activity Preview */}
-                    <div className="glass p-6 rounded-3xl border border-white/5 mt-8">
-                      <div className="text-[10px] text-white/30 uppercase font-black tracking-widest mb-4">Активность (24ч)</div>
-                      <div className="flex items-end justify-between h-24 gap-1">
-                        {[40, 70, 45, 90, 65, 80, 50, 60, 85, 40, 75, 95].map((h, i) => (
-                          <div key={i} className="flex-1 bg-neon/20 hover:bg-neon transition-all rounded-t-sm" style={{ height: `${h}%` }}></div>
-                        ))}
+                    <div className="glass p-6 rounded-3xl border border-white/5 mt-8 relative overflow-hidden group">
+                      <div className="absolute inset-0 map-slice-top !h-full !position-absolute opacity-20 group-hover:scale-110 transition-transform duration-1000"></div>
+                      <div className="relative z-10">
+                        <div className="text-[10px] text-white/30 uppercase font-black tracking-widest mb-4">Активность (24ч)</div>
+                        <div className="flex items-end justify-between h-24 gap-1">
+                          {[40, 70, 45, 90, 65, 80, 50, 60, 85, 40, 75, 95].map((h, i) => (
+                            <div key={i} className="flex-1 bg-neon/20 hover:bg-neon transition-all rounded-t-sm" style={{ height: `${h}%` }}></div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>

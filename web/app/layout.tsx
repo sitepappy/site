@@ -75,17 +75,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         ) : (
           <div className={`min-h-screen bg-base overflow-x-hidden transition-all duration-1000 ${activeTheme ? activeTheme.bg : "bg-cyber"}`}>
             {activeTheme && (
-              <div className="fixed inset-0 pointer-events-none z-[1]">
-                <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60"></div>
-                <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
-                
-                {/* Map Title Overlay */}
-                <div className="absolute top-20 left-1/2 -translate-x-1/2 opacity-10 flex flex-col items-center pointer-events-none select-none">
-                  <div className="text-[120px] font-black uppercase italic tracking-tighter leading-none text-white">{activeTheme.name}</div>
-                  <div className="h-1 w-full bg-gradient-to-r from-transparent via-white to-transparent mt-2"></div>
-                  <div className="text-xs font-black uppercase tracking-[1em] text-white mt-4">Active Map Rotation</div>
+              <>
+                <div className="map-slice-top"></div>
+                <div className="fixed inset-0 pointer-events-none z-[1]">
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/80"></div>
+                  <div className="absolute inset-0 opacity-5 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+                  
+                  {/* Map Info HUD */}
+                  <div className="absolute top-24 right-8 opacity-20 flex flex-col items-end pointer-events-none select-none font-mono">
+                    <div className="text-4xl font-black text-white">{activeTheme.name}</div>
+                    <div className="text-[10px] text-white/50 uppercase tracking-widest mt-1">Active Map Environment</div>
+                    <div className="w-32 h-1 bg-var(--acid) mt-2 opacity-50"></div>
+                  </div>
                 </div>
-              </div>
+              </>
             )}
             <div className="relative z-10">
               {isBanned ? (

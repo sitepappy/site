@@ -59,7 +59,8 @@ export default function QuestsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {quests.map((q: any) => (
           <div key={q.id} className="glass p-8 rounded-[40px] border border-white/5 hover:border-neon/30 hover:bg-neon/5 transition-all group relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-neon/5 blur-3xl group-hover:bg-neon/10 transition-all"></div>
+            {/* Map Slice Card Background */}
+            <div className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none map-slice-top !h-full !position-absolute"></div>
             
             <div className="relative z-10 flex flex-col h-full justify-between">
               <div className="space-y-4">
