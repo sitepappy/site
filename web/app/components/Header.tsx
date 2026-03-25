@@ -109,7 +109,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-[1000] border-b border-white/5 bg-[#0a0a0f]/90 backdrop-blur-xl h-[56px] flex items-center transition-all">
+      <header className="fixed top-0 left-0 right-0 z-[1000] border-b border-white/5 bg-black/40 backdrop-blur-xl h-[56px] flex items-center transition-all">
         <div className="max-w-7xl mx-auto px-4 w-full flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="flex flex-col items-center leading-none">

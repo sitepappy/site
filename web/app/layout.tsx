@@ -42,17 +42,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   }, [pathname])
 
   const getDayTheme = () => {
-    if (!userSettings?.cs2ThemesEnabled) return null;
+    // По умолчанию темы ВКЛЮЧЕНЫ, если только пользователь явно не выключил их
+    if (userSettings?.cs2ThemesEnabled === false) return null;
     
     const day = new Date().getDay(); // 0 (Sun) to 6 (Sat)
     const themes = [
-      { name: "Vertigo", bg: "bg-vertigo" }, // Sun
-      { name: "Mirage", bg: "bg-mirage" },  // Mon
-      { name: "Ancient", bg: "bg-ancient" }, // Tue
-      { name: "Train", bg: "bg-train" },   // Wed
-      { name: "Overpass", bg: "bg-overpass" }, // Thu
-      { name: "Nuke", bg: "bg-nuke" },     // Fri
-      { name: "Inferno", bg: "bg-inferno" }  // Sat
+      { name: "Vertigo", bg: "bg-vertigo", url: "https://wallpapercave.com/wp/wp12811464.jpg" }, // Sun
+      { name: "Mirage", bg: "bg-mirage", url: "https://wallpapercave.com/wp/wp12811434.jpg" },  // Mon
+      { name: "Ancient", bg: "bg-ancient", url: "https://wallpapercave.com/wp/wp12811454.jpg" }, // Tue
+      { name: "Train", bg: "bg-train", url: "https://wallpapercave.com/wp/wp12811462.jpg" },   // Wed
+      { name: "Overpass", bg: "bg-overpass", url: "https://wallpapercave.com/wp/wp12811458.jpg" }, // Thu
+      { name: "Nuke", bg: "bg-nuke", url: "https://wallpapercave.com/wp/wp12811460.jpg" },     // Fri
+      { name: "Inferno", bg: "bg-inferno", url: "https://wallpapercave.com/wp/wp12811456.jpg" }  // Sat
     ];
     return themes[day];
   }
@@ -67,34 +68,46 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="manifest" href="/manifest.webmanifest" />
         <meta name="theme-color" content="#0a0a0f" />
       </head>
-      <body className={`${activeTheme ? `theme-${activeTheme.name.toLowerCase()}` : ""} bg-[#050505] text-white min-h-screen transition-all duration-700`}>
+      <body 
+        suppressHydrationWarning
+        className={`${activeTheme ? `theme-${activeTheme.name.toLowerCase()} bg-transparent` : "bg-[#050505]"} text-white min-h-screen transition-all duration-700`}
+      >
         {!mounted ? (
           <div className="min-h-screen bg-[#050505] flex items-center justify-center">
              <div className="w-12 h-12 border-4 border-[#7B2EFF] border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : (
-          <div className="min-h-screen overflow-x-hidden relative">
+          <div className="min-h-screen overflow-x-hidden relative bg-transparent">
             {activeTheme && (
               <>
-                {/* Global Background Image */}
-                <div 
-                  className={`fixed inset-0 z-0 pointer-events-none transition-opacity duration-1000 ${activeTheme.bg}`}
-                  style={{ opacity: 0.8 }}
-                ></div>
+                {/* Global Background Image - High Priority */}
+                <div className="fixed inset-0 z-[-1] pointer-events-none bg-[#050505]">
+                  <img 
+                    src={activeTheme.url} 
+                    alt="" 
+                    className="w-full h-full object-cover opacity-80"
+                    style={{ filter: 'brightness(0.6) contrast(1.1)' }}
+                  />
+                  <div className="absolute inset-0 bg-black/30"></div>
+                </div>
 
                 {/* Side Slices - Immersive HUD Effect */}
-                <div className="fixed left-0 top-0 bottom-0 w-[15%] pointer-events-none z-[1] opacity-60 bg-gradient-to-r from-black via-black/40 to-transparent">
-                   <div className="absolute inset-0 map-slice-left"></div>
+                <div className="fixed left-0 top-0 bottom-0 w-[15%] pointer-events-none z-[1] opacity-60">
+                   <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent z-10"></div>
+                   <img src={activeTheme.url} alt="" className="absolute inset-0 w-full h-full object-cover map-slice-left" />
                 </div>
-                <div className="fixed right-0 top-0 bottom-0 w-[15%] pointer-events-none z-[1] opacity-60 bg-gradient-to-l from-black via-black/40 to-transparent">
-                   <div className="absolute inset-0 map-slice-right"></div>
+                <div className="fixed right-0 top-0 bottom-0 w-[15%] pointer-events-none z-[1] opacity-60">
+                   <div className="absolute inset-0 bg-gradient-to-l from-black via-black/40 to-transparent z-10"></div>
+                   <img src={activeTheme.url} alt="" className="absolute inset-0 w-full h-full object-cover map-slice-right" />
                 </div>
 
-                <div className="map-slice-top"></div>
+                <div className="map-slice-top overflow-hidden">
+                   <img src={activeTheme.url} alt="" className="w-full h-full object-cover opacity-40" />
+                </div>
                 
                 {/* HUD Overlays */}
                 <div className="fixed inset-0 pointer-events-none z-[2]">
-                  <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/90"></div>
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/90"></div>
                   <div className="absolute inset-0 opacity-[0.05] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
                   
                   {/* Map Info HUD */}
@@ -109,7 +122,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </div>
               </>
             )}
-            <div className="relative z-10 min-h-screen">
+            <div className="relative z-10 min-h-screen bg-transparent">
               {isBanned ? (
               <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6 bg-black">
                 <div className="max-w-md w-full glass p-10 rounded-[40px] border-2 border-red-500 shadow-[0_0_50px_rgba(239,68,68,0.3)] text-center space-y-8 animate-in zoom-in duration-500 relative overflow-hidden">

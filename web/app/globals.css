@@ -12,6 +12,7 @@ html, body, #__next {
   height: 100%;
   overflow-x: hidden;
   width: 100vw;
+  background-color: transparent;
 }
 
 /* PWA Specific Fixes */
@@ -77,50 +78,6 @@ body {
 }
 
 /* CS2 Themes - Hyper Immersive Styling */
-.bg-mirage { 
-  background-image: url('https://wallpapercave.com/wp/wp12811434.jpg') !important;
-  background-size: cover !important;
-  background-position: center !important;
-  background-attachment: fixed !important;
-}
-.bg-ancient { 
-  background-image: url('https://wallpapercave.com/wp/wp12811454.jpg') !important;
-  background-size: cover !important;
-  background-position: center !important;
-  background-attachment: fixed !important;
-}
-.bg-train { 
-  background-image: url('https://wallpapercave.com/wp/wp12811462.jpg') !important;
-  background-size: cover !important;
-  background-position: center !important;
-  background-attachment: fixed !important;
-}
-.bg-overpass { 
-  background-image: url('https://wallpapercave.com/wp/wp12811458.jpg') !important;
-  background-size: cover !important;
-  background-position: center !important;
-  background-attachment: fixed !important;
-}
-.bg-nuke { 
-  background-image: url('https://wallpapercave.com/wp/wp12811460.jpg') !important;
-  background-size: cover !important;
-  background-position: center !important;
-  background-attachment: fixed !important;
-}
-.bg-inferno { 
-  background-image: url('https://wallpapercave.com/wp/wp12811456.jpg') !important;
-  background-size: cover !important;
-  background-position: center !important;
-  background-attachment: fixed !important;
-}
-.bg-vertigo { 
-  background-image: url('https://wallpapercave.com/wp/wp12811464.jpg') !important;
-  background-size: cover !important;
-  background-position: center !important;
-  background-attachment: fixed !important;
-}
-
-/* Map Slice Decorations */
 .map-slice-top {
   height: 450px;
   width: 100%;
@@ -141,14 +98,6 @@ body {
   background-position: center !important;
   filter: brightness(0.4) contrast(1.2);
 }
-
-.theme-mirage .map-slice-top, .theme-mirage .map-slice-left, .theme-mirage .map-slice-right { background-image: url('https://wallpapercave.com/wp/wp12811434.jpg') !important; }
-.theme-ancient .map-slice-top, .theme-ancient .map-slice-left, .theme-ancient .map-slice-right { background-image: url('https://wallpapercave.com/wp/wp12811454.jpg') !important; }
-.theme-inferno .map-slice-top, .theme-inferno .map-slice-left, .theme-inferno .map-slice-right { background-image: url('https://wallpapercave.com/wp/wp12811456.jpg') !important; }
-.theme-nuke .map-slice-top, .theme-nuke .map-slice-left, .theme-nuke .map-slice-right { background-image: url('https://wallpapercave.com/wp/wp12811460.jpg') !important; }
-.theme-overpass .map-slice-top, .theme-overpass .map-slice-left, .theme-overpass .map-slice-right { background-image: url('https://wallpapercave.com/wp/wp12811458.jpg') !important; }
-.theme-train .map-slice-top, .theme-train .map-slice-left, .theme-train .map-slice-right { background-image: url('https://wallpapercave.com/wp/wp12811462.jpg') !important; }
-.theme-vertigo .map-slice-top, .theme-vertigo .map-slice-left, .theme-vertigo .map-slice-right { background-image: url('https://wallpapercave.com/wp/wp12811464.jpg') !important; }
 
 .map-slice-left {
   mask-image: linear-gradient(to right, black 20%, transparent 100%);
