@@ -75,14 +75,17 @@ export default function Header() {
 
   const isAdminOrModerator = user && (user.role === "admin" || user.role === "moderator")
 
-  const navLinks = [
+  const mainLinks = [
     { name: "Главная", href: "/" },
-    { name: "Лидерборд", href: "/leaderboard" },
     { name: "Чат", href: "/chat" },
     { name: "Ставки", href: "/bets" },
     { name: "Награды", href: "/rewards" },
-    { name: "Я реферал", href: "/referral" },
+    { name: "Лидерборд", href: "/leaderboard" },
     { name: "Квесты", href: "/quests" },
+  ]
+
+  const extraLinks = [
+    { name: "Я реферал", href: "/referral" },
     { name: "О нас", href: "/about" },
     { name: "Репорт", href: "/report" },
     { name: "Заявки", href: "/apply" },
@@ -111,21 +114,21 @@ export default function Header() {
     <>
       <header className="fixed top-0 left-0 right-0 z-[1000] border-b border-white/5 bg-black/40 backdrop-blur-xl h-[56px] flex items-center transition-all">
         <div className="max-w-7xl mx-auto px-4 w-full flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <div className="flex flex-col items-center leading-none">
-              <span className="text-[11px] md:text-[14px] font-black text-neon">{userCount}</span>
-              <span className="text-[6px] md:text-[7px] font-bold text-white/30 uppercase tracking-tighter">Юзеров</span>
+              <span className="text-[12px] xl:text-[14px] font-black text-neon">{userCount}</span>
+              <span className="text-[7px] xl:text-[8px] font-bold text-white/30 uppercase tracking-tighter">Юзеров</span>
             </div>
             <Link href="/" className="flex items-center gap-2 group relative">
-              <span className="text-2xl md:text-3xl font-black tracking-tighter italic text-white group-hover:text-neon transition-all duration-300 drop-shadow-[0_0_8px_rgba(57,255,20,0.5)]">
+              <span className="text-xl xl:text-2xl font-black tracking-tighter italic text-white group-hover:text-neon transition-all duration-300 drop-shadow-[0_0_8px_rgba(57,255,20,0.5)]">
                 PAPPY
               </span>
             </Link>
           </div>
 
           {/* Десктопная навигация */}
-          <nav className="hidden md:flex items-center gap-1 xl:gap-2">
-            {navLinks.map((link) => (
+          <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
+            {mainLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -136,11 +139,34 @@ export default function Header() {
                 {link.name}
               </Link>
             ))}
+
+            {/* Выпадающее меню "Ещё" */}
+            <div className="relative group">
+              <button className="px-2 py-1.5 rounded-lg text-[10px] xl:text-[11px] font-black uppercase tracking-widest text-white/50 hover:text-white hover:bg-white/5 flex items-center gap-1 transition-all">
+                <span>Ещё</span>
+                <span className="text-[8px] opacity-50 group-hover:rotate-180 transition-transform duration-300">▼</span>
+              </button>
+              <div className="absolute top-full left-0 pt-2 opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-300">
+                <div className="w-40 glass rounded-xl border border-white/10 p-2 shadow-2xl backdrop-blur-2xl">
+                  {extraLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={`block px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+                        pathname === link.href ? "bg-neon/20 text-neon" : "text-white/60 hover:text-white hover:bg-white/5"
+                      }`}
+                    >
+                      {link.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
             
             {mounted && isAdminOrModerator && (
               <Link 
                 href="/admin"
-                className={`ml-1 px-2 py-1.5 rounded-lg text-[10px] xl:text-[11px] font-black uppercase transition-all border border-acid/30 ${
+                className={`ml-1 px-3 py-1.5 rounded-lg text-[10px] xl:text-[11px] font-black uppercase transition-all border border-acid/30 ${
                   pathname.startsWith("/admin") ? "bg-acid text-black shadow-acid" : "text-acid hover:bg-acid/10"
                 }`}
               >
@@ -149,32 +175,32 @@ export default function Header() {
             )}
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {mounted && user ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <div className="hidden sm:block text-right">
                   <div className="text-[9px] font-black text-white uppercase leading-none">{user.username}</div>
                   <div className="text-[9px] text-acid font-mono font-bold">{user.balance} 🪙</div>
                 </div>
                 <button 
                   onClick={() => setNotificationsOpen(!notificationsOpen)}
-                  className="relative p-2 text-white/40 hover:text-neon transition-colors"
+                  className="relative p-1.5 text-white/40 hover:text-neon transition-colors"
                 >
-                  <span className="text-xl">🔔</span>
+                  <span className="text-lg">🔔</span>
                 </button>
-                <button onClick={logout} className="p-2 text-white/40 hover:text-red-400 transition-colors">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd" /></svg>
+                <button onClick={logout} className="p-1.5 text-white/40 hover:text-red-400 transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd" /></svg>
                 </button>
               </div>
             ) : mounted && (
               <div className="flex items-center gap-2">
                 <Link href="/login" className="text-[10px] font-black uppercase text-white/60 hover:text-neon px-2">Войти</Link>
-                <Link href="/register" className="px-4 py-2 rounded-xl bg-neon text-black text-[10px] font-black uppercase tracking-widest shadow-neon active:scale-95 transition-all">Регистрация</Link>
+                <Link href="/register" className="px-3 py-1.5 rounded-xl bg-neon text-black text-[10px] font-black uppercase tracking-widest shadow-neon active:scale-95 transition-all">Регистрация</Link>
               </div>
             )}
             
-            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-2 text-white/60 hover:text-neon">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="lg:hidden p-2 text-white/60 hover:text-neon">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 {mobileMenuOpen ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /> : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />}
               </svg>
             </button>
