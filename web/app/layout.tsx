@@ -73,7 +73,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
              <div className="w-12 h-12 border-4 border-neon border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : (
-          <div className={`min-h-screen bg-base overflow-x-hidden transition-all duration-1000 ${activeTheme ? activeTheme.bg : "bg-cyber"}`}>
+          <div className={`min-h-screen overflow-x-hidden transition-all duration-1000 ${activeTheme ? activeTheme.bg : "bg-base bg-cyber"}`}>
             {activeTheme && (
               <>
                 <div className="map-slice-top"></div>
