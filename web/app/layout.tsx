@@ -46,13 +46,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     
     const day = new Date().getDay(); // 0 (Sun) to 6 (Sat)
     const themes = [
-      { name: "Vertigo", color: "#4a5568", bg: "bg-vertigo" }, // Sun
-      { name: "Mirage", color: "#d69e2e", bg: "bg-mirage" },  // Mon
-      { name: "Ancient", color: "#2f855a", bg: "bg-ancient" }, // Tue
-      { name: "Train", color: "#2d3748", bg: "bg-train" },   // Wed
-      { name: "Overpass", color: "#2b6cb0", bg: "bg-overpass" }, // Thu
-      { name: "Nuke", color: "#718096", bg: "bg-nuke" },     // Fri
-      { name: "Inferno", color: "#c53030", bg: "bg-inferno" }  // Sat
+      { name: "Vertigo", bg: "bg-vertigo" }, // Sun
+      { name: "Mirage", bg: "bg-mirage" },  // Mon
+      { name: "Ancient", bg: "bg-ancient" }, // Tue
+      { name: "Train", bg: "bg-train" },   // Wed
+      { name: "Overpass", bg: "bg-overpass" }, // Thu
+      { name: "Nuke", bg: "bg-nuke" },     // Fri
+      { name: "Inferno", bg: "bg-inferno" }  // Sat
     ];
     return themes[day];
   }
@@ -75,9 +75,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         ) : (
           <div className={`min-h-screen bg-base overflow-x-hidden transition-all duration-1000 ${activeTheme ? activeTheme.bg : "bg-cyber"}`}>
             {activeTheme && (
-              <div className="fixed inset-0 pointer-events-none opacity-20 bg-gradient-to-b from-black via-transparent to-black z-0"></div>
+              <div className="fixed inset-0 pointer-events-none z-[1]">
+                <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60"></div>
+                <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+                
+                {/* Map Title Overlay */}
+                <div className="absolute top-20 left-1/2 -translate-x-1/2 opacity-10 flex flex-col items-center pointer-events-none select-none">
+                  <div className="text-[120px] font-black uppercase italic tracking-tighter leading-none text-white">{activeTheme.name}</div>
+                  <div className="h-1 w-full bg-gradient-to-r from-transparent via-white to-transparent mt-2"></div>
+                  <div className="text-xs font-black uppercase tracking-[1em] text-white mt-4">Active Map Rotation</div>
+                </div>
+              </div>
             )}
-            {isBanned ? (
+            <div className="relative z-10">
+              {isBanned ? (
               <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6 bg-black">
                 <div className="max-w-md w-full glass p-10 rounded-[40px] border-2 border-red-500 shadow-[0_0_50px_rgba(239,68,68,0.3)] text-center space-y-8 animate-in zoom-in duration-500 relative overflow-hidden">
                   {/* Анимированный фон */}
@@ -128,6 +139,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <main className="max-w-7xl mx-auto px-4 py-6 pb-24 lg:pb-6">{children}</main>
               </>
             )}
+            </div>
           </div>
         )}
       </body>

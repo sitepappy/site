@@ -76,21 +76,94 @@ body {
   box-shadow: 0 0 10px #39FF14, 0 0 20px #7B2EFF;
 }
 
-/* CS2 Themes */
-.bg-mirage { background: radial-gradient(circle at center, #2d2417 0%, #0a0a0f 100%), url('https://images.alphacoders.com/605/605592.jpg') center/cover no-repeat fixed; }
-.bg-ancient { background: radial-gradient(circle at center, #1a2e1a 0%, #0a0a0f 100%), url('https://images.alphacoders.com/132/1328245.jpeg') center/cover no-repeat fixed; }
-.bg-train { background: radial-gradient(circle at center, #1a202c 0%, #0a0a0f 100%), url('https://images.alphacoders.com/132/1328248.jpeg') center/cover no-repeat fixed; }
-.bg-overpass { background: radial-gradient(circle at center, #1a2a3a 0%, #0a0a0f 100%), url('https://images.alphacoders.com/132/1328247.jpeg') center/cover no-repeat fixed; }
-.bg-nuke { background: radial-gradient(circle at center, #2d3748 0%, #0a0a0f 100%), url('https://images.alphacoders.com/132/1328246.jpeg') center/cover no-repeat fixed; }
-.bg-inferno { background: radial-gradient(circle at center, #3a1a1a 0%, #0a0a0f 100%), url('https://images.alphacoders.com/132/1328244.jpeg') center/cover no-repeat fixed; }
-.bg-vertigo { background: radial-gradient(circle at center, #2a2a2a 0%, #0a0a0f 100%), url('https://images.alphacoders.com/132/1328249.jpeg') center/cover no-repeat fixed; }
+/* CS2 Themes - Aggressive Styling */
+.bg-mirage { 
+  background: 
+    linear-gradient(rgba(10, 10, 15, 0.7), rgba(10, 10, 15, 0.7)),
+    url('https://files.faceit.com/static/730/maps/mirage.jpg') center/cover no-repeat fixed; 
+}
+.bg-ancient { 
+  background: 
+    linear-gradient(rgba(10, 15, 10, 0.7), rgba(10, 10, 15, 0.8)),
+    url('https://files.faceit.com/static/730/maps/ancient.jpg') center/cover no-repeat fixed; 
+}
+.bg-train { 
+  background: 
+    linear-gradient(rgba(15, 20, 25, 0.7), rgba(10, 10, 15, 0.8)),
+    url('https://files.faceit.com/static/730/maps/train.jpg') center/cover no-repeat fixed; 
+}
+.bg-overpass { 
+  background: 
+    linear-gradient(rgba(15, 25, 20, 0.7), rgba(10, 10, 15, 0.8)),
+    url('https://files.faceit.com/static/730/maps/overpass.jpg') center/cover no-repeat fixed; 
+}
+.bg-nuke { 
+  background: 
+    linear-gradient(rgba(20, 25, 35, 0.7), rgba(10, 10, 15, 0.8)),
+    url('https://files.faceit.com/static/730/maps/nuke.jpg') center/cover no-repeat fixed; 
+}
+.bg-inferno { 
+  background: 
+    linear-gradient(rgba(35, 15, 10, 0.7), rgba(10, 10, 15, 0.8)),
+    url('https://files.faceit.com/static/730/maps/inferno.jpg') center/cover no-repeat fixed; 
+}
+.bg-vertigo { 
+  background: 
+    linear-gradient(rgba(25, 25, 30, 0.7), rgba(10, 10, 15, 0.8)),
+    url('https://files.faceit.com/static/730/maps/vertigo.jpg') center/cover no-repeat fixed; 
+}
 
-/* Theme Overrides */
-.theme-mirage { --acid: #d69e2e; --neon: #8a6d3b; }
-.theme-ancient { --acid: #48bb78; --neon: #2f855a; }
-.theme-inferno { --acid: #f56565; --neon: #c53030; }
-.theme-overpass { --acid: #4299e1; --neon: #2b6cb0; }
-.theme-nuke { --acid: #a0aec0; --neon: #4a5568; }
-.theme-train { --acid: #cbd5e0; --neon: #2d3748; }
-.theme-vertigo { --acid: #718096; --neon: #2d3748; }
+/* Theme Overrides - High Contrast Accents */
+.theme-mirage { 
+  --acid: #FFD700; /* Gold Dust */
+  --neon: #DAA520; 
+  --theme-glow: rgba(218, 165, 32, 0.3);
+}
+.theme-ancient { 
+  --acid: #48bb78; /* Jungle Green */
+  --neon: #276749; 
+  --theme-glow: rgba(72, 187, 120, 0.3);
+}
+.theme-inferno { 
+  --acid: #FF4500; /* Brick Red */
+  --neon: #8B0000; 
+  --theme-glow: rgba(255, 69, 0, 0.3);
+}
+.theme-overpass { 
+  --acid: #00BFFF; /* Concrete Blue */
+  --neon: #1E90FF; 
+  --theme-glow: rgba(0, 191, 255, 0.3);
+}
+.theme-nuke { 
+  --acid: #ADFF2F; /* Radioactive Green */
+  --neon: #32CD32; 
+  --theme-glow: rgba(173, 255, 47, 0.3);
+}
+.theme-train { 
+  --acid: #A9A9A9; /* Industrial Steel */
+  --neon: #708090; 
+  --theme-glow: rgba(169, 169, 169, 0.3);
+}
+.theme-vertigo { 
+  --acid: #F0E68C; /* Construction Yellow */
+  --neon: #BDB76B; 
+  --theme-glow: rgba(240, 230, 140, 0.3);
+}
+
+/* Global enhancements when theme is active */
+[class*="theme-"] .glass {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: var(--neon);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+[class*="theme-"] .btn-primary {
+  background: var(--acid);
+  color: black;
+  box-shadow: 0 0 15px var(--theme-glow);
+}
+
+[class*="theme-"] h1, [class*="theme-"] h2 {
+  text-shadow: 0 0 20px var(--theme-glow);
+}
 
