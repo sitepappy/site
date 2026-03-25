@@ -67,25 +67,36 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="manifest" href="/manifest.webmanifest" />
         <meta name="theme-color" content="#0a0a0f" />
       </head>
-      <body className={activeTheme ? `theme-${activeTheme.name.toLowerCase()}` : ""}>
+      <body className={`${activeTheme ? `theme-${activeTheme.name.toLowerCase()} ${activeTheme.bg}` : "bg-[#0a0a0f]"} text-white min-h-screen transition-all duration-700`}>
         {!mounted ? (
-          <div className="min-h-screen bg-base bg-cyber flex items-center justify-center">
-             <div className="w-12 h-12 border-4 border-neon border-t-transparent rounded-full animate-spin"></div>
+          <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
+             <div className="w-12 h-12 border-4 border-[#7B2EFF] border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : (
-          <div className={`min-h-screen overflow-x-hidden transition-all duration-1000 ${activeTheme ? activeTheme.bg : "bg-base bg-cyber"}`}>
+          <div className="min-h-screen overflow-x-hidden relative">
             {activeTheme && (
               <>
+                {/* Side Slices - Immersive HUD Effect */}
+                <div className="fixed left-0 top-0 bottom-0 w-[20%] pointer-events-none z-[1] opacity-40 bg-gradient-to-r from-black/80 to-transparent">
+                   <div className="absolute inset-0 map-slice-left"></div>
+                </div>
+                <div className="fixed right-0 top-0 bottom-0 w-[20%] pointer-events-none z-[1] opacity-40 bg-gradient-to-l from-black/80 to-transparent">
+                   <div className="absolute inset-0 map-slice-right"></div>
+                </div>
+
                 <div className="map-slice-top"></div>
-                <div className="fixed inset-0 pointer-events-none z-[1]">
-                  <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/80"></div>
-                  <div className="absolute inset-0 opacity-5 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+                <div className="fixed inset-0 pointer-events-none z-[2]">
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/90"></div>
+                  <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
                   
                   {/* Map Info HUD */}
-                  <div className="absolute top-24 right-8 opacity-20 flex flex-col items-end pointer-events-none select-none font-mono">
-                    <div className="text-4xl font-black text-white">{activeTheme.name}</div>
-                    <div className="text-[10px] text-white/50 uppercase tracking-widest mt-1">Active Map Environment</div>
-                    <div className="w-32 h-1 bg-var(--acid) mt-2 opacity-50"></div>
+                  <div className="absolute top-24 right-8 opacity-40 flex flex-col items-end pointer-events-none select-none font-mono group">
+                    <div className="text-5xl font-black text-white italic tracking-tighter drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">{activeTheme.name}</div>
+                    <div className="text-[10px] text-white/70 uppercase tracking-[0.5em] mt-2 flex items-center gap-2">
+                       <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                       Active Environment
+                    </div>
+                    <div className="w-48 h-[2px] bg-gradient-to-r from-transparent via-white/50 to-transparent mt-4"></div>
                   </div>
                 </div>
               </>
@@ -138,8 +149,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <>
                 <Header />
                 <PwaRegister />
-                <div className="h-[56px]"></div>
-                <main className="max-w-7xl mx-auto px-4 py-6 pb-24 lg:pb-6">{children}</main>
+                {!pathname.startsWith("/admin") && <div className="h-[56px]"></div>}
+                <main className={`${pathname.startsWith("/admin") ? "w-full" : "max-w-7xl mx-auto px-4 py-6 pb-24 lg:pb-6"}`}>
+                  {children}
+                </main>
               </>
             )}
             </div>

@@ -467,7 +467,7 @@ export default function AdminPage() {
     { id: "schedule", name: "Расписание", icon: "📅" },
   ]
 
-  return (<div className="min-h-screen bg-black/40 text-white font-sans selection:bg-neon/30 selection:text-neon">
+  return (<div className="min-h-screen text-white font-sans selection:bg-neon/30 selection:text-neon">
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between p-4 glass sticky top-0 z-50 border-b border-white/10">
         <h1 className="text-lg font-black text-acid uppercase tracking-tighter">ADMIN PANEL</h1>
