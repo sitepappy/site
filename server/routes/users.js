@@ -27,6 +27,7 @@ r.get("/me", authRequired, (req, res) => {
     telegram: u.telegram || "",
     achievements: Array.isArray(u.achievements) ? u.achievements : [],
     achievementProgress: u.achievementProgress || null,
+    settings: data.settings || { cs2ThemesEnabled: true },
     createdAt: u.createdAt
   })
 })

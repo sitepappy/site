@@ -149,6 +149,21 @@ r.post("/applications/:id/status", adminOnly, (req, res) => {
   res.json({ ok: true })
 })
 
+// SETTINGS
+r.get("/settings", adminOnly, (req, res) => {
+  const data = db.get()
+  res.json(data.settings || { cs2ThemesEnabled: true })
+})
+
+r.post("/settings", adminOnly, (req, res) => {
+  const { cs2ThemesEnabled } = req.body || {}
+  const data = db.get()
+  if (!data.settings) data.settings = {}
+  data.settings.cs2ThemesEnabled = !!cs2ThemesEnabled
+  db.save(data)
+  res.json(data.settings)
+})
+
 r.get("/reports", (req, res) => {
   const data = db.get()
   res.json(data.reports || [])

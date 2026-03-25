@@ -55,6 +55,11 @@ export default function AdminPage() {
   const [antifraudList, setAntifraudList] = useState<any[]>([])
   const [applicationForms, setApplicationForms] = useState<any[]>([])
   const [applications, setApplications] = useState<any[]>([])
+  const [settings, setSettings] = useState<any>({ cs2ThemesEnabled: true })
+  const [newFormFields, setNewFormFields] = useState<{label: string, type: string}[]>([
+    { label: "Ваш Discord/TG", type: "text" },
+    { label: "Почему мы должны выбрать вас?", type: "textarea" }
+  ])
   const [orderMessages, setOrderMessages] = useState<Record<string, string>>({})
   const [orderStatusDraft, setOrderStatusDraft] = useState<Record<string, string>>({})
 
@@ -95,12 +100,14 @@ export default function AdminPage() {
   const loadData = async (tab: string) => {
     try {
       if (tab === "dashboard") {
-        const [statsData, logsData] = await Promise.all([
+        const [statsData, logsData, settingsData] = await Promise.all([
           api("/admin/stats"),
-          api("/admin/logs")
+          api("/admin/logs"),
+          api("/admin/settings")
         ])
         setStats(statsData)
         setLogs(logsData)
+        setSettings(settingsData)
       } else if (tab === "users") {
         const usersData = await api("/admin/users")
         setUsersList(usersData)
@@ -737,6 +744,32 @@ export default function AdminPage() {
                       ))}
                     </div>
                     
+                    <div className="glass p-6 rounded-3xl border border-white/5 mt-8">
+                      <div className="text-[10px] text-white/30 uppercase font-black tracking-widest mb-4 flex justify-between items-center">
+                        <span>Настройки Системы</span>
+                        <div className={`w-1.5 h-1.5 rounded-full ${settings.cs2ThemesEnabled ? 'bg-neon' : 'bg-white/10'}`}></div>
+                      </div>
+                      <div className="space-y-4">
+                        <button 
+                          onClick={async () => {
+                            const newStatus = !settings.cs2ThemesEnabled;
+                            await api("/admin/settings", { method: "POST", body: JSON.stringify({ cs2ThemesEnabled: newStatus }) });
+                            setSettings({ ...settings, cs2ThemesEnabled: newStatus });
+                            setMsg(newStatus ? "CS2 Темы включены" : "Старый стиль возвращен");
+                          }}
+                          className="w-full flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all group"
+                        >
+                          <div className="text-left">
+                            <div className="text-[10px] font-black uppercase text-white/80">Темы карт CS2</div>
+                            <div className="text-[8px] text-white/30 uppercase">Динамический фон по дням</div>
+                          </div>
+                          <div className={`w-10 h-5 rounded-full relative transition-colors ${settings.cs2ThemesEnabled ? 'bg-neon' : 'bg-white/10'}`}>
+                            <div className={`absolute top-1 w-3 h-3 bg-black rounded-full transition-all ${settings.cs2ThemesEnabled ? 'left-6' : 'left-1'}`}></div>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                    
                     {/* Activity Preview */}
                     <div className="glass p-6 rounded-3xl border border-white/5 mt-8">
                       <div className="text-[10px] text-white/30 uppercase font-black tracking-widest mb-4">Активность (24ч)</div>
@@ -1218,10 +1251,49 @@ export default function AdminPage() {
                         <label className="text-[10px] font-black text-white/20 uppercase ml-2 mb-1 block tracking-widest">Описание</label>
                         <textarea 
                           id="form-desc"
-                          rows={3}
+                          rows={2}
                           className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm outline-none focus:border-neon transition-all" 
-                          placeholder="Опишите требования или условия..." 
+                          placeholder="Опишите требования..." 
                         />
+                      </div>
+
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center px-2">
+                          <label className="text-[10px] font-black text-white/20 uppercase tracking-widest">Вопросы формы</label>
+                          <button 
+                            onClick={() => setNewFormFields([...newFormFields, { label: "", type: "text" }])}
+                            className="text-[10px] text-neon font-black uppercase hover:underline"
+                          >+ Добавить</button>
+                        </div>
+                        {newFormFields.map((f, i) => (
+                          <div key={i} className="flex gap-2 animate-in slide-in-from-left-2">
+                            <input 
+                              value={f.label}
+                              onChange={(e) => {
+                                const copy = [...newFormFields];
+                                copy[i].label = e.target.value;
+                                setNewFormFields(copy);
+                              }}
+                              className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs outline-none focus:border-neon"
+                              placeholder={`Вопрос #${i+1}`}
+                            />
+                            <select 
+                              value={f.type}
+                              onChange={(e) => {
+                                const copy = [...newFormFields];
+                                copy[i].type = e.target.value;
+                                setNewFormFields(copy);
+                              }}
+                              className="bg-white/5 border border-white/10 rounded-xl px-2 py-2 text-[10px] outline-none text-white/60"
+                            >
+                              <option value="text">Текст</option>
+                              <option value="textarea">Абзац</option>
+                            </select>
+                            {newFormFields.length > 1 && (
+                              <button onClick={() => setNewFormFields(newFormFields.filter((_, idx) => idx !== i))} className="text-white/20 hover:text-red-500">✕</button>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     </div>
                     <button 
@@ -1229,10 +1301,12 @@ export default function AdminPage() {
                         const title = (document.getElementById('form-title') as HTMLInputElement).value;
                         const description = (document.getElementById('form-desc') as HTMLTextAreaElement).value;
                         if (!title) return alert("Введите заголовок");
+                        if (newFormFields.some(f => !f.label.trim())) return alert("Заполните все названия вопросов");
                         try {
-                          await api("/admin/forms", { method: "POST", body: JSON.stringify({ title, description, fields: [{ label: "Ваш Discord/TG", type: "text" }, { label: "Почему мы должны выбрать вас?", type: "textarea" }] }) });
+                          await api("/admin/forms", { method: "POST", body: JSON.stringify({ title, description, fields: newFormFields }) });
                           (document.getElementById('form-title') as HTMLInputElement).value = "";
                           (document.getElementById('form-desc') as HTMLTextAreaElement).value = "";
+                          setNewFormFields([{ label: "Ваш Discord/TG", type: "text" }, { label: "Почему мы должны выбрать вас?", type: "textarea" }]);
                           loadData("applications");
                           setMsg("Форма создана!");
                         } catch (e: any) { alert(e.message); }

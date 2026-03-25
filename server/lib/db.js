@@ -270,6 +270,18 @@ function read() {
       }
     }
 
+    if (!data.schedule) {
+      data.schedule = { contentHtml: "", streams: [] };
+      changed = true;
+    }
+
+    if (!data.settings) {
+      data.settings = {
+        cs2ThemesEnabled: true
+      };
+      changed = true;
+    }
+
     if (changed) {
       fs.writeFileSync(dbFile, JSON.stringify(data, null, 2), "utf-8");
     }

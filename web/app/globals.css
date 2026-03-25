@@ -76,3 +76,21 @@ body {
   box-shadow: 0 0 10px #39FF14, 0 0 20px #7B2EFF;
 }
 
+/* CS2 Themes */
+.bg-mirage { background: radial-gradient(circle at center, #2d2417 0%, #0a0a0f 100%), url('https://images.alphacoders.com/605/605592.jpg') center/cover no-repeat fixed; }
+.bg-ancient { background: radial-gradient(circle at center, #1a2e1a 0%, #0a0a0f 100%), url('https://images.alphacoders.com/132/1328245.jpeg') center/cover no-repeat fixed; }
+.bg-train { background: radial-gradient(circle at center, #1a202c 0%, #0a0a0f 100%), url('https://images.alphacoders.com/132/1328248.jpeg') center/cover no-repeat fixed; }
+.bg-overpass { background: radial-gradient(circle at center, #1a2a3a 0%, #0a0a0f 100%), url('https://images.alphacoders.com/132/1328247.jpeg') center/cover no-repeat fixed; }
+.bg-nuke { background: radial-gradient(circle at center, #2d3748 0%, #0a0a0f 100%), url('https://images.alphacoders.com/132/1328246.jpeg') center/cover no-repeat fixed; }
+.bg-inferno { background: radial-gradient(circle at center, #3a1a1a 0%, #0a0a0f 100%), url('https://images.alphacoders.com/132/1328244.jpeg') center/cover no-repeat fixed; }
+.bg-vertigo { background: radial-gradient(circle at center, #2a2a2a 0%, #0a0a0f 100%), url('https://images.alphacoders.com/132/1328249.jpeg') center/cover no-repeat fixed; }
+
+/* Theme Overrides */
+.theme-mirage { --acid: #d69e2e; --neon: #8a6d3b; }
+.theme-ancient { --acid: #48bb78; --neon: #2f855a; }
+.theme-inferno { --acid: #f56565; --neon: #c53030; }
+.theme-overpass { --acid: #4299e1; --neon: #2b6cb0; }
+.theme-nuke { --acid: #a0aec0; --neon: #4a5568; }
+.theme-train { --acid: #cbd5e0; --neon: #2d3748; }
+.theme-vertigo { --acid: #718096; --neon: #2d3748; }
+

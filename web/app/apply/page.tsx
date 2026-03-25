@@ -26,6 +26,14 @@ export default function ApplyPage() {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault()
+    
+    // ПРОВЕРКА: Все ли вопросы заполнены?
+    const unanswered = selectedForm.fields.find((f: any) => !answers[f.label]?.trim());
+    if (unanswered) {
+      setError(`Пожалуйста, ответьте на вопрос: "${unanswered.label}"`);
+      return;
+    }
+
     setSubmitting(true)
     setError("")
     try {

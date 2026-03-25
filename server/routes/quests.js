@@ -27,9 +27,33 @@ r.post("/:id/complete", authRequired, (req, res) => {
   const data = db.get()
   const q = data.quests.find(x => x.id === req.params.id)
   if (!q) return res.status(404).json({ error: "Квест не найден" })
+  
   const already = data.userQuests.find(uq => uq.userId === req.user.id && uq.questId === q.id)
   if (already) return res.status(400).json({ error: "Уже выполнено" })
+  
   const u = data.users.find(x => x.id === req.user.id)
+  
+  // ПРОВЕРКА ВЫПОЛНЕНИЯ КВЕСТА
+  let isDone = false
+  
+  // Проверка по ID или Названию (зависит от того, как они созданы)
+  if (q.id === "q1" || q.name.includes("Первый вход")) {
+    isDone = true // Уже вошел
+  } else if (q.id === "q2" || q.name.includes("ТГ")) {
+    if (!u.telegram) return res.status(400).json({ error: "Сначала привяжите Telegram в профиле" })
+    isDone = true
+  } else if (q.id === "q3" || q.name.includes("ставку")) {
+    const hasBet = data.bets.some(b => b.userId === u.id)
+    if (!hasBet) return res.status(400).json({ error: "Вы еще не сделали ни одной ставки" })
+    isDone = true
+  } else {
+    // Для кастомных квестов пока считаем выполнение по клику, 
+    // если не прописана логика
+    isDone = true 
+  }
+
+  if (!isDone) return res.status(400).json({ error: "Квест еще не выполнен" })
+
   const createdAt = nowIso()
   data.userQuests.push({ id: db.id(), userId: u.id, questId: q.id, completedAt: createdAt })
   u.balance += q.reward
