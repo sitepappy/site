@@ -58,12 +58,14 @@ export default function CasesPage() {
       setOpening(true)
       setWinItem(null)
       
-      // Генерируем ленту для прокрутки (80 предметов)
+      const { drop, balance } = await api(`/cases/open/${c.id}`, { method: "POST" })
+      
+      // Генерируем длинную ленту (120 предметов), чтобы точно не было черного экрана
       const allSkins = c.skins
       const roll = []
-      for (let i = 0; i < 80; i++) {
-        // Логика "почти выпал дорогой скин": вставляем редкие скины чаще перед финишем
-        if (i > 70 && i < 76 && Math.random() > 0.4) {
+      for (let i = 0; i < 120; i++) {
+        // Логика "почти выпал дорогой скин": вставляем редкие скины чаще вокруг финиша (95-я позиция)
+        if (i > 90 && i < 100 && i !== 95 && Math.random() > 0.3) {
           const rare = allSkins.filter((s: any) => s.rarity === 'high' || s.rarity === 'premium')
           roll.push(rare[Math.floor(Math.random() * rare.length)] || allSkins[Math.floor(Math.random() * allSkins.length)])
         } else {
@@ -71,18 +73,19 @@ export default function CasesPage() {
         }
       }
       
-      const { drop, balance } = await api(`/cases/open/${c.id}`, { method: "POST" })
-      
-      // Вставляем реальный выигрыш на 76-ю позицию
-      roll[75] = drop
+      // Вставляем реальный выигрыш на 95-ю позицию
+      roll[95] = drop
       setRollItems(roll)
       setUser({ ...user, balance })
 
       // Запускаем анимацию
       setTimeout(() => {
         if (rollRef.current) {
-          rollRef.current.style.transition = "transform 8s cubic-bezier(0.15, 0, 0.05, 1)"
-          rollRef.current.style.transform = `translateX(-${75 * 160 - 80}px)`
+          rollRef.current.style.transition = "transform 9s cubic-bezier(0.1, 0, 0.05, 1)"
+          // 128px - ширина скина (32 * 4), + 8px gap. Итого 136px на предмет.
+          // Центрируем 95-й предмет: 95 * 136px
+          const itemWidth = 128 + 8;
+          rollRef.current.style.transform = `translateX(-${95 * itemWidth}px)`
         }
       }, 100)
 
@@ -92,7 +95,7 @@ export default function CasesPage() {
         setOpening(false)
         loadDrops()
         window.dispatchEvent(new Event("balanceUpdate"))
-      }, 8500)
+      }, 9500)
 
     } catch (e: any) {
       alert(e.message)

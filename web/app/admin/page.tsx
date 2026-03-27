@@ -55,6 +55,7 @@ export default function AdminPage() {
   const [antifraudList, setAntifraudList] = useState<any[]>([])
   const [applicationForms, setApplicationForms] = useState<any[]>([])
   const [applications, setApplications] = useState<any[]>([])
+  const [casesConfig, setCasesConfig] = useState<any[]>([])
   const [settings, setSettings] = useState<any>({ cs2ThemesEnabled: true })
   const [newFormFields, setNewFormFields] = useState<{label: string, type: string}[]>([
     { label: "Ваш Discord/TG", type: "text" },
@@ -158,6 +159,9 @@ export default function AdminPage() {
         ])
         setApplicationForms(formsData)
         setApplications(appsData)
+      } else if (tab === "cases") {
+        const data = await api("/cases")
+        setCasesConfig(data)
       }
     } catch (e) { console.error(e) }
   }
@@ -279,6 +283,62 @@ export default function AdminPage() {
       setMsg("О нас сохранено!")
       setTimeout(() => setMsg(""), 3000)
     } catch (e: any) { alert(e.message) }
+  }
+
+  const handleSaveCases = async () => {
+    try {
+      await api("/cases/config", { method: "PUT", body: JSON.stringify(casesConfig) })
+      setMsg("Конфигурация кейсов сохранена!")
+      setTimeout(() => setMsg(""), 3000)
+    } catch (e: any) { alert(e.message) }
+  }
+
+  const handleUpdateCase = (caseId: string, field: string, value: any) => {
+    setCasesConfig(prev => prev.map(c => c.id === caseId ? { ...c, [field]: value } : c))
+  }
+
+  const handleUpdateSkin = (caseId: string, rarity: string, skinIdx: number, field: string, value: any) => {
+    setCasesConfig(prev => prev.map(c => {
+      if (c.id === caseId) {
+        const newRewards = { ...c.rewards }
+        newRewards[rarity] = [...newRewards[rarity]]
+        newRewards[rarity][skinIdx] = { ...newRewards[rarity][skinIdx], [field]: value }
+        return { ...c, rewards: newRewards }
+      }
+      return c
+    }))
+  }
+
+  const addSkin = (caseId: string, rarity: string) => {
+    setCasesConfig(prev => prev.map(c => {
+      if (c.id === caseId) {
+        const newRewards = { ...c.rewards }
+        newRewards[rarity] = [...(newRewards[rarity] || []), { name: "Новый скин", image: "", minPrice: 1, maxPrice: 10 }]
+        return { ...c, rewards: newRewards }
+      }
+      return c
+    }))
+  }
+
+  const removeSkin = (caseId: string, rarity: string, idx: number) => {
+    setCasesConfig(prev => prev.map(c => {
+      if (c.id === caseId) {
+        const newRewards = { ...c.rewards }
+        newRewards[rarity] = newRewards[rarity].filter((_:any, i:number) => i !== idx)
+        return { ...c, rewards: newRewards }
+      }
+      return c
+    }))
+  }
+
+  const handleUpdateCaseChance = (caseId: string, rarity: string, value: string) => {
+    const num = parseFloat(value) || 0
+    setCasesConfig(prev => prev.map(c => {
+      if (c.id === caseId) {
+        return { ...c, chances: { ...c.chances, [rarity]: num } }
+      }
+      return c
+    }))
   }
 
   const handleSaveSchedule = async (e: any) => {
@@ -460,6 +520,7 @@ export default function AdminPage() {
     { id: "reports", name: "Тикеты", icon: "🎫" },
     { id: "chat", name: "Админ-чат", icon: "💬" },
     { id: "orders", name: "Заказы", icon: "🛒" },
+    { id: "cases", name: "Кейсы", icon: "📦" },
     { id: "promos", name: "Промокоды", icon: "🎁" },
     { id: "quests", name: "Квесты", icon: "🎯" },
     { id: "rewards", name: "Награды", icon: "🏆" },
@@ -1981,6 +2042,101 @@ export default function AdminPage() {
                     </div>
                   ))}
                 </div>
+              </div>
+            </div>
+          )}
+          {activeTab === "cases" && (
+            <div className="space-y-8">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-black text-white uppercase tracking-tighter italic">Управление Кейсами</h2>
+                <button onClick={handleSaveCases} className="px-6 py-3 rounded-xl bg-neon text-black font-black uppercase italic text-xs shadow-neon hover:scale-105 active:scale-95 transition-all">
+                  Сохранить все изменения
+                </button>
+              </div>
+
+              <div className="grid gap-8">
+                {casesConfig.map((c) => (
+                  <div key={c.id} className="glass p-6 rounded-[32px] border border-white/10 space-y-6">
+                    <div className="flex flex-col md:flex-row gap-6">
+                      <div className="w-full md:w-48 space-y-3">
+                        <div className="text-[10px] font-black text-white/30 uppercase tracking-widest">Превью кейса</div>
+                        <img src={c.image} alt="" className="w-full h-48 object-contain rounded-2xl bg-black/20 p-4 border border-white/5" />
+                        <input 
+                          value={c.image} 
+                          onChange={(e) => handleUpdateCase(c.id, "image", e.target.value)}
+                          className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] outline-none focus:border-neon"
+                          placeholder="URL картинки кейса"
+                        />
+                      </div>
+                      
+                      <div className="flex-1 space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-[10px] font-black text-white/30 uppercase tracking-widest ml-2 mb-1 block">Название</label>
+                            <input value={c.name} onChange={(e) => handleUpdateCase(c.id, "name", e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-neon" />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-black text-white/30 uppercase tracking-widest ml-2 mb-1 block">Цена (🪙)</label>
+                            <input type="number" value={c.price} onChange={(e) => handleUpdateCase(c.id, "price", Number(e.target.value))} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-neon" />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-black text-white/30 uppercase tracking-widest ml-2 mb-1 block">Описание</label>
+                          <input value={c.description} onChange={(e) => handleUpdateCase(c.id, "description", e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-neon" />
+                        </div>
+                        
+                        <div className="grid grid-cols-4 gap-2">
+                          {['low', 'medium', 'high', 'premium'].map(rarity => (
+                            <div key={rarity}>
+                              <label className="text-[8px] font-black text-white/20 uppercase tracking-widest ml-1 mb-1 block">Шанс {rarity} (%)</label>
+                              <input type="number" value={c.chances[rarity]} onChange={(e) => {
+                                const newChances = { ...c.chances, [rarity]: Number(e.target.value) }
+                                handleUpdateCase(c.id, "chances", newChances)
+                              }} className="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-2 text-xs outline-none focus:border-neon" />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-6 border-t border-white/5">
+                      <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4">Содержимое (Скины)</h3>
+                      <div className="space-y-6">
+                        {['low', 'medium', 'high', 'premium'].map(rarity => (
+                          <div key={rarity} className="space-y-3">
+                            <div className="flex items-center justify-between px-2">
+                              <div className="text-[10px] font-black uppercase tracking-widest opacity-40">{rarity} rarity</div>
+                              <button onClick={() => addSkin(c.id, rarity)} className="text-[10px] font-black text-neon uppercase hover:underline">+ Добавить скин</button>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                              {c.rewards[rarity]?.map((s: any, idx: number) => (
+                                <div key={idx} className="p-4 rounded-2xl bg-white/5 border border-white/10 flex gap-4 group">
+                                  <div className="w-16 h-16 shrink-0 relative">
+                                    <img src={s.image} alt="" className="w-full h-full object-contain" />
+                                    <input 
+                                      value={s.image} 
+                                      onChange={(e) => handleUpdateSkin(c.id, rarity, idx, "image", e.target.value)}
+                                      className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-black/80 text-[8px] p-1 rounded outline-none"
+                                      placeholder="URL"
+                                    />
+                                  </div>
+                                  <div className="flex-1 space-y-2">
+                                    <input value={s.name} onChange={(e) => handleUpdateSkin(c.id, rarity, idx, "name", e.target.value)} className="w-full bg-transparent text-[10px] font-bold uppercase outline-none focus:text-neon" placeholder="Название" />
+                                    <div className="flex gap-2">
+                                      <input type="number" value={s.minPrice} onChange={(e) => handleUpdateSkin(c.id, rarity, idx, "minPrice", Number(e.target.value))} className="w-1/2 bg-black/20 rounded px-2 py-1 text-[9px] outline-none" placeholder="Мин" />
+                                      <input type="number" value={s.maxPrice} onChange={(e) => handleUpdateSkin(c.id, rarity, idx, "maxPrice", Number(e.target.value))} className="w-1/2 bg-black/20 rounded px-2 py-1 text-[9px] outline-none" placeholder="Макс" />
+                                    </div>
+                                  </div>
+                                  <button onClick={() => removeSkin(c.id, rarity, idx)} className="text-white/20 hover:text-red-500 self-start">✕</button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
