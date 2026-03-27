@@ -67,6 +67,7 @@ r.get("/profile/:id", (req, res) => {
     referralLevel: u.referralLevel || null,
     referralColor: u.referralColor || null,
     referralCount: typeof u.referralCount === "number" ? u.referralCount : 0,
+    inventory: Array.isArray(u.inventory) ? u.inventory : [],
     createdAt: u.createdAt,
     posts: posts.map(p => ({
       ...p,

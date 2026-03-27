@@ -141,6 +141,45 @@ export default function PublicProfilePage({ params }: { params: { id: string } }
         </div>
       </div>
 
+      {/* Публичный инвентарь */}
+      <div className="space-y-6">
+        <h3 className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] flex items-center gap-2 px-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-neon"></span>
+          Арсенал скинов
+        </h3>
+        <div className="glass p-8 rounded-[40px] border border-white/5">
+          {(!user.inventory || user.inventory.length === 0) ? (
+            <div className="py-12 text-center">
+              <div className="text-4xl mb-4 opacity-10">🎒</div>
+              <p className="text-white/20 font-black uppercase tracking-widest text-[10px]">Инвентарь пуст</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {user.inventory.map((item: any) => {
+                const RARITY_CLASSES = {
+                  low: "border-gray-500/30 bg-gray-500/5",
+                  medium: "border-[#39FF14]/30 bg-[#39FF14]/5",
+                  high: "border-[#FF00FF]/30 bg-[#FF00FF]/5",
+                  premium: "border-[#FFD700]/30 bg-[#FFD700]/5"
+                }
+                const rarityColor = item.rarity === 'low' ? 'text-gray-400' : item.rarity === 'medium' ? 'text-[#39FF14]' : item.rarity === 'high' ? 'text-[#FF00FF]' : 'text-[#FFD700]'
+                
+                return (
+                  <div key={item.id} className={`p-4 rounded-2xl border flex flex-col items-center text-center group transition-all hover:scale-[1.05] hover:shadow-2xl ${RARITY_CLASSES[item.rarity as keyof typeof RARITY_CLASSES]}`}>
+                    <div className="relative mb-3">
+                      <img src={item.skinImage} alt="" className="w-20 h-20 object-contain group-hover:scale-110 transition-transform relative z-10" />
+                      <div className={`absolute inset-0 blur-2xl opacity-20 group-hover:opacity-40 transition-opacity rounded-full ${rarityColor.replace('text-', 'bg-')}`}></div>
+                    </div>
+                    <div className={`text-[9px] font-black uppercase tracking-tighter mb-1 truncate w-full ${rarityColor}`}>{item.skinName}</div>
+                    <div className="text-[7px] text-white/20 uppercase font-bold">{item.caseName} Case</div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Лента пользователя */}
       <div className="space-y-6">
         <h2 className="text-sm font-black uppercase italic tracking-[0.3em] text-white/30 flex items-center gap-4 px-2">
