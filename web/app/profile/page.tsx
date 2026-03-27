@@ -11,6 +11,7 @@ export default function ProfilePage() {
   const [error, setError] = useState("")
   const [mounted, setMounted] = useState(false)
   const [orders, setOrders] = useState<any[]>([])
+  const [inventory, setInventory] = useState<any[]>([])
   
   const [link, setLink] = useState("")
   const [telegram, setTelegram] = useState("")
@@ -42,6 +43,7 @@ export default function ProfilePage() {
       setBannerUrl(m.bannerUrl || "")
       const myOrders = await api("/orders/my")
       setOrders(Array.isArray(myOrders) ? myOrders : [])
+      setInventory(m.inventory || [])
     } catch (e: any) {
       if (e.message === "UNAUTHORIZED") {
         localStorage.removeItem("token")
@@ -62,6 +64,16 @@ export default function ProfilePage() {
       load()
     } catch (e: any) {
       setError(e.message)
+    }
+  }
+
+  const sellItem = async (dropId: string) => {
+    try {
+      await api(`/cases/sell/${dropId}`, { method: "POST" })
+      load()
+      window.dispatchEvent(new Event("balanceUpdate"))
+    } catch (e: any) {
+      alert(e.message)
     }
   }
 
@@ -196,7 +208,22 @@ export default function ProfilePage() {
           {/* Достижения и Реферальный уровень */}
           <div className="mt-12 grid md:grid-cols-2 gap-8 pt-12 border-t border-white/5">
             <div className="space-y-6">
-              <AchievementsPanel achievements={me.achievements || []} />
+              <h3 className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-neon"></span>
+                Статистика игрока
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="glass p-4 rounded-2xl border border-white/5 bg-white/5">
+                  <div className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Всего дропов</div>
+                  <div className="text-xl font-black text-white italic">{me.inventory?.length || 0}</div>
+                </div>
+                <div className="glass p-4 rounded-2xl border border-white/5 bg-white/5">
+                  <div className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Редких скинов</div>
+                  <div className="text-xl font-black text-pink-500 italic">
+                    {me.inventory?.filter((x:any) => x.rarity === 'high' || x.rarity === 'premium').length || 0}
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-6">
@@ -235,10 +262,56 @@ export default function ProfilePage() {
         </div>
       )}
 
-      <AchievementsPanel achievements={me.achievements} />
+      {/* Инвентарь скинов */}
+      <div className="glass p-6 rounded-[32px] border border-white/5 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Ваш арсенал</div>
+            <div className="text-xl font-black text-white uppercase tracking-tighter italic">Инвентарь скинов</div>
+          </div>
+          <div className="text-[10px] font-black text-white/20 uppercase">Всего: {inventory.length}</div>
+        </div>
+
+        {inventory.length === 0 ? (
+          <div className="py-12 text-center glass rounded-2xl border border-dashed border-white/5">
+            <div className="text-4xl mb-4 opacity-20">🎒</div>
+            <p className="text-white/20 font-black uppercase tracking-widest text-xs">Инвентарь пуст</p>
+            <Link href="/cases" className="inline-block mt-4 text-neon text-[10px] font-black uppercase tracking-widest hover:underline">Открыть кейсы →</Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {inventory.map((item) => {
+              const RARITY_CLASSES = {
+                low: "border-gray-500/30 bg-gray-500/5",
+                medium: "border-[#39FF14]/30 bg-[#39FF14]/5",
+                high: "border-[#FF00FF]/30 bg-[#FF00FF]/5",
+                premium: "border-[#FFD700]/30 bg-[#FFD700]/5"
+              }
+              const rarityColor = item.rarity === 'low' ? 'text-gray-400' : item.rarity === 'medium' ? 'text-[#39FF14]' : item.rarity === 'high' ? 'text-[#FF00FF]' : 'text-[#FFD700]'
+              
+              return (
+                <div key={item.id} className={`p-4 rounded-2xl border flex flex-col items-center text-center group transition-all hover:scale-[1.02] ${RARITY_CLASSES[item.rarity as keyof typeof RARITY_CLASSES]}`}>
+                  <img src={item.skinImage} alt="" className="w-20 h-20 object-contain mb-3 group-hover:scale-110 transition-transform" />
+                  <div className={`text-[9px] font-black uppercase tracking-tighter mb-1 truncate w-full ${rarityColor}`}>{item.skinName}</div>
+                  <div className="text-[8px] text-white/30 uppercase mb-3">{item.caseName} Case</div>
+                  <button 
+                    onClick={() => sellItem(item.id)}
+                    className="w-full py-2 rounded-lg bg-white/5 border border-white/10 text-[8px] font-black uppercase tracking-widest hover:bg-acid hover:text-black hover:border-acid transition-all"
+                  >
+                    Продать {item.sellPrice} 🪙
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
 
       <div className="glass p-6 rounded-2xl border border-white/5">
-        <div className="flex items-end justify-between gap-4">
+        <AchievementsPanel achievements={me.achievements || []} />
+      </div>
+
+      <div className="glass p-6 rounded-2xl border border-white/5">
           <div>
             <div className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Заказы</div>
             <div className="text-xl font-black text-white uppercase tracking-tighter">Статусы и SLA</div>

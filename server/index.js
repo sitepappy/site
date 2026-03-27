@@ -21,6 +21,7 @@ import chatRoutes from "./routes/chat.js"
 import leaderboardRoutes from "./routes/leaderboard.js"
 import adminRoutes from "./routes/admin.js"
 import publicRoutes from "./routes/public.js"
+import caseRoutes from "./routes/cases.js"
 import { ensureDataDir } from "./lib/db.js"
 
 dotenv.config()
@@ -76,6 +77,7 @@ app.use("/chat", chatRoutes)
 app.use("/leaderboard", leaderboardRoutes)
 app.use("/admin", adminRoutes)
 app.use("/public", publicRoutes)
+app.use("/cases", caseRoutes)
 
 const PORT = process.env.PORT || 4000
 app.listen(PORT, '0.0.0.0', () => {

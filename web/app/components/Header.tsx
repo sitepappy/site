@@ -77,6 +77,7 @@ export default function Header() {
 
   const navLinks = [
     { name: "Главная", href: "/" },
+    { name: "Кейсы", href: "/cases" },
     { name: "Чат", href: "/chat" },
     { name: "Ставки", href: "/bets" },
     { name: "Награды", href: "/rewards" },
