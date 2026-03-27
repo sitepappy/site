@@ -181,7 +181,13 @@ export default function CasesPage() {
                 <div className="mb-8 text-center animate-in zoom-in duration-500">
                   <div className={`text-sm font-black uppercase tracking-[0.3em] mb-2 ${RARITY_COLORS[winItem.rarity as keyof typeof RARITY_COLORS]}`}>ВЫ ВЫИГРАЛИ!</div>
                   <h2 className="text-3xl font-black italic text-white uppercase mb-6">{winItem.skinName}</h2>
-                  <div className="flex gap-4 justify-center">
+                  <div className="flex gap-4 justify-center flex-wrap">
+                    <button 
+                      onClick={() => handleOpen(selectedCase)} 
+                      className="px-8 py-4 rounded-2xl bg-neon text-black font-black uppercase italic text-xs shadow-neon hover:scale-105 active:scale-95 transition-all"
+                    >
+                      Открыть еще
+                    </button>
                     <button onClick={() => sellItem(winItem.id)} className="px-8 py-4 rounded-2xl bg-acid text-black font-black uppercase italic text-xs shadow-acid hover:scale-105 active:scale-95 transition-all">
                       Продать за {winItem.sellPrice} 🪙
                     </button>
