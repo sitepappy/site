@@ -160,7 +160,7 @@ export default function AdminPage() {
         setApplicationForms(formsData)
         setApplications(appsData)
       } else if (tab === "cases") {
-        const data = await api("/cases")
+        const data = await api("/cases/config")
         setCasesConfig(data)
       }
     } catch (e) { console.error(e) }
@@ -2089,8 +2089,8 @@ export default function AdminPage() {
                           {['low', 'medium', 'high', 'premium'].map(rarity => (
                             <div key={rarity}>
                               <label className="text-[8px] font-black text-white/20 uppercase tracking-widest ml-1 mb-1 block">Шанс {rarity} (%)</label>
-                              <input type="number" value={c.chances[rarity]} onChange={(e) => {
-                                const newChances = { ...c.chances, [rarity]: Number(e.target.value) }
+                              <input type="number" value={c.chances?.[rarity] || 0} onChange={(e) => {
+                                const newChances = { ...(c.chances || {}), [rarity]: Number(e.target.value) }
                                 handleUpdateCase(c.id, "chances", newChances)
                               }} className="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-2 text-xs outline-none focus:border-neon" />
                             </div>
@@ -2109,7 +2109,7 @@ export default function AdminPage() {
                               <button onClick={() => addSkin(c.id, rarity)} className="text-[10px] font-black text-neon uppercase hover:underline">+ Добавить скин</button>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                              {c.rewards[rarity]?.map((s: any, idx: number) => (
+                              {c.rewards?.[rarity]?.map((s: any, idx: number) => (
                                 <div key={idx} className="p-4 rounded-2xl bg-white/5 border border-white/10 flex gap-4 group">
                                   <div className="w-16 h-16 shrink-0 relative">
                                     <img src={s.image} alt="" className="w-full h-full object-contain" />

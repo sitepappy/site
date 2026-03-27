@@ -82,10 +82,14 @@ export default function CasesPage() {
       setTimeout(() => {
         if (rollRef.current) {
           rollRef.current.style.transition = "transform 9s cubic-bezier(0.1, 0, 0.05, 1)"
-          // 128px - ширина скина (32 * 4), + 8px gap. Итого 136px на предмет.
-          // Центрируем 95-й предмет: 95 * 136px
+          // Расчет: каждый элемент 128px + 8px gap = 136px.
+          // Мы хотим, чтобы 95-й элемент оказался ровно по центру.
+          // Изначально лента сдвинута на 50% влево через px-[50%].
+          // Чтобы центрировать 95-й предмет, нам нужно прокрутить (95 * 136) + (136 / 2) пикселей.
           const itemWidth = 128 + 8;
-          rollRef.current.style.transform = `translateX(-${95 * itemWidth}px)`
+          const centerOffset = itemWidth / 2;
+          const targetScroll = (95 * itemWidth) + centerOffset;
+          rollRef.current.style.transform = `translateX(-${targetScroll}px)`
         }
       }, 100)
 
@@ -183,15 +187,15 @@ export default function CasesPage() {
                 <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[2px] bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.8)] z-20"></div>
                 <div 
                   ref={rollRef}
-                  className="flex gap-2 px-[50%] transition-transform"
-                  style={{ transform: 'translateX(0px)' }}
+                  className="flex gap-2 transition-transform"
+                  style={{ transform: 'translateX(0px)', paddingLeft: '50%' }}
                 >
                   {rollItems.length > 0 ? rollItems.map((item, i) => (
                     <div key={i} className={`shrink-0 w-32 h-32 rounded-2xl border-b-4 bg-white/5 flex flex-col items-center justify-center p-2 ${RARITY_COLORS[item.rarity as keyof typeof RARITY_COLORS]}`}>
                       <img src={item.image || item.skinImage} alt="" className="w-20 h-20 object-contain" />
                     </div>
                   )) : (
-                    <div className="w-full h-full flex items-center justify-center text-white/10 uppercase font-black italic tracking-widest">
+                    <div className="absolute inset-0 flex items-center justify-center text-white/10 uppercase font-black italic tracking-widest">
                       Готов к открытию
                     </div>
                   )}

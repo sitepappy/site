@@ -120,6 +120,13 @@ r.get("/drops", (req, res) => {
   res.json((data.caseDrops || []).slice(-20).reverse())
 })
 
+r.get("/config", authRequired, (req, res) => {
+  const data = db.get()
+  const u = data.users.find(x => x.id === req.user.id)
+  if (!u || u.role !== 'admin') return res.status(403).json({ error: "Нет доступа" })
+  res.json(getCases())
+})
+
 r.post("/open/:id", authRequired, (req, res) => {
   const caseId = req.params.id
   const cases = getCases()
