@@ -58,13 +58,18 @@ export default function CasesPage() {
       setOpening(true)
       setWinItem(null)
       
+      // Сброс позиции рулетки перед новым открытием
+      if (rollRef.current) {
+        rollRef.current.style.transition = "none"
+        rollRef.current.style.transform = "translate3d(0, 0, 0)"
+      }
+
       const { drop, balance } = await api(`/cases/open/${c.id}`, { method: "POST" })
       
-      // Генерируем длинную ленту (120 предметов), чтобы точно не было черного экрана
+      // Генерируем ленту (120 предметов)
       const allSkins = c.skins
       const roll = []
       for (let i = 0; i < 120; i++) {
-        // Логика "почти выпал дорогой скин": вставляем редкие скины чаще вокруг финиша (95-я позиция)
         if (i > 90 && i < 100 && i !== 95 && Math.random() > 0.3) {
           const rare = allSkins.filter((s: any) => s.rarity === 'high' || s.rarity === 'premium')
           roll.push(rare[Math.floor(Math.random() * rare.length)] || allSkins[Math.floor(Math.random() * allSkins.length)])
@@ -73,27 +78,20 @@ export default function CasesPage() {
         }
       }
       
-      // Вставляем реальный выигрыш на 95-ю позицию
       roll[95] = drop
       setRollItems(roll)
       setUser({ ...user, balance })
 
-      // Запускаем анимацию
+      // Запускаем анимацию с небольшой задержкой для корректного сброса
       setTimeout(() => {
         if (rollRef.current) {
           rollRef.current.style.transition = "transform 9s cubic-bezier(0.1, 0, 0.05, 1)"
-          // Расчет: каждый элемент 128px + 8px gap = 136px.
-          // Мы хотим, чтобы 95-й элемент оказался ровно по центру.
-          // Изначально лента сдвинута на 50% влево через px-[50%].
-          // Чтобы центрировать 95-й предмет, нам нужно прокрутить (95 * 136) + (136 / 2) пикселей.
-          const itemWidth = 128 + 8;
-          const centerOffset = itemWidth / 2;
-          const targetScroll = (95 * itemWidth) + centerOffset;
-          rollRef.current.style.transform = `translateX(-${targetScroll}px)`
+          const itemWidth = 128 + 8; // 128px width + 8px gap
+          const targetScroll = (95 * itemWidth) + (itemWidth / 2);
+          rollRef.current.style.transform = `translate3d(-${targetScroll}px, 0, 0)`
         }
-      }, 100)
+      }, 50)
 
-      // По завершении анимации
       setTimeout(() => {
         setWinItem(drop)
         setOpening(false)
@@ -161,7 +159,18 @@ export default function CasesPage() {
         </div>
       ) : (
         <div className="space-y-8 animate-in zoom-in-95 duration-500">
-          <button onClick={() => { setSelectedCase(null); setWinItem(null); setRollItems([]); }} className="text-white/40 hover:text-white transition-colors uppercase font-black text-xs tracking-widest">
+          <button 
+            onClick={() => { 
+              setSelectedCase(null); 
+              setWinItem(null); 
+              setRollItems([]); 
+              if (rollRef.current) {
+                rollRef.current.style.transition = "none";
+                rollRef.current.style.transform = "translate3d(0, 0, 0)";
+              }
+            }} 
+            className="text-white/40 hover:text-white transition-colors uppercase font-black text-xs tracking-widest"
+          >
             ← Назад к кейсам
           </button>
 

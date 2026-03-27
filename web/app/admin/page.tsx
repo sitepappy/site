@@ -2123,8 +2123,14 @@ export default function AdminPage() {
                                   <div className="flex-1 space-y-2">
                                     <input value={s.name} onChange={(e) => handleUpdateSkin(c.id, rarity, idx, "name", e.target.value)} className="w-full bg-transparent text-[10px] font-bold uppercase outline-none focus:text-neon" placeholder="Название" />
                                     <div className="flex gap-2">
-                                      <input type="number" value={s.minPrice} onChange={(e) => handleUpdateSkin(c.id, rarity, idx, "minPrice", Number(e.target.value))} className="w-1/2 bg-black/20 rounded px-2 py-1 text-[9px] outline-none" placeholder="Мин" />
-                                      <input type="number" value={s.maxPrice} onChange={(e) => handleUpdateSkin(c.id, rarity, idx, "maxPrice", Number(e.target.value))} className="w-1/2 bg-black/20 rounded px-2 py-1 text-[9px] outline-none" placeholder="Макс" />
+                                      <div className="w-1/2">
+                                        <div className="text-[7px] text-white/20 uppercase font-black mb-0.5 ml-1">Мин. цена</div>
+                                        <input type="number" value={s.minPrice} onChange={(e) => handleUpdateSkin(c.id, rarity, idx, "minPrice", Number(e.target.value))} className="w-full bg-black/20 rounded px-2 py-1 text-[9px] outline-none font-mono text-acid" placeholder="Мин" />
+                                      </div>
+                                      <div className="w-1/2">
+                                        <div className="text-[7px] text-white/20 uppercase font-black mb-0.5 ml-1">Макс. цена</div>
+                                        <input type="number" value={s.maxPrice} onChange={(e) => handleUpdateSkin(c.id, rarity, idx, "maxPrice", Number(e.target.value))} className="w-full bg-black/20 rounded px-2 py-1 text-[9px] outline-none font-mono text-acid" placeholder="Макс" />
+                                      </div>
                                     </div>
                                   </div>
                                   <button onClick={() => removeSkin(c.id, rarity, idx)} className="text-white/20 hover:text-red-500 self-start">✕</button>
