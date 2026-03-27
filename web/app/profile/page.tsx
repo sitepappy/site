@@ -312,6 +312,7 @@ export default function ProfilePage() {
       </div>
 
       <div className="glass p-6 rounded-2xl border border-white/5">
+        <div className="flex items-end justify-between gap-4">
           <div>
             <div className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Заказы</div>
             <div className="text-xl font-black text-white uppercase tracking-tighter">Статусы и SLA</div>
